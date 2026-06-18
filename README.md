@@ -96,7 +96,13 @@ FitdaysWeb/
 
 ---
 
-### Option B: Running Locally (Development Mode)
+### Option B: Production Deployment (Portainer.io)
+
+For deploying this application in a production environment via Portainer.io stacks, check out the step-by-step **[Portainer.io Production Deployment Guide](DEPLOYMENT.md)**.
+
+---
+
+### Option C: Running Locally (Development Mode)
 
 If you prefer to run the components separately without Docker:
 

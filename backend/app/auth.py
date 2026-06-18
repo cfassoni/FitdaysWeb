@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import os
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -8,9 +9,9 @@ from app.database import get_db
 from app.models import User
 
 # Configuration
-SECRET_KEY = "fitdays_super_secret_key_12345_change_in_production"
+SECRET_KEY = os.getenv("SECRET_KEY", "fitdays_super_secret_key_12345_change_in_production")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 hours
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))  # 24 hours
 
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/users/login")

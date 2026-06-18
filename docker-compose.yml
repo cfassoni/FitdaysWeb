@@ -6,9 +6,13 @@ services:
     container_name: fitdays-backend
     ports:
       - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:////app/data/fitdays.db
+      - SECRET_KEY=${SECRET_KEY:-fitdays_super_secret_key_12345_change_in_production}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
     volumes:
-      # Persistent SQLite database bind mount
-      - ./backend/fitdays.db:/app/fitdays.db
+      # Persistent SQLite database named volume
+      - fitdays-db-data:/app/data
     restart: unless-stopped
 
   frontend:
@@ -21,3 +25,7 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+volumes:
+  fitdays-db-data:
+    driver: local

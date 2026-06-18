@@ -108,8 +108,9 @@ def test_records_upload_and_summary(client: TestClient):
     assert bad_upload.status_code == 422
 
     # Check path of the CSV export file
-    csv_path = r"c:\Users\cfassoni\source\FitdaysWeb\Fitdays-Celso.csv"
-    assert os.path.exists(csv_path), "Test CSV file does not exist at expected path"
+    test_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path = os.path.abspath(os.path.join(test_dir, "..", "..", "test-data", "Fitdays-Celso.csv"))
+    assert os.path.exists(csv_path), f"Test CSV file does not exist at path: {csv_path}"
 
     # Upload the file
     with open(csv_path, "rb") as f:
