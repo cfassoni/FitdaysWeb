@@ -4,8 +4,6 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: fitdays-backend
-    ports:
-      - "8000:8000"
     environment:
       - DATABASE_URL=sqlite:////app/data/fitdays.db
       - SECRET_KEY=${SECRET_KEY:-fitdays_super_secret_key_12345_change_in_production}

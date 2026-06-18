@@ -92,7 +92,7 @@ FitdaysWeb/
    ```
 3. Once running, open your browser and navigate to:
    - **Frontend**: [http://localhost](http://localhost) (runs on standard HTTP port 80)
-   - **Swagger API Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs)
+   - **Swagger API Documentation**: [http://localhost/docs](http://localhost/docs)
 
 ---
 

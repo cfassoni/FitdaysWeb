@@ -109,7 +109,7 @@ def test_records_upload_and_summary(client: TestClient):
 
     # Check path of the CSV export file
     test_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_path = os.path.abspath(os.path.join(test_dir, "..", "..", "test-data", "Fitdays-Celso.csv"))
+    csv_path = os.path.abspath(os.path.join(test_dir, "..", "..", "test-data", "Fitdays-test-data.csv"))
     assert os.path.exists(csv_path), f"Test CSV file does not exist at path: {csv_path}"
 
     # Upload the file
@@ -117,13 +117,13 @@ def test_records_upload_and_summary(client: TestClient):
         upload_response = client.post(
             "/api/records/upload",
             headers=headers,
-            files={"file": ("Fitdays-Celso.csv", f, "application/octet-stream")}
+            files={"file": ("Fitdays-test-data.csv", f, "application/octet-stream")}
         )
     
     assert upload_response.status_code == 201
     res = upload_response.json()
-    assert res["total_processed"] == 16
-    assert res["inserted"] == 16
+    assert res["total_processed"] == 17
+    assert res["inserted"] == 17
     assert res["updated"] == 0
 
     # Test uploading again (re-upload testing for upsert)
@@ -131,40 +131,40 @@ def test_records_upload_and_summary(client: TestClient):
         re_upload_response = client.post(
             "/api/records/upload",
             headers=headers,
-            files={"file": ("Fitdays-Celso.csv", f, "application/octet-stream")}
+            files={"file": ("Fitdays-test-data.csv", f, "application/octet-stream")}
         )
     
     assert re_upload_response.status_code == 201
     re_res = re_upload_response.json()
-    assert re_res["total_processed"] == 16
+    assert re_res["total_processed"] == 17
     assert re_res["inserted"] == 0
-    assert re_res["updated"] == 16
+    assert re_res["updated"] == 17
 
     # Fetch records list
     records_response = client.get("/api/records", headers=headers)
     assert records_response.status_code == 200
     records = records_response.json()
-    assert len(records) == 16
+    assert len(records) == 17
     
     # Check that keys are parsed correctly in the database response
     first_record = records[0]
     assert "date" in first_record
-    assert first_record["weight"] == 117.8
-    assert first_record["bmi"] == 34.1
-    assert first_record["body_fat_pct"] == 40.0
-    assert first_record["right_arm_fat_mass"] == 3.5
+    assert first_record["weight"] == 121.5
+    assert first_record["bmi"] == 35.1
+    assert first_record["body_fat_pct"] == 44.0
+    assert first_record["right_arm_fat_mass"] == 4.0
     assert first_record["right_arm_fat_level"] == "Alto"
-    assert first_record["left_leg_impedance_low"] == 227.6
+    assert first_record["left_leg_impedance_low"] == 256.3
 
     # Fetch summary statistics
     summary_response = client.get("/api/records/summary", headers=headers)
     assert summary_response.status_code == 200
     summary = summary_response.json()
-    assert summary["total_records"] == 16
-    assert summary["starting_weight"] == 117.8
-    assert len(summary["weight_history"]) == 16
+    assert summary["total_records"] == 17
+    assert summary["starting_weight"] == 121.5
+    assert len(summary["weight_history"]) == 17
     
     # Check weight change calculation
     last_record_weight = records[-1]["weight"]
-    expected_change = round(last_record_weight - 117.8, 2)
+    expected_change = round(last_record_weight - 121.5, 2)
     assert summary["weight_change"] == expected_change
