@@ -22,6 +22,9 @@ backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", os.path.join(backend_dir, "uploads", "profile_pics"))
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+REPORTS_DIR = os.getenv("REPORTS_DIR", os.path.join(backend_dir, "uploads", "reports"))
+os.makedirs(REPORTS_DIR, exist_ok=True)
+
 app = FastAPI(
     title="FitdaysWeb API",
     description="Backend service for importing, analyzing, and serving Fitdays body composition data",
@@ -37,8 +40,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files for profile pictures
+# Mount static files for profile pictures and reports
 app.mount("/uploads/profile_pics", StaticFiles(directory=UPLOAD_DIR), name="profile_pics")
+app.mount("/uploads/reports", StaticFiles(directory=REPORTS_DIR), name="reports")
 
 # Include routers
 app.include_router(users.router)

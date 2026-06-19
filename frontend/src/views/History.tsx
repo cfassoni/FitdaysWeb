@@ -15,13 +15,35 @@ import {
   Droplet,
   UserCheck,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  Paperclip,
+  FileUp,
+  ExternalLink
 } from 'lucide-react';
 
 export default function History() {
   const [records, setRecords] = useState<FitdaysRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Report attachment states
+  const [activeMenuRecordId, setActiveMenuRecordId] = useState<number | null>(null);
+  const [uploadRecordId, setUploadRecordId] = useState<number | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDragActive, setIsDragActive] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setActiveMenuRecordId(null);
+    };
+    window.addEventListener('click', handleOutsideClick);
+    return () => {
+      window.removeEventListener('click', handleOutsideClick);
+    };
+  }, []);
   
   // Table search and sort states
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,7 +58,7 @@ export default function History() {
   const [idsToDelete, setIdsToDelete] = useState<number[]>([]);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteFeedback, setDeleteFeedback] = useState<{ success: boolean; message: string } | null>(null);
+  const [deleteFeedback, setDeleteFeedback] = useState<{ success: boolean; title?: string; message: string } | null>(null);
 
   const handleDeleteConfirm = async () => {
     try {
@@ -77,6 +99,108 @@ export default function History() {
       setIsDeleting(false);
     }
   };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setIsDragActive(true);
+    } else if (e.type === "dragleave") {
+      setIsDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      validateAndSetFile(file);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      validateAndSetFile(e.target.files[0]);
+    }
+  };
+
+  const validateAndSetFile = (file: File) => {
+    setUploadError(null);
+    const ALLOWED_TYPES = ["image/png", "image/jpeg", "application/pdf"];
+    const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+    
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setUploadError("Invalid file type. Only PNG, JPEG, and PDF are allowed.");
+      setSelectedFile(null);
+      return;
+    }
+    
+    if (file.size > MAX_SIZE) {
+      setUploadError("File size exceeds the 5MB limit.");
+      setSelectedFile(null);
+      return;
+    }
+    
+    setSelectedFile(file);
+  };
+
+  const handleUploadSubmit = async () => {
+    if (!uploadRecordId || !selectedFile) return;
+    
+    try {
+      setUploadProgress("Uploading...");
+      setUploadError(null);
+      const newReport = await api.uploadReport(uploadRecordId, selectedFile);
+      
+      setRecords(prev => prev.map(r => {
+        if (r.id === uploadRecordId) {
+          return { ...r, report: newReport };
+        }
+        return r;
+      }));
+      
+      setDeleteFeedback({
+        success: true,
+        title: "Upload Successful",
+        message: "Report uploaded successfully."
+      });
+      
+      setUploadRecordId(null);
+      setSelectedFile(null);
+      setUploadProgress(null);
+    } catch (err: any) {
+      setUploadError(err.message || "Failed to upload report.");
+      setUploadProgress(null);
+    }
+  };
+
+  const handleDeleteReport = async (recordId: number) => {
+    if (!confirm("Are you sure you want to delete this attached report?")) return;
+    try {
+      await api.deleteReport(recordId);
+      setRecords(prev => prev.map(r => {
+        if (r.id === recordId) {
+          return { ...r, report: null };
+        }
+        return r;
+      }));
+      setDeleteFeedback({
+        success: true,
+        title: "Deletion Successful",
+        message: "Report deleted successfully."
+      });
+    } catch (err: any) {
+      setDeleteFeedback({
+        success: false,
+        title: "Deletion Failed",
+        message: err.message || "Failed to delete report."
+      });
+    }
+  };
+
 
   useEffect(() => {
     const fetchRecords = async () => {
@@ -188,7 +312,7 @@ export default function History() {
         }`}>
           <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
           <div className="flex-1">
-            <p className="text-sm font-semibold">{deleteFeedback.success ? 'Deletion Successful' : 'Deletion Warning / Error'}</p>
+            <p className="text-sm font-semibold">{deleteFeedback.title || (deleteFeedback.success ? 'Deletion Successful' : 'Deletion Warning / Error')}</p>
             <p className="text-xs opacity-90 mt-0.5 whitespace-pre-line">{deleteFeedback.message}</p>
           </div>
           <button 
@@ -328,13 +452,93 @@ export default function History() {
                       />
                     </td>
                     <td className="px-6 py-4 font-medium whitespace-nowrap">
-                      {new Date(record.date).toLocaleString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                      <div className="flex items-center gap-2">
+                        <span>
+                          {new Date(record.date).toLocaleString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                        <div className="relative inline-block text-left">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenuRecordId(activeMenuRecordId === record.id ? null : record.id);
+                            }}
+                            className={`p-1 rounded-md transition-colors hover:bg-muted cursor-pointer ${
+                              record.report 
+                                ? 'text-primary' 
+                                : 'text-muted-foreground/35 hover:text-muted-foreground'
+                            }`}
+                            title={record.report ? "Report attached" : "No report attached"}
+                            aria-label={record.report ? "report attached" : "no report attached"}
+                          >
+                            <Paperclip className="h-4 w-4" />
+                          </button>
+                          
+                          {activeMenuRecordId === record.id && (
+                            <div 
+                              className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-card border border-border ring-1 ring-black ring-opacity-5 focus:outline-none z-50 animate-in fade-in slide-in-from-top-1 duration-200"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div className="py-1" role="menu" aria-orientation="vertical">
+                                {record.report ? (
+                                  <>
+                                    <a
+                                      href={record.report.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors cursor-pointer w-full text-left"
+                                      role="menuitem"
+                                      onClick={() => setActiveMenuRecordId(null)}
+                                    >
+                                      <ExternalLink className="h-3.5 w-3.5" />
+                                      <span>Open report</span>
+                                    </a>
+                                    <button
+                                      onClick={() => {
+                                        setActiveMenuRecordId(null);
+                                        setUploadRecordId(record.id);
+                                      }}
+                                      className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors cursor-pointer w-full text-left"
+                                      role="menuitem"
+                                    >
+                                      <FileUp className="h-3.5 w-3.5" />
+                                      <span>Replace report</span>
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setActiveMenuRecordId(null);
+                                        handleDeleteReport(record.id);
+                                      }}
+                                      className="flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer w-full text-left"
+                                      role="menuitem"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                      <span>Delete report</span>
+                                    </button>
+                                  </>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      setActiveMenuRecordId(null);
+                                      setUploadRecordId(record.id);
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors cursor-pointer w-full text-left"
+                                    role="menuitem"
+                                  >
+                                    <FileUp className="h-3.5 w-3.5" />
+                                    <span>Upload report</span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">{record.weight.toFixed(1)} kg</td>
                     <td className="px-6 py-4 whitespace-nowrap">{record.bmi.toFixed(1)}</td>
@@ -674,6 +878,133 @@ export default function History() {
                   </>
                 ) : (
                   <span>Yes, Delete</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Report Modal */}
+      {uploadRecordId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity" 
+            onClick={() => !uploadProgress && setUploadRecordId(null)}
+          />
+
+          {/* Modal Content */}
+          <div className="relative w-full max-w-md bg-card border border-border rounded-xl shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95 duration-250 z-10">
+            <div className="flex items-center justify-between pb-2 border-b border-border">
+              <h3 className="text-lg font-bold text-foreground">Upload Mobile App Report</h3>
+              <button
+                disabled={!!uploadProgress}
+                onClick={() => {
+                  setUploadRecordId(null);
+                  setSelectedFile(null);
+                  setUploadError(null);
+                }}
+                className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Drag & Drop Area */}
+            <div
+              onDragEnter={handleDrag}
+              onDragOver={handleDrag}
+              onDragLeave={handleDrag}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-xl p-8 text-center transition-all flex flex-col items-center justify-center gap-3 cursor-pointer ${
+                isDragActive 
+                  ? 'border-primary bg-primary/5 scale-[0.99]' 
+                  : 'border-border hover:border-primary/50 bg-muted/20'
+              }`}
+              onClick={() => document.getElementById('report-file-input')?.click()}
+            >
+              <input
+                id="report-file-input"
+                type="file"
+                className="hidden"
+                accept=".pdf,.png,.jpg,.jpeg,image/png,image/jpeg,application/pdf"
+                onChange={handleFileChange}
+                disabled={!!uploadProgress}
+              />
+              
+              <FileUp className={`h-10 w-10 transition-colors ${isDragActive ? 'text-primary' : 'text-muted-foreground'}`} />
+              
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-foreground">
+                  Drag and drop your report file here
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  or click to browse from your device
+                </p>
+              </div>
+              
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+                PNG, JPEG, or PDF up to 5 MB
+              </p>
+            </div>
+
+            {/* File Info */}
+            {selectedFile && (
+              <div className="p-3 bg-muted/40 border border-border rounded-lg flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 truncate">
+                  <Paperclip className="h-4 w-4 text-primary shrink-0" />
+                  <span className="font-semibold truncate text-foreground">{selectedFile.name}</span>
+                  <span className="text-[10px] text-muted-foreground shrink-0">
+                    ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                  </span>
+                </div>
+                <button
+                  disabled={!!uploadProgress}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedFile(null);
+                  }}
+                  className="p-1 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {uploadError && (
+              <div className="p-3 rounded-lg border border-destructive/20 bg-destructive/10 text-destructive text-xs flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>{uploadError}</span>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                disabled={!!uploadProgress}
+                onClick={() => {
+                  setUploadRecordId(null);
+                  setSelectedFile(null);
+                  setUploadError(null);
+                }}
+                className="px-4 py-2 bg-card border border-border hover:bg-muted text-sm font-semibold rounded-lg text-foreground transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={!selectedFile || !!uploadProgress}
+                onClick={handleUploadSubmit}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/95 text-sm font-semibold rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {uploadProgress ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>{uploadProgress}</span>
+                  </>
+                ) : (
+                  <span>Upload Report</span>
                 )}
               </button>
             </div>
