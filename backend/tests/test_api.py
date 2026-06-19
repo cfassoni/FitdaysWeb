@@ -43,22 +43,34 @@ def test_user_flow(client: TestClient):
     reg_response = client.post(
         "/api/users/register",
         json={
-            "username": "testuser",
+            "login": "testuser",
             "email": "testuser@example.com",
-            "password": "testpassword123"
+            "password": "testpassword123",
+            "display_name": "Test User",
+            "gender": "male",
+            "birthday": "1990-01-01",
+            "height_cm": 175.0,
+            "target_weight_kg": 70.0,
+            "preferred_language": "en"
         }
     )
     assert reg_response.status_code == 201
-    assert reg_response.json()["username"] == "testuser"
+    assert reg_response.json()["login"] == "testuser"
     assert "id" in reg_response.json()
 
     # 2. Duplicate registration should fail
     dup_response = client.post(
         "/api/users/register",
         json={
-            "username": "testuser",
+            "login": "testuser",
             "email": "testuser2@example.com",
-            "password": "testpassword123"
+            "password": "testpassword123",
+            "display_name": "Test User 2",
+            "gender": "female",
+            "birthday": "1992-02-02",
+            "height_cm": 165.0,
+            "target_weight_kg": 60.0,
+            "preferred_language": "en"
         }
     )
     assert dup_response.status_code == 400
@@ -83,7 +95,38 @@ def test_user_flow(client: TestClient):
         headers={"Authorization": f"Bearer {token}"}
     )
     assert profile_response.status_code == 200
-    assert profile_response.json()["username"] == "testuser"
+    assert profile_response.json()["login"] == "testuser"
+    assert profile_response.json()["display_name"] == "Test User"
+
+    # 5. Update profile
+    update_response = client.put(
+        "/api/users/profile",
+        json={
+            "display_name": "Updated Name",
+            "height_cm": 180.0
+        },
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    assert update_response.status_code == 200
+    assert update_response.json()["display_name"] == "Updated Name"
+    assert update_response.json()["height_cm"] == 180.0
+
+    # 6. Upload profile picture
+    from PIL import Image
+    import io
+    img = Image.new("RGB", (100, 100), color="red")
+    img_byte_arr = io.BytesIO()
+    img.save(img_byte_arr, format="PNG")
+    img_byte_arr.seek(0)
+    
+    upload_response = client.post(
+        "/api/users/profile-picture",
+        files={"file": ("test.png", img_byte_arr, "image/png")},
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    assert upload_response.status_code == 200
+    assert upload_response.json()["profile_image_url"] is not None
+    assert upload_response.json()["profile_image_url"].startswith("/uploads/profile_pics/")
 
 
 def test_records_upload_and_summary(client: TestClient):
@@ -91,9 +134,15 @@ def test_records_upload_and_summary(client: TestClient):
     client.post(
         "/api/users/register",
         json={
-            "username": "celso",
+            "login": "celso",
             "email": "celso@example.com",
-            "password": "celsopassword"
+            "password": "celsopassword",
+            "display_name": "Celso Fassoni",
+            "gender": "male",
+            "birthday": "1985-05-15",
+            "height_cm": 180.0,
+            "target_weight_kg": 85.0,
+            "preferred_language": "pt-br"
         }
     )
     login_response = client.post(

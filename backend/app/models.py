@@ -7,9 +7,16 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True, nullable=False)
+    login = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+    display_name = Column(String, nullable=True)
+    gender = Column(String, nullable=True)
+    birthday = Column(String, nullable=True)
+    height_cm = Column(Float, nullable=True)
+    target_weight_kg = Column(Float, nullable=True)
+    profile_image_path = Column(String, nullable=True)
+    preferred_language = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships

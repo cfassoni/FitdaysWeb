@@ -7,6 +7,7 @@ import Register from './views/Register';
 import Dashboard from './views/Dashboard';
 import History from './views/History';
 import Import from './views/Import';
+import Profile from './views/Profile';
 import { Loader2 } from 'lucide-react';
 
 export default function App() {
@@ -15,7 +16,7 @@ export default function App() {
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
   
-  const [currentView, setCurrentView] = useState<'dashboard' | 'history' | 'import'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'history' | 'import' | 'profile'>('dashboard');
 
   const checkAuth = async () => {
     const token = getAuthToken();
@@ -112,6 +113,9 @@ export default function App() {
         )}
         {currentView === 'import' && (
           <Import onImportSuccess={() => setCurrentView('dashboard')} />
+        )}
+        {currentView === 'profile' && (
+          <Profile user={user} onProfileUpdated={(updatedUser) => setUser(updatedUser)} />
         )}
       </main>
       

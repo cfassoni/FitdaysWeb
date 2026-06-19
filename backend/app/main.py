@@ -1,10 +1,26 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.database import engine, Base
+from fastapi.staticfiles import StaticFiles
+from alembic.config import Config
+from alembic import command
+from app.database import engine
 from app.routers import users, records
 
-# Initialize database tables
-Base.metadata.create_all(bind=engine)
+# Run Alembic migrations on startup
+def run_migrations():
+    current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    ini_path = os.path.join(current_dir, "alembic.ini")
+    alembic_cfg = Config(ini_path)
+    alembic_cfg.set_main_option("script_location", os.path.join(current_dir, "migrations"))
+    command.upgrade(alembic_cfg, "head")
+
+run_migrations()
+
+# Ensure uploads directory exists
+backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", os.path.join(backend_dir, "uploads", "profile_pics"))
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 app = FastAPI(
     title="FitdaysWeb API",
@@ -20,6 +36,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static files for profile pictures
+app.mount("/uploads/profile_pics", StaticFiles(directory=UPLOAD_DIR), name="profile_pics")
 
 # Include routers
 app.include_router(users.router)
