@@ -1,12 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import asc
 from typing import List
+import os
+import uuid
+from datetime import datetime
 from app.database import get_db
-from app.models import User, FitdaysRecord
+from app.models import User, FitdaysRecord, FitdaysReport
 from app.auth import get_current_user
 from app.parser import parse_fitdays_file
-from app.schemas import FitdaysRecordResponse, DashboardSummary, WeightHistoryPoint, DeleteRecordsRequest, DeleteRecordsResponse, FailedDeletion
+from app.schemas import FitdaysRecordResponse, DashboardSummary, WeightHistoryPoint, DeleteRecordsRequest, DeleteRecordsResponse, FailedDeletion, FitdaysReportResponse
 
 router = APIRouter(prefix="/api/records", tags=["Fitdays Records"])
 
@@ -158,4 +161,112 @@ def delete_records(
         db.commit()
         
     return DeleteRecordsResponse(deleted=deleted_ids, failed=failed_deletions)
+
+
+@router.get("/{record_id}/report", response_model=FitdaysReportResponse)
+def get_record_report(
+    record_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    record = db.query(FitdaysRecord).filter(
+        FitdaysRecord.id == record_id,
+        FitdaysRecord.user_id == current_user.id
+    ).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Record not found")
+    
+    if not record.report:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    
+    return record.report
+
+
+@router.post("/{record_id}/report", response_model=FitdaysReportResponse, status_code=status.HTTP_201_CREATED)
+async def upload_record_report(
+    record_id: int,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    record = db.query(FitdaysRecord).filter(
+        FitdaysRecord.id == record_id,
+        FitdaysRecord.user_id == current_user.id
+    ).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Record not found")
+    
+    # Validate mime type
+    ALLOWED_MIME_TYPES = ["image/png", "image/jpeg", "application/pdf"]
+    if file.content_type not in ALLOWED_MIME_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid file type. Only PNG, JPEG, and PDF are allowed."
+        )
+    
+    # Validate file size (max 5MB)
+    MAX_SIZE = 5 * 1024 * 1024
+    contents = await file.read()
+    if len(contents) > MAX_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File size exceeds the 5MB limit."
+        )
+    
+    # Save file locally
+    extension = "pdf" if file.content_type == "application/pdf" else ("png" if file.content_type == "image/png" else "jpg")
+    filename = f"report_{record_id}_{uuid.uuid4().hex}.{extension}"
+    
+    backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    upload_dir = os.getenv("REPORTS_DIR", os.path.join(backend_dir, "uploads", "reports"))
+    os.makedirs(upload_dir, exist_ok=True)
+    filepath = os.path.join(upload_dir, filename)
+    
+    # If record already has a report, delete old file and database entry
+    if record.report:
+        db.delete(record.report)
+        db.commit() # This will trigger the after_delete hook to remove the old file on disk!
+        
+    try:
+        with open(filepath, "wb") as f:
+            f.write(contents)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save report file: {str(e)}"
+        )
+        
+    new_report = FitdaysReport(
+        record_id=record_id,
+        file_path=filepath,
+        filename=file.filename or filename,
+        mime_type=file.content_type,
+        file_size=len(contents),
+        uploaded_at=datetime.utcnow()
+    )
+    db.add(new_report)
+    db.commit()
+    db.refresh(new_report)
+    return new_report
+
+
+@router.delete("/{record_id}/report", status_code=status.HTTP_204_NO_CONTENT)
+def delete_record_report(
+    record_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    record = db.query(FitdaysRecord).filter(
+        FitdaysRecord.id == record_id,
+        FitdaysRecord.user_id == current_user.id
+    ).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Record not found")
+    
+    if not record.report:
+        raise HTTPException(status_code=404, detail="No report attached to this record")
+    
+    db.delete(record.report) # Triggers event listener to delete file on disk
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 

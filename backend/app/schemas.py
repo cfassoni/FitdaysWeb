@@ -81,11 +81,32 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     login: str | None = None
 
+# Fitdays Report Schemas
+class FitdaysReportResponse(BaseModel):
+    id: int
+    record_id: int
+    file_path: str = Field(exclude=True)
+    filename: str
+    mime_type: str
+    file_size: int
+    uploaded_at: datetime
+
+    @computed_field
+    @property
+    def url(self) -> str:
+        return f"/uploads/reports/{os.path.basename(self.file_path)}"
+
+    model_config = {
+        "from_attributes": True
+    }
+
+
 # Fitdays Record Schemas
 class FitdaysRecordResponse(BaseModel):
     id: int
     user_id: int
     date: datetime
+    report: FitdaysReportResponse | None = None
 
     # Core Weight / Body Metrics
     weight: float

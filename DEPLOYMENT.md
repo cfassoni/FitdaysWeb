@@ -37,6 +37,8 @@ services:
     container_name: fitdays-backend
     environment:
       - DATABASE_URL=sqlite:////app/data/fitdays.db
+      - UPLOAD_DIR=/app/data/uploads/profile_pics
+      - REPORTS_DIR=/app/data/uploads/reports
       - SECRET_KEY=${SECRET_KEY}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
     volumes:
@@ -86,6 +88,8 @@ Regardless of the method chosen, you must configure the environment variables un
 | `SECRET_KEY` | *(None)* | **[CRITICAL]** A strong, unique secret key used to sign JWT session tokens. Change this to a secure random string (e.g. `openssl rand -hex 32`). |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `1440` | The duration (in minutes) for which user sessions remain valid (default: 24 hours). |
 | `DATABASE_URL` | `sqlite:////app/data/fitdays.db` | The connection string. By default, it points to the SQLite database file inside the persistent volume. |
+| `UPLOAD_DIR` | `/app/data/uploads/profile_pics` | The directory where uploaded profile pictures are stored. Point this inside the persistent volume. |
+| `REPORTS_DIR` | `/app/data/uploads/reports` | The directory where uploaded mobile app reports are stored. Point this inside the persistent volume to prevent data loss on reload. |
 
 ---
 

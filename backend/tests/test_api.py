@@ -385,3 +385,125 @@ def test_records_deletion(client: TestClient):
     assert len(res_mix["deleted"]) == 1
     assert len(res_mix["failed"]) == 2
 
+
+def test_reports_flow(client: TestClient):
+    # 1. Register and login User A
+    client.post(
+        "/api/users/register",
+        json={
+            "login": "usera",
+            "email": "usera@example.com",
+            "password": "password123",
+            "display_name": "User A",
+            "gender": "male",
+            "birthday": "1990-01-01",
+            "height_cm": 180.0,
+            "target_weight_kg": 75.0,
+            "preferred_language": "en"
+        }
+    )
+    login_a = client.post(
+        "/api/users/login",
+        data={"username": "usera", "password": "password123"}
+    )
+    token_a = login_a.json()["access_token"]
+    headers_a = {"Authorization": f"Bearer {token_a}"}
+
+    # 2. Upload records to create an entry
+    test_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path = os.path.abspath(os.path.join(test_dir, "..", "..", "test-data", "Fitdays-test-data.csv"))
+    with open(csv_path, "rb") as f:
+        client.post(
+            "/api/records/upload",
+            headers=headers_a,
+            files={"file": ("Fitdays-test-data.csv", f, "application/octet-stream")}
+        )
+    
+    records = client.get("/api/records", headers=headers_a).json()
+    assert len(records) > 0
+    record_id = records[0]["id"]
+
+    # 3. Check that GET /api/records/{record_id}/report returns 204 when no report exists
+    get_rep_none = client.get(f"/api/records/{record_id}/report", headers=headers_a)
+    assert get_rep_none.status_code == 204
+
+    # 4. Upload a report (PDF) successfully
+    pdf_content = b"%PDF-1.4 dummy pdf content"
+    upload_res = client.post(
+        f"/api/records/{record_id}/report",
+        headers=headers_a,
+        files={"file": ("report.pdf", pdf_content, "application/pdf")}
+    )
+    assert upload_res.status_code == 201
+    rep_data = upload_res.json()
+    assert rep_data["filename"] == "report.pdf"
+    assert rep_data["mime_type"] == "application/pdf"
+    assert "url" in rep_data
+    assert rep_data["url"].startswith("/uploads/reports/")
+
+    # 5. Check GET report returns report info now
+    get_rep = client.get(f"/api/records/{record_id}/report", headers=headers_a)
+    assert get_rep.status_code == 200
+    assert get_rep.json()["filename"] == "report.pdf"
+
+    # 6. Verify that the report is included in the records list
+    records_with_report = client.get("/api/records", headers=headers_a).json()
+    matching_record = next(r for r in records_with_report if r["id"] == record_id)
+    assert matching_record["report"] is not None
+    assert matching_record["report"]["filename"] == "report.pdf"
+
+    # 7. Uploading file size > 5 MB should fail
+    large_content = b"a" * (5 * 1024 * 1024 + 1)
+    upload_large = client.post(
+        f"/api/records/{record_id}/report",
+        headers=headers_a,
+        files={"file": ("large.pdf", large_content, "application/pdf")}
+    )
+    assert upload_large.status_code == 400
+    assert "exceeds" in upload_large.json()["detail"]
+
+    # 8. Uploading invalid mime type should fail
+    txt_content = b"some text content"
+    upload_invalid = client.post(
+        f"/api/records/{record_id}/report",
+        headers=headers_a,
+        files={"file": ("report.txt", txt_content, "text/plain")}
+    )
+    assert upload_invalid.status_code == 400
+    assert "file type" in upload_invalid.json()["detail"]
+
+    # 9. Verify deleting the report works
+    del_res = client.delete(f"/api/records/{record_id}/report", headers=headers_a)
+    assert del_res.status_code == 204
+
+    # 10. Check GET report returns 204 again
+    get_rep_none2 = client.get(f"/api/records/{record_id}/report", headers=headers_a)
+    assert get_rep_none2.status_code == 204
+
+    # 11. Upload a report, get its filename/filepath, delete the record, check file is gone
+    upload_res2 = client.post(
+        f"/api/records/{record_id}/report",
+        headers=headers_a,
+        files={"file": ("report2.pdf", pdf_content, "application/pdf")}
+    )
+    assert upload_res2.status_code == 201
+    file_url = upload_res2.json()["url"]
+    file_name = file_url.split("/")[-1]
+    
+    # Verify file exists on server disk
+    backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    reports_dir = os.path.join(backend_dir, "uploads", "reports")
+    file_path = os.path.join(reports_dir, file_name)
+    assert os.path.exists(file_path)
+
+    # Delete record
+    del_rec_res = client.post(
+        "/api/records/delete",
+        headers=headers_a,
+        json={"ids": [record_id]}
+    )
+    assert del_rec_res.status_code == 200
+    
+    # Check that the report file was deleted from disk
+    assert not os.path.exists(file_path)
+

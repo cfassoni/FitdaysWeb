@@ -121,8 +121,36 @@ class FitdaysRecord(Base):
 
     # Relationships
     user = relationship("User", back_populates="records")
+    report = relationship("FitdaysReport", back_populates="record", uselist=False, cascade="all, delete-orphan", lazy="joined")
 
     # Constraints: Date must be unique per user
     __table_args__ = (
         UniqueConstraint("user_id", "date", name="_user_date_uc"),
     )
+
+
+class FitdaysReport(Base):
+    __tablename__ = "fitdays_reports"
+
+    id = Column(Integer, primary_key=True, index=True)
+    record_id = Column(Integer, ForeignKey("fitdays_records.id", ondelete="CASCADE"), unique=True, nullable=False)
+    file_path = Column(String, nullable=False)
+    filename = Column(String, nullable=False)
+    mime_type = Column(String, nullable=False)
+    file_size = Column(Integer, nullable=False)
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    record = relationship("FitdaysRecord", back_populates="report")
+
+
+from sqlalchemy import event
+import os
+
+@event.listens_for(FitdaysReport, 'after_delete')
+def receive_after_delete(mapper, connection, target):
+    if target.file_path and os.path.exists(target.file_path):
+        try:
+            os.remove(target.file_path)
+        except Exception:
+            pass

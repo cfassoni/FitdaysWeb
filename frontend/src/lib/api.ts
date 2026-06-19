@@ -1,5 +1,15 @@
 // API Client and Interfaces for FitdaysWeb
 
+export interface FitdaysReport {
+  id: number;
+  record_id: number;
+  filename: string;
+  mime_type: string;
+  file_size: number;
+  uploaded_at: string;
+  url: string;
+}
+
 export interface User {
   id: number;
   login: string;
@@ -127,6 +137,7 @@ export interface FitdaysRecord {
   left_leg_muscle_level: string | null;
   left_leg_impedance_high: number | null;
   left_leg_impedance_low: number | null;
+  report: FitdaysReport | null;
 }
 
 export interface UploadResponse {
@@ -312,6 +323,21 @@ export const api = {
     return apiFetch<DeleteRecordsResponse>('/api/records/delete', {
       method: 'POST',
       json: { ids },
+    });
+  },
+
+  async uploadReport(recordId: number, file: File): Promise<FitdaysReport> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiFetch<FitdaysReport>(`/api/records/${recordId}/report`, {
+      method: 'POST',
+      formData,
+    });
+  },
+
+  async deleteReport(recordId: number): Promise<void> {
+    await apiFetch<void>(`/api/records/${recordId}/report`, {
+      method: 'DELETE',
     });
   },
 };
