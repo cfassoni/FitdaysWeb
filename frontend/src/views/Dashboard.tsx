@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import type { DashboardSummary } from '../lib/api';
+import { formatDate, formatDateTime } from '../lib/i18n';
 import { 
   Scale, 
   Activity, 
@@ -27,6 +29,7 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ onNavigateToImport }: DashboardProps) {
+  const { t } = useTranslation();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +78,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 text-primary animate-spin" />
-          <p className="text-sm text-muted-foreground">Loading your body composition summary...</p>
+          <p className="text-sm text-muted-foreground">{t('dashboard.loadingSummary')}</p>
         </div>
       </div>
     );
@@ -87,7 +90,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
         <div className="bg-destructive/10 border border-destructive/25 text-destructive p-4 rounded-xl flex items-center gap-3">
           <Activity className="h-5 w-5 shrink-0" />
           <div>
-            <h3 className="font-semibold text-sm">Error Loading Dashboard</h3>
+            <h3 className="font-semibold text-sm">{t('dashboard.errorTitle')}</h3>
             <p className="text-xs opacity-90">{error}</p>
           </div>
         </div>
@@ -104,15 +107,15 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
           <div className="h-16 w-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-6">
             <Database className="h-8 w-8" />
           </div>
-          <h2 className="text-2xl font-bold mb-2">No data imported yet</h2>
+          <h2 className="text-2xl font-bold mb-2">{t('dashboard.noData')}</h2>
           <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
-            Welcome to FitdaysWeb! To start visualizing your body composition changes, please import your Fitdays CSV export file first.
+            {t('dashboard.noDataDesc')}
           </p>
           <button
             onClick={onNavigateToImport}
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary hover:bg-primary/95 text-primary-foreground font-semibold text-sm transition-all shadow-md shadow-primary/10 hover:shadow-lg cursor-pointer"
           >
-            <span>Import CSV Data</span>
+            <span>{t('dashboard.importBtn')}</span>
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>
@@ -123,7 +126,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
   // Format date ticks for XAxis
   const formattedChartData = summary!.weight_history.map(point => ({
     ...point,
-    displayDate: new Date(point.date).toLocaleDateString(undefined, {
+    displayDate: formatDate(point.date, {
       month: 'short',
       day: 'numeric',
       year: '2-digit'
@@ -151,15 +154,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
   };
 
   const getLatestDateString = (dateStr: string | null) => {
-    if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString(undefined, {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return formatDateTime(dateStr);
   };
 
   return (
@@ -168,15 +163,17 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
       {/* Upper header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground m-0">Progress Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground m-0">{t('dashboard.title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Analyzing {summary?.total_records} measurements since{' '}
-            {summary?.first_record_date ? new Date(summary.first_record_date).toLocaleDateString() : ''}
+            {t('dashboard.subtitle', { 
+              count: summary?.total_records, 
+              startDate: formatDate(summary?.first_record_date)
+            })}
           </p>
         </div>
         <div className="flex items-center gap-2 bg-card border border-border px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground self-start sm:self-center">
           <Calendar className="h-4 w-4" />
-          <span>Latest record: {getLatestDateString(summary!.latest_record_date)}</span>
+          <span>{t('dashboard.latestRecord', { date: getLatestDateString(summary!.latest_record_date) })}</span>
         </div>
       </div>
 
@@ -186,9 +183,9 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
         {/* Card: Total Records */}
         <div className="bg-card border border-border rounded-xl p-5 shadow-xs flex items-start justify-between">
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Logs</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('dashboard.totalLogs')}</p>
             <h3 className="text-3xl font-bold">{summary?.total_records}</h3>
-            <p className="text-xs text-muted-foreground">Body scans imported</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.totalLogsDesc')}</p>
           </div>
           <div className="p-3 bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 rounded-lg">
             <Layers className="h-5 w-5" />
@@ -198,12 +195,12 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
         {/* Card: Weight */}
         <div className="bg-card border border-border rounded-xl p-5 shadow-xs flex items-start justify-between">
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Weight</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('dashboard.weight')}</p>
             <div className="flex items-baseline gap-2">
               <h3 className="text-3xl font-bold">{summary?.current_weight} <span className="text-sm font-normal text-muted-foreground">kg</span></h3>
               {formatChange(summary!.weight_change, ' kg', true)}
             </div>
-            <p className="text-xs text-muted-foreground">Started at {summary?.starting_weight} kg</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.starting')} {summary?.starting_weight} kg</p>
           </div>
           <div className="p-3 bg-violet-500/10 text-violet-500 dark:text-violet-400 rounded-lg">
             <Scale className="h-5 w-5" />
@@ -214,7 +211,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
         <div className="bg-card border border-border rounded-xl p-5 shadow-xs flex items-start justify-between">
           <div className="space-y-2 flex-1 mr-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Body Fat</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('dashboard.bodyFat')}</p>
               <div className="flex bg-muted p-0.5 rounded-md border border-border text-[10px]">
                 <button
                   onClick={() => handleBodyFatUnitChange('pct')}
@@ -257,7 +254,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
                 : formatChange(summary!.body_fat_mass_change, ' kg', true)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Started at {bodyFatUnit === 'pct' ? `${summary?.starting_body_fat}%` : `${summary?.starting_body_fat_mass} kg`}
+              {t('dashboard.starting')} {bodyFatUnit === 'pct' ? `${summary?.starting_body_fat}%` : `${summary?.starting_body_fat_mass} kg`}
             </p>
           </div>
           <div className="p-3 bg-rose-500/10 text-rose-500 dark:text-rose-400 rounded-lg shrink-0">
@@ -269,7 +266,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
         <div className="bg-card border border-border rounded-xl p-5 shadow-xs flex items-start justify-between">
           <div className="space-y-2 flex-1 mr-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Skeletal Muscle</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('dashboard.smmCard')}</p>
               <div className="flex bg-muted p-0.5 rounded-md border border-border text-[10px]">
                 <button
                   onClick={() => handleMuscleUnitChange('pct')}
@@ -312,7 +309,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
                 : formatChange(summary!.skeletal_muscle_mass_pct_change, '%', false)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Started at {muscleUnit === 'kg' ? `${summary?.starting_skeletal_muscle_mass} kg` : `${summary?.starting_skeletal_muscle_mass_pct}%`}
+              {t('dashboard.starting')} {muscleUnit === 'kg' ? `${summary?.starting_skeletal_muscle_mass} kg` : `${summary?.starting_skeletal_muscle_mass_pct}%`}
             </p>
           </div>
           <div className="p-3 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 rounded-lg shrink-0">
@@ -328,8 +325,8 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
         {/* Chart Header + Toggles */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div>
-            <h3 className="text-lg font-bold text-foreground">Body Composition History</h3>
-            <p className="text-xs text-muted-foreground">Toggle layers to customize the history comparison chart</p>
+            <h3 className="text-lg font-bold text-foreground">{t('dashboard.weightHistoryTitle')}</h3>
+            <p className="text-xs text-muted-foreground">{t('dashboard.metricsToShow')}</p>
           </div>
           
           {/* Interactive Multi-Select Toggles */}
@@ -343,7 +340,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
               }`}
             >
               <div className={`h-2.5 w-2.5 rounded-full bg-violet-500 ${showWeight ? 'scale-100' : 'scale-50 opacity-40'} transition-transform`} />
-              <span>Weight (kg)</span>
+              <span>{t('dashboard.weight')} (kg)</span>
             </button>
             
             <button
@@ -355,7 +352,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
               }`}
             >
               <div className={`h-2.5 w-2.5 rounded-full bg-rose-500 ${showBodyFat ? 'scale-100' : 'scale-50 opacity-40'} transition-transform`} />
-              <span>Body Fat ({bodyFatUnit === 'pct' ? '%' : 'kg'})</span>
+              <span>{t('dashboard.bodyFat')} ({bodyFatUnit === 'pct' ? '%' : 'kg'})</span>
             </button>
             
             <button
@@ -367,7 +364,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
               }`}
             >
               <div className={`h-2.5 w-2.5 rounded-full bg-emerald-500 ${showMuscle ? 'scale-100' : 'scale-50 opacity-40'} transition-transform`} />
-              <span>Skeletal Muscle ({muscleUnit === 'kg' ? 'kg' : '%'})</span>
+              <span>{t('dashboard.smmCard')} ({muscleUnit === 'kg' ? 'kg' : '%'})</span>
             </button>
           </div>
         </div>
@@ -431,7 +428,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
 
                 {showWeight && (
                   <Line
-                    name="Weight (kg)"
+                    name={`${t('dashboard.weight')} (kg)`}
                     type="monotone"
                     dataKey="weight"
                     stroke="#8b5cf6" // Violet
@@ -443,7 +440,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
 
                 {showBodyFat && (
                   <Line
-                    name={`Body Fat (${bodyFatUnit === 'pct' ? '%' : 'kg'})`}
+                    name={`${t('dashboard.bodyFat')} (${bodyFatUnit === 'pct' ? '%' : 'kg'})`}
                     type="monotone"
                     dataKey={bodyFatUnit === 'pct' ? 'body_fat_pct' : 'body_fat_mass'}
                     stroke="#f43f5e" // Rose
@@ -455,7 +452,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
 
                 {showMuscle && (
                   <Line
-                    name={`Skeletal Muscle (${muscleUnit === 'kg' ? 'kg' : '%'})`}
+                    name={`${t('dashboard.skeletalMuscle')} (${muscleUnit === 'kg' ? 'kg' : '%'})`}
                     type="monotone"
                     dataKey={muscleUnit === 'kg' ? 'skeletal_muscle_mass' : 'skeletal_muscle_mass_pct'}
                     stroke="#10b981" // Emerald

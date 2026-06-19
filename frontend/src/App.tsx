@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api, removeAuthToken, getAuthToken } from './lib/api';
 import type { User } from './lib/api';
 import Sidebar from './components/Sidebar';
@@ -11,12 +12,34 @@ import Profile from './views/Profile';
 import { Loader2 } from 'lucide-react';
 
 export default function App() {
+  const { t, i18n } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
   
   const [currentView, setCurrentView] = useState<'dashboard' | 'history' | 'import' | 'profile'>('dashboard');
+  const [lastSyncedLang, setLastSyncedLang] = useState<string | null>(null);
+
+  // Sync preferred language from logged-in user profile
+  useEffect(() => {
+    if (user?.preferred_language) {
+      let lang = user.preferred_language.toLowerCase();
+      if (lang.startsWith('pt')) lang = 'pt';
+      else if (lang.startsWith('es')) lang = 'es';
+      else lang = 'en';
+
+      if (lastSyncedLang !== lang) {
+        i18n.changeLanguage(lang);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLastSyncedLang(lang);
+      }
+    } else if (!user) {
+      if (lastSyncedLang !== null) {
+        setLastSyncedLang(null);
+      }
+    }
+  }, [user, lastSyncedLang, i18n]);
 
   const checkAuth = async () => {
     const token = getAuthToken();
@@ -30,7 +53,7 @@ export default function App() {
       const currentUser = await api.getMe();
       setUser(currentUser);
       setIsAuthenticated(true);
-    } catch (err) {
+    } catch {
       // Token is invalid/expired
       removeAuthToken();
       setIsAuthenticated(false);
@@ -41,6 +64,7 @@ export default function App() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     checkAuth();
 
     const handleExpired = () => {
@@ -63,6 +87,7 @@ export default function App() {
     removeAuthToken();
     setIsAuthenticated(false);
     setUser(null);
+    setLastSyncedLang(null);
     setCurrentView('dashboard');
   };
 
@@ -71,7 +96,7 @@ export default function App() {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center">
         <Loader2 className="h-8 w-8 text-primary animate-spin mb-4" />
-        <p className="text-sm text-muted-foreground font-medium">Verifying authorization...</p>
+        <p className="text-sm text-muted-foreground font-medium">{t('common.loading')}</p>
       </div>
     );
   }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { FormEvent } from 'react';
 import { api } from '../lib/api';
 import { 
@@ -9,7 +10,6 @@ import {
   Loader2, 
   AlertCircle, 
   CheckCircle2,
-  Calendar,
   Ruler,
   Weight,
   Globe,
@@ -19,6 +19,8 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+import LanguageSelector from '../components/LanguageSelector';
+import { detectLanguage, formatDate } from '../lib/i18n';
 
 interface RegisterProps {
   onRegisterSuccess: () => void;
@@ -26,6 +28,7 @@ interface RegisterProps {
 }
 
 export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterProps) {
+  const { t, i18n } = useTranslation();
   // Step tracking
   const [step, setStep] = useState<1 | 2 | 3>(1);
   
@@ -38,25 +41,70 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
   // Step 2: Personal Details
   const [displayName, setDisplayName] = useState('');
   const [gender, setGender] = useState<'male' | 'female'>('male');
-  const [birthday, setBirthday] = useState('');
+  const [birthDay, setBirthDay] = useState('');
+  const [birthMonth, setBirthMonth] = useState('');
+  const [birthYear, setBirthYear] = useState('');
+
+  const getDaysInMonth = (monthStr: string, yearStr: string) => {
+    const month = parseInt(monthStr, 10);
+    const year = parseInt(yearStr, 10);
+    if (!month) return 31;
+    if (month === 2) {
+      if (year && ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0)) {
+        return 29;
+      }
+      return 28;
+    }
+    if ([4, 6, 9, 11].includes(month)) {
+      return 30;
+    }
+    return 31;
+  };
+
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 100 }, (_, i) => String(currentYear - i));
+
+  const months = Array.from({ length: 12 }, (_, i) => {
+    const value = String(i + 1).padStart(2, '0');
+    const date = new Date(2026, i, 1);
+    const label = new Intl.DateTimeFormat(i18n.language || 'en', { month: 'long' }).format(date);
+    const capitalizedLabel = label.charAt(0).toUpperCase() + label.slice(1);
+    return { value, label: capitalizedLabel };
+  });
+
+  const daysCount = getDaysInMonth(birthMonth, birthYear);
+  const days = Array.from({ length: daysCount }, (_, i) => String(i + 1).padStart(2, '0'));
+
+  useEffect(() => {
+    if (birthDay && birthMonth) {
+      const maxDays = getDaysInMonth(birthMonth, birthYear);
+      if (parseInt(birthDay, 10) > maxDays) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setBirthDay(String(maxDays).padStart(2, '0'));
+      }
+    }
+  }, [birthMonth, birthYear, birthDay]);
+
+  const birthday = (birthYear && birthMonth && birthDay) ? `${birthYear}-${birthMonth}-${birthDay}` : '';
 
   // Step 3: Physical & Extra
   const [heightCm, setHeightCm] = useState('');
   const [targetWeightKg, setTargetWeightKg] = useState('');
-  const [preferredLanguage, setPreferredLanguage] = useState('en');
+  const [preferredLanguage, setPreferredLanguage] = useState(() => detectLanguage());
+
+  // Synchronize preferredLanguage state when the active UI language changes (e.g. from floating selector)
+  useEffect(() => {
+    if (i18n.language) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPreferredLanguage(i18n.language);
+    }
+  }, [i18n.language]);
   const [profilePic, setProfilePic] = useState<File | null>(null);
   const [profilePicPreview, setProfilePicPreview] = useState<string | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-
-  // Detect language on mount
-  useEffect(() => {
-    const browserLang = navigator.language || 'en';
-    // Format to lowercase/ISO standard matching validator, e.g. 'en-US' or 'en'
-    setPreferredLanguage(browserLang);
-  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -88,25 +136,25 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
   const validateStep1 = (): boolean => {
     setError(null);
     if (!login || !email || !password) {
-      setError('Please fill in all fields');
+      setError(t('common.required'));
       return false;
     }
     const loginRegex = /^[a-z][a-z0-9]*$/;
     if (!loginRegex.test(login)) {
-      setError('Username must start with a lowercase letter and contain only lowercase letters and numbers (no spaces or uppercase)');
+      setError(t('common.validation.usernameFormat'));
       return false;
     }
     if (login.length < 3 || login.length > 50) {
-      setError('Username must be between 3 and 50 characters');
+      setError(t('common.validation.usernameLength'));
       return false;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address');
+      setError(t('common.validation.invalidEmail'));
       return false;
     }
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError(t('common.validation.passwordLength'));
       return false;
     }
     return true;
@@ -115,21 +163,21 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
   const validateStep2 = (): boolean => {
     setError(null);
     if (!displayName || !gender || !birthday) {
-      setError('Please fill in all personal details');
+      setError(t('common.required'));
       return false;
     }
     if (displayName.trim().length < 1) {
-      setError('Please enter a display name');
+      setError(t('common.required'));
       return false;
     }
     const birthDate = new Date(birthday);
     const today = new Date();
     if (isNaN(birthDate.getTime())) {
-      setError('Please enter a valid birthday');
+      setError(t('common.required'));
       return false;
     }
     if (birthDate > today) {
-      setError('Birthday cannot be in the future');
+      setError(t('common.validation.birthdayPast'));
       return false;
     }
     return true;
@@ -138,22 +186,22 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
   const validateStep3 = (): boolean => {
     setError(null);
     if (!heightCm || !targetWeightKg || !preferredLanguage) {
-      setError('Please fill in physical details');
+      setError(t('common.required'));
       return false;
     }
     const h = parseFloat(heightCm);
     const w = parseFloat(targetWeightKg);
     if (isNaN(h) || h < 40 || h > 300) {
-      setError('Height must be a number between 40 and 300 cm');
+      setError(t('common.validation.heightRange'));
       return false;
     }
     if (isNaN(w) || w < 10 || w > 500) {
-      setError('Target weight must be a number between 10 and 500 kg');
+      setError(t('common.validation.weightRange'));
       return false;
     }
     const langRegex = /^[a-zA-Z]{2}(-[a-zA-Z]{2,4})?$/;
     if (!langRegex.test(preferredLanguage)) {
-      setError('Preferred language must be in ISO format (e.g. en, pt-br)');
+      setError(t('common.validation.langFormat'));
       return false;
     }
     return true;
@@ -205,19 +253,26 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
         setTimeout(() => {
           onRegisterSuccess();
         }, 1200);
-      } catch (loginErr) {
-        setError('Account created, but automatic sign in failed. Please log in manually.');
+      } catch {
+        setError(t('register.errorSignInFailed') || 'Account created, but automatic sign in failed. Please log in manually.');
         setSuccess(false);
         setIsLoading(false);
       }
     } catch (err: any) {
-      setError(err.message || 'Registration failed. Username or email might be taken.');
+      setError(err.message || t('register.errorRegisterFailed') || 'Registration failed. Username or email might be taken.');
       setIsLoading(false);
     }
   };
 
+  const getStepTitle = () => {
+    if (step === 1) return t('register.step1Title');
+    if (step === 2) return t('register.step2Title');
+    return t('register.step3Title');
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12 relative w-full">
+      <LanguageSelector variant="floating" />
       <div className="w-full max-w-md bg-card border border-border rounded-2xl p-8 shadow-xl relative overflow-hidden transition-all">
         {/* Glow accent */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-gradient-to-r from-primary to-indigo-500 rounded-b-full" />
@@ -226,8 +281,8 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
           <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
             <TrendingUp className="h-7 w-7" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-1 tracking-tight">Create your profile</h1>
-          <p className="text-sm text-muted-foreground">Step {step} of 3 • {step === 1 ? 'Credentials' : step === 2 ? 'Personal Details' : 'Physical Setup'}</p>
+          <h1 className="text-2xl font-bold text-foreground mb-1 tracking-tight">{t('register.title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('register.progressText', { step, title: getStepTitle() })}</p>
         </div>
 
         {/* Step Progress Bar */}
@@ -245,7 +300,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
         {success && (
           <div className="mb-6 flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 rounded-lg text-sm">
             <CheckCircle2 className="h-5 w-5 shrink-0 animate-bounce" />
-            <span>Account created successfully! Redirecting...</span>
+            <span>{t('register.successMsg')}</span>
           </div>
         )}
 
@@ -256,7 +311,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5" htmlFor="login">
-                  Username
+                  {t('login.username')}
                 </label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground">
@@ -269,7 +324,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
                     value={login}
                     onChange={e => setLogin(e.target.value.toLowerCase())}
                     disabled={isLoading || success}
-                    placeholder="e.g. alice, bob2 (lowercase only)"
+                    placeholder={t('register.usernamePlaceholder')}
                     className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-50"
                   />
                 </div>
@@ -277,7 +332,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5" htmlFor="email">
-                  Email Address
+                  {t('register.emailLabel')}
                 </label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground">
@@ -290,7 +345,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     disabled={isLoading || success}
-                    placeholder="you@example.com"
+                    placeholder={t('register.emailPlaceholder')}
                     className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-50"
                   />
                 </div>
@@ -298,7 +353,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5" htmlFor="password">
-                  Password
+                  {t('login.password')}
                 </label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground">
@@ -311,7 +366,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     disabled={isLoading || success}
-                    placeholder="Min. 6 characters"
+                    placeholder={t('register.passwordPlaceholder')}
                     className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-50"
                   />
                   <button
@@ -331,7 +386,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5" htmlFor="displayName">
-                  Full Name / Display Name
+                  {t('register.displayNameLabel')}
                 </label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground">
@@ -343,7 +398,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
                     value={displayName}
                     onChange={e => setDisplayName(e.target.value)}
                     disabled={isLoading || success}
-                    placeholder="How should we address you?"
+                    placeholder={t('register.displayNamePlaceholder')}
                     className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-50"
                   />
                 </div>
@@ -351,7 +406,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">
-                  Gender
+                  {t('register.genderLabel')}
                 </label>
                 <div className="grid grid-cols-2 gap-4">
                   <button
@@ -364,7 +419,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
                         : 'border-input bg-background text-muted-foreground hover:bg-muted'
                     }`}
                   >
-                    Male
+                    {t('common.male')}
                   </button>
                   <button
                     type="button"
@@ -376,28 +431,66 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
                         : 'border-input bg-background text-muted-foreground hover:bg-muted'
                     }`}
                   >
-                    Female
+                    {t('common.female')}
                   </button>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5" htmlFor="birthday">
-                  Birthday
+                  {t('register.birthdayLabel')}
                 </label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground">
-                    <Calendar className="h-5 w-5" />
-                  </span>
-                  <input
-                    id="birthday"
-                    type="date"
-                    value={birthday}
-                    onChange={e => setBirthday(e.target.value)}
+                <div className="grid grid-cols-3 gap-2">
+                  <select
+                    id="birthDay"
+                    value={birthDay}
+                    onChange={e => setBirthDay(e.target.value)}
                     disabled={isLoading || success}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-50"
-                  />
+                    className="w-full px-3 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    <option value="">{t('common.day')}</option>
+                    {days.map(d => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    id="birthMonth"
+                    value={birthMonth}
+                    onChange={e => setBirthMonth(e.target.value)}
+                    disabled={isLoading || success}
+                    className="w-full px-3 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    <option value="">{t('common.month')}</option>
+                    {months.map(m => (
+                      <option key={m.value} value={m.value}>
+                        {m.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    id="birthYear"
+                    value={birthYear}
+                    onChange={e => setBirthYear(e.target.value)}
+                    disabled={isLoading || success}
+                    className="w-full px-3 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    <option value="">{t('common.year')}</option>
+                    {years.map(y => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+                {birthday && (
+                  <p className="text-xs text-muted-foreground mt-1.5 pl-1 animate-in fade-in duration-200">
+                    {t('register.birthdayLabel')}: <span className="font-medium text-foreground">{formatDate(birthday)}</span>
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -408,7 +501,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5" htmlFor="heightCm">
-                    Height (cm)
+                    {t('register.heightLabel')}
                   </label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground">
@@ -421,7 +514,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
                       value={heightCm}
                       onChange={e => setHeightCm(e.target.value)}
                       disabled={isLoading || success}
-                      placeholder="e.g. 175"
+                      placeholder={t('register.heightPlaceholder')}
                       className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-50"
                     />
                   </div>
@@ -429,7 +522,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5" htmlFor="targetWeightKg">
-                    Goal Weight (kg)
+                    {t('register.weightLabel')}
                   </label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground">
@@ -442,7 +535,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
                       value={targetWeightKg}
                       onChange={e => setTargetWeightKg(e.target.value)}
                       disabled={isLoading || success}
-                      placeholder="e.g. 70"
+                      placeholder={t('register.weightPlaceholder')}
                       className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-50"
                     />
                   </div>
@@ -451,27 +544,29 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5" htmlFor="preferredLanguage">
-                  Preferred Language
+                  {t('register.langLabel')}
                 </label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground">
                     <Globe className="h-5 w-5" />
                   </span>
-                  <input
+                  <select
                     id="preferredLanguage"
-                    type="text"
                     value={preferredLanguage}
                     onChange={e => setPreferredLanguage(e.target.value)}
                     disabled={isLoading || success}
-                    placeholder="en, pt-br, es"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-50"
-                  />
+                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-50 appearance-none cursor-pointer"
+                  >
+                    <option value="en">🇺🇸 English</option>
+                    <option value="pt">🇧🇷 Português</option>
+                    <option value="es">🇪🇸 Español</option>
+                  </select>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">
-                  Profile Picture (Optional)
+                  {t('register.profilePicLabel')}
                 </label>
                 <div className="flex items-center gap-4">
                   <div className="h-16 w-16 rounded-full border border-dashed border-border flex items-center justify-center overflow-hidden shrink-0 bg-muted">
@@ -483,7 +578,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
                   </div>
                   <label className="flex-1 cursor-pointer">
                     <span className="inline-flex items-center px-4 py-2 rounded-lg border border-input bg-background text-sm font-medium text-foreground hover:bg-muted transition-colors cursor-pointer">
-                      Select Image
+                      {t('register.selectImage')}
                     </span>
                     <input
                       type="file"
@@ -492,7 +587,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
                       disabled={isLoading || success}
                       className="hidden"
                     />
-                    <p className="text-xs text-muted-foreground mt-1">JPEG, PNG or WebP up to 4MB</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t('register.profilePicPlaceholder')}</p>
                   </label>
                 </div>
               </div>
@@ -509,7 +604,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
                 className="flex-1 py-2.5 rounded-lg border border-input bg-background text-foreground hover:bg-muted font-medium text-sm transition-all cursor-pointer flex items-center justify-center gap-1 disabled:opacity-50"
               >
                 <ChevronLeft className="h-4 w-4" />
-                <span>Back</span>
+                <span>{t('common.back')}</span>
               </button>
             )}
 
@@ -520,7 +615,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
                 disabled={isLoading || success}
                 className="flex-1 py-2.5 rounded-lg bg-primary hover:bg-primary/95 text-primary-foreground font-semibold text-sm transition-all cursor-pointer flex items-center justify-center gap-1 disabled:opacity-50 ml-auto"
               >
-                <span>Continue</span>
+                <span>{t('common.continue')}</span>
                 <ChevronRight className="h-4 w-4" />
               </button>
             ) : (
@@ -532,10 +627,10 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Registering...</span>
+                    <span>{t('register.registering')}</span>
                   </>
                 ) : (
-                  <span>Submit Profile</span>
+                  <span>{t('common.submit')}</span>
                 )}
               </button>
             )}
@@ -545,13 +640,13 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
 
         <div className="mt-6 text-center">
           <p className="text-sm text-muted-foreground">
-            Already have an account?{' '}
+            {t('register.haveAccount')}{' '}
             <button
               onClick={onGoToLogin}
               disabled={isLoading || success}
               className="font-medium text-primary hover:underline hover:text-primary/90 cursor-pointer disabled:opacity-50"
             >
-              Sign in
+              {t('register.signInLink')}
             </button>
           </p>
         </div>

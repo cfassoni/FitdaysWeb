@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   LayoutDashboard, 
   History, 
@@ -11,6 +12,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
+import LanguageSelector from './LanguageSelector';
 import type { User } from '../lib/api';
 
 interface SidebarProps {
@@ -21,6 +23,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ currentView, onViewChange, user, onLogout }: SidebarProps) {
+  const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -91,7 +94,7 @@ export default function Sidebar({ currentView, onViewChange, user, onLogout }: S
                     }`}
                   >
                     <Icon className="h-5 w-5 shrink-0" />
-                    <span>{item.label}</span>
+                    <span>{t(`sidebar.${item.id}`)}</span>
                   </button>
                 );
               })}
@@ -122,12 +125,13 @@ export default function Sidebar({ currentView, onViewChange, user, onLogout }: S
 
               <div className="flex flex-col gap-2">
                 <ThemeToggle />
+                <LanguageSelector />
                 <button
                   onClick={onLogout}
                   className="flex items-center w-full gap-3 px-4 py-3 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                 >
                   <LogOut className="h-5 w-5 shrink-0" />
-                  <span>Logout</span>
+                  <span>{t('common.logout')}</span>
                 </button>
               </div>
             </div>
@@ -181,7 +185,7 @@ export default function Sidebar({ currentView, onViewChange, user, onLogout }: S
                 title={isCollapsed ? item.label : undefined}
               >
                 <Icon className="h-5 w-5 shrink-0" />
-                {!isCollapsed && <span className="animate-in fade-in duration-200">{item.label}</span>}
+                {!isCollapsed && <span className="animate-in fade-in duration-200">{t(`sidebar.${item.id}`)}</span>}
               </button>
             );
           })}
@@ -216,22 +220,25 @@ export default function Sidebar({ currentView, onViewChange, user, onLogout }: S
           <div className="flex flex-col gap-1.5 pt-2">
             <div className={isCollapsed ? 'flex justify-center' : ''}>
               {isCollapsed ? (
-                <div title="Toggle Theme">
+                <div title={t('sidebar.toggleTheme')}>
                   <ThemeToggle />
                 </div>
               ) : (
                 <ThemeToggle />
               )}
             </div>
+            <div className={isCollapsed ? 'flex justify-center' : ''}>
+              <LanguageSelector isCollapsed={isCollapsed} />
+            </div>
             <button
               onClick={onLogout}
               className={`flex items-center w-full gap-3 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors cursor-pointer ${
                 isCollapsed ? 'justify-center' : ''
               }`}
-              title={isCollapsed ? 'Logout' : undefined}
+              title={isCollapsed ? t('common.logout') : undefined}
             >
               <LogOut className="h-5 w-5 shrink-0" />
-              {!isCollapsed && <span className="animate-in fade-in duration-200">Logout</span>}
+              {!isCollapsed && <span className="animate-in fade-in duration-200">{t('common.logout')}</span>}
             </button>
           </div>
         </div>
