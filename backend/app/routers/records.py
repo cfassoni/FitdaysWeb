@@ -6,7 +6,7 @@ from app.database import get_db
 from app.models import User, FitdaysRecord
 from app.auth import get_current_user
 from app.parser import parse_fitdays_file
-from app.schemas import FitdaysRecordResponse, DashboardSummary, WeightHistoryPoint
+from app.schemas import FitdaysRecordResponse, DashboardSummary, WeightHistoryPoint, DeleteRecordsRequest, DeleteRecordsResponse, FailedDeletion
 
 router = APIRouter(prefix="/api/records", tags=["Fitdays Records"])
 
@@ -118,3 +118,29 @@ def get_summary(
         muscle_mass_change=round(muscle_mass_change, 2),
         weight_history=weight_history
     )
+
+
+@router.post("/delete", response_model=DeleteRecordsResponse)
+def delete_records(
+    payload: DeleteRecordsRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    deleted_ids = []
+    failed_deletions = []
+    
+    for rec_id in payload.ids:
+        record = db.query(FitdaysRecord).filter(FitdaysRecord.id == rec_id).first()
+        if not record:
+            failed_deletions.append(FailedDeletion(id=rec_id, reason="not_found"))
+        elif record.user_id != current_user.id:
+            failed_deletions.append(FailedDeletion(id=rec_id, reason="unauthorized"))
+        else:
+            db.delete(record)
+            deleted_ids.append(rec_id)
+            
+    if deleted_ids:
+        db.commit()
+        
+    return DeleteRecordsResponse(deleted=deleted_ids, failed=failed_deletions)
+

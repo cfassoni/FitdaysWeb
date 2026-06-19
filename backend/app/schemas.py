@@ -196,3 +196,17 @@ class DashboardSummary(BaseModel):
     muscle_mass_change: float | None = None
 
     weight_history: List[WeightHistoryPoint]
+
+
+# Record Deletion Schemas
+class DeleteRecordsRequest(BaseModel):
+    ids: List[int]
+
+class FailedDeletion(BaseModel):
+    id: int
+    reason: str
+
+class DeleteRecordsResponse(BaseModel):
+    deleted: List[int]
+    failed: List[FailedDeletion]
+
