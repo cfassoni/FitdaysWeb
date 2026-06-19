@@ -293,10 +293,10 @@ export default function History() {
                     Body Fat (%) {renderSortIcon('body_fat_pct')}
                   </th>
                   <th 
-                    onClick={() => handleSort('muscle_mass')}
+                    onClick={() => handleSort('skeletal_muscle_mass')}
                     className="px-6 py-4 cursor-pointer hover:bg-muted/80 transition-colors select-none"
                   >
-                    Muscle Mass (kg) {renderSortIcon('muscle_mass')}
+                    Skeletal Muscle (kg) {renderSortIcon('skeletal_muscle_mass')}
                   </th>
                   <th 
                     onClick={() => handleSort('body_score')}
@@ -339,7 +339,7 @@ export default function History() {
                     <td className="px-6 py-4 whitespace-nowrap">{record.weight.toFixed(1)} kg</td>
                     <td className="px-6 py-4 whitespace-nowrap">{record.bmi.toFixed(1)}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{record.body_fat_pct.toFixed(1)}%</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{record.muscle_mass.toFixed(1)} kg</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{record.skeletal_muscle_mass.toFixed(1)} kg</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${
                         record.body_score >= 80 
@@ -436,8 +436,8 @@ export default function History() {
                   <div className="mx-auto h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
                     <Dumbbell className="h-4 w-4" />
                   </div>
-                  <p className="text-xs text-muted-foreground font-semibold">Muscle</p>
-                  <p className="text-lg font-bold">{selectedRecord.muscle_mass.toFixed(1)} kg</p>
+                  <p className="text-xs text-muted-foreground font-semibold">Skeletal Muscle</p>
+                  <p className="text-lg font-bold">{selectedRecord.skeletal_muscle_mass.toFixed(1)} kg</p>
                 </div>
               </div>
 
@@ -511,11 +511,11 @@ export default function History() {
                 </div>
               </div>
 
-              {/* Cardiovascular & Skeletal */}
+              {/* Cardiovascular & Musculoskeletal */}
               <div className="bg-card border border-border rounded-xl p-5 space-y-4">
                 <h4 className="text-sm font-bold text-foreground border-b border-border pb-2 flex items-center gap-2">
                   <Heart className="h-4 w-4 text-rose-500" />
-                  <span>Cardiorespiratory & Skeletal</span>
+                  <span>Cardiorespiratory & Musculoskeletal</span>
                 </h4>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-6">
@@ -542,6 +542,14 @@ export default function History() {
                   <div>
                     <span className="block text-xs text-muted-foreground">SMI (Skeletal Muscle Index)</span>
                     <span className="text-sm font-semibold">{selectedRecord.smi || '-'}</span>
+                  </div>
+                  <div>
+                    <span className="block text-xs text-muted-foreground">Muscle Rate %</span>
+                    <span className="text-sm font-semibold">{selectedRecord.muscle_rate_pct.toFixed(1)}%</span>
+                  </div>
+                  <div>
+                    <span className="block text-xs text-muted-foreground">Total Muscle Mass</span>
+                    <span className="text-sm font-semibold">{selectedRecord.muscle_mass.toFixed(1)} kg</span>
                   </div>
                 </div>
               </div>

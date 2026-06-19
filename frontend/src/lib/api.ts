@@ -20,6 +20,7 @@ export interface WeightHistoryPoint {
   weight: number;
   body_fat_pct: number;
   muscle_mass: number;
+  skeletal_muscle_mass: number;
 }
 
 export interface DashboardSummary {
@@ -35,6 +36,9 @@ export interface DashboardSummary {
   starting_muscle_mass: number | null;
   current_muscle_mass: number | null;
   muscle_mass_change: number | null;
+  starting_skeletal_muscle_mass: number | null;
+  current_skeletal_muscle_mass: number | null;
+  skeletal_muscle_mass_change: number | null;
   weight_history: WeightHistoryPoint[];
 }
 
