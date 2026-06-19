@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { FormEvent } from 'react';
 import { api } from '../lib/api';
 import { TrendingUp, Lock, User as UserIcon, Loader2, AlertCircle } from 'lucide-react';
+import LanguageSelector from '../components/LanguageSelector';
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -9,6 +11,7 @@ interface LoginProps {
 }
 
 export default function Login({ onLoginSuccess, onGoToRegister }: LoginProps) {
+  const { t } = useTranslation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -17,7 +20,7 @@ export default function Login({ onLoginSuccess, onGoToRegister }: LoginProps) {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
-      setError('Please fill in all fields');
+      setError(t('common.required'));
       return;
     }
 
@@ -28,14 +31,15 @@ export default function Login({ onLoginSuccess, onGoToRegister }: LoginProps) {
       await api.login(username, password);
       onLoginSuccess();
     } catch (err: any) {
-      setError(err.message || 'Incorrect username or password');
+      setError(err.message || t('login.errorDefault'));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12 relative w-full">
+      <LanguageSelector variant="floating" />
       <div className="w-full max-w-md bg-card border border-border rounded-2xl p-8 shadow-xl relative overflow-hidden">
         {/* Glow accent */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-gradient-to-r from-primary to-indigo-500 rounded-b-full" />
@@ -44,8 +48,8 @@ export default function Login({ onLoginSuccess, onGoToRegister }: LoginProps) {
           <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
             <TrendingUp className="h-7 w-7" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-1 tracking-tight">Welcome back</h1>
-          <p className="text-sm text-muted-foreground">Sign in to track your body composition progress</p>
+          <h1 className="text-2xl font-bold text-foreground mb-1 tracking-tight">{t('login.title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('login.subtitle')}</p>
         </div>
 
         {error && (
@@ -58,7 +62,7 @@ export default function Login({ onLoginSuccess, onGoToRegister }: LoginProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5" htmlFor="username">
-              Username
+              {t('login.username')}
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground">
@@ -71,7 +75,7 @@ export default function Login({ onLoginSuccess, onGoToRegister }: LoginProps) {
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 disabled={isLoading}
-                placeholder="Enter your username"
+                placeholder={t('login.usernamePlaceholder')}
                 className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-50"
               />
             </div>
@@ -79,7 +83,7 @@ export default function Login({ onLoginSuccess, onGoToRegister }: LoginProps) {
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5" htmlFor="password">
-              Password
+              {t('login.password')}
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground">
@@ -106,23 +110,23 @@ export default function Login({ onLoginSuccess, onGoToRegister }: LoginProps) {
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Signing in...</span>
+                <span>{t('login.signingIn')}</span>
               </>
             ) : (
-              <span>Sign In</span>
+              <span>{t('login.signIn')}</span>
             )}
           </button>
         </form>
 
         <div className="mt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            Don't have an account?{' '}
+            {t('login.noAccount')}{' '}
             <button
               onClick={onGoToRegister}
               disabled={isLoading}
               className="font-medium text-primary hover:underline hover:text-primary/90 cursor-pointer disabled:opacity-50"
             >
-              Sign up
+              {t('login.signUp')}
             </button>
           </p>
         </div>

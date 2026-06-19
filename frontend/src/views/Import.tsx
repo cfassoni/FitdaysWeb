@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { DragEvent, ChangeEvent } from 'react';
 import { api } from '../lib/api';
 import type { UploadResponse } from '../lib/api';
@@ -19,6 +20,7 @@ interface ImportProps {
 }
 
 export default function Import({ onImportSuccess }: ImportProps) {
+  const { t } = useTranslation();
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -48,7 +50,7 @@ export default function Import({ onImportSuccess }: ImportProps) {
         setError(null);
         setResult(null);
       } else {
-        setError('Please drop a valid CSV file');
+        setError(t('import.invalidDrop'));
       }
     }
   };
@@ -61,7 +63,7 @@ export default function Import({ onImportSuccess }: ImportProps) {
         setError(null);
         setResult(null);
       } else {
-        setError('Please select a valid CSV file');
+        setError(t('import.invalidSelect'));
       }
     }
   };
@@ -78,7 +80,7 @@ export default function Import({ onImportSuccess }: ImportProps) {
       setResult(response);
       setFile(null); // Reset file selection
     } catch (err: any) {
-      setError(err.message || 'Failed to upload and parse file');
+      setError(err.message || t('import.uploadError'));
     } finally {
       setIsUploading(false);
     }
@@ -97,9 +99,9 @@ export default function Import({ onImportSuccess }: ImportProps) {
       
       {/* Title */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground m-0">Import Fitdays CSV</h1>
-        <p className="text-sm text-muted-foreground">
-          Upload your exported CSV file from the Fitdays app to update your progress dashboard.
+        <h1 className="text-3xl font-bold tracking-tight text-foreground m-0">{t('import.title')}</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          {t('import.subtitle')}
         </p>
       </div>
 
@@ -108,7 +110,7 @@ export default function Import({ onImportSuccess }: ImportProps) {
         <div className="flex items-center gap-2 p-4 bg-destructive/10 border border-destructive/25 text-destructive rounded-xl text-sm">
           <AlertCircle className="h-5 w-5 shrink-0" />
           <div>
-            <span className="font-semibold block">Import Failed</span>
+            <span className="font-semibold block">{t('import.errorTitle')}</span>
             <span className="text-xs opacity-90">{error}</span>
           </div>
         </div>
@@ -117,7 +119,7 @@ export default function Import({ onImportSuccess }: ImportProps) {
       {/* Upload layout */}
       {!result ? (
         <div className="bg-card border border-border rounded-2xl p-6 shadow-xs space-y-6">
-          <h3 className="text-lg font-bold text-foreground mb-1">Select File</h3>
+          <h3 className="text-lg font-bold text-foreground mb-1">{t('import.selectFile') || 'Select File'}</h3>
 
           {/* Dotted drag zone */}
           <div
@@ -145,10 +147,10 @@ export default function Import({ onImportSuccess }: ImportProps) {
             </div>
             
             <p className="text-sm font-semibold mb-1">
-              Drag & drop your CSV file here, or <span className="text-primary hover:underline cursor-pointer">browse</span>
+              {t('import.dragDrop') || 'Drag & drop your CSV file here, or'} <span className="text-primary hover:underline cursor-pointer">{t('import.browse') || 'browse'}</span>
             </p>
             <p className="text-xs text-muted-foreground">
-              Only standard Fitdays CSV reports are supported.
+              {t('import.supportedFiles') || 'Only standard Fitdays CSV reports are supported.'}
             </p>
           </div>
 
@@ -173,11 +175,11 @@ export default function Import({ onImportSuccess }: ImportProps) {
                 {isUploading ? (
                   <>
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    <span>Processing...</span>
+                    <span>{t('import.processing')}</span>
                   </>
                 ) : (
                   <>
-                    <span>Upload & Parse</span>
+                    <span>{t('import.uploadBtn') || 'Upload & Parse'}</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </>
                 )}
@@ -193,9 +195,9 @@ export default function Import({ onImportSuccess }: ImportProps) {
           </div>
           
           <div>
-            <h2 className="text-2xl font-bold text-foreground">Import Completed!</h2>
+            <h2 className="text-2xl font-bold text-foreground">{t('import.success')}</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Your Fitdays file was parsed and processed successfully.
+              {t('import.successDesc', { total: result.total_processed, inserted: result.inserted, updated: result.updated })}
             </p>
           </div>
 
@@ -205,7 +207,7 @@ export default function Import({ onImportSuccess }: ImportProps) {
               <div className="mx-auto h-7 w-7 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
                 <Database className="h-4 w-4" />
               </div>
-              <span className="block text-[10px] text-muted-foreground uppercase font-semibold">Processed</span>
+              <span className="block text-[10px] text-muted-foreground uppercase font-semibold">{t('import.processed') || 'Processed'}</span>
               <span className="text-base font-bold">{result.total_processed}</span>
             </div>
 
@@ -213,7 +215,7 @@ export default function Import({ onImportSuccess }: ImportProps) {
               <div className="mx-auto h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
                 <Plus className="h-4 w-4" />
               </div>
-              <span className="block text-[10px] text-muted-foreground uppercase font-semibold">Inserted</span>
+              <span className="block text-[10px] text-muted-foreground uppercase font-semibold">{t('import.inserted') || 'Inserted'}</span>
               <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">{result.inserted}</span>
             </div>
 
@@ -221,7 +223,7 @@ export default function Import({ onImportSuccess }: ImportProps) {
               <div className="mx-auto h-7 w-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
                 <RefreshCw className="h-4 w-4" />
               </div>
-              <span className="block text-[10px] text-muted-foreground uppercase font-semibold">Updated</span>
+              <span className="block text-[10px] text-muted-foreground uppercase font-semibold">{t('import.updated') || 'Updated'}</span>
               <span className="text-base font-bold text-amber-600 dark:text-amber-500">{result.updated}</span>
             </div>
           </div>
@@ -232,13 +234,13 @@ export default function Import({ onImportSuccess }: ImportProps) {
               onClick={() => setResult(null)}
               className="px-4 py-2 border border-border rounded-lg text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
             >
-              Upload Another File
+              {t('import.importAnother')}
             </button>
             <button
               onClick={onImportSuccess}
               className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/95 text-primary-foreground font-semibold text-xs rounded-lg transition-colors shadow-md shadow-primary/10 cursor-pointer"
             >
-              <span>View Dashboard</span>
+              <span>{t('import.backDashboard')}</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import type { FitdaysRecord } from '../lib/api';
+import { formatDate, formatDateTime } from '../lib/i18n';
 import { 
   Loader2, 
   Search, 
@@ -22,6 +24,7 @@ import {
 } from 'lucide-react';
 
 export default function History() {
+  const { t } = useTranslation();
   const [records, setRecords] = useState<FitdaysRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -133,13 +136,13 @@ export default function History() {
     const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
     
     if (!ALLOWED_TYPES.includes(file.type)) {
-      setUploadError("Invalid file type. Only PNG, JPEG, and PDF are allowed.");
+      setUploadError(t('history.report.pdfOnly'));
       setSelectedFile(null);
       return;
     }
     
     if (file.size > MAX_SIZE) {
-      setUploadError("File size exceeds the 5MB limit.");
+      setUploadError(t('history.report.exceedsSize'));
       setSelectedFile(null);
       return;
     }
@@ -151,7 +154,7 @@ export default function History() {
     if (!uploadRecordId || !selectedFile) return;
     
     try {
-      setUploadProgress("Uploading...");
+      setUploadProgress(t('history.report.uploading'));
       setUploadError(null);
       const newReport = await api.uploadReport(uploadRecordId, selectedFile);
       
@@ -229,7 +232,7 @@ export default function History() {
   const getSortedRecords = () => {
     return [...records]
       .filter(record => {
-        const formattedDate = new Date(record.date).toLocaleDateString().toLowerCase();
+        const formattedDate = formatDate(record.date).toLowerCase();
         return formattedDate.includes(searchTerm.toLowerCase());
       })
       .sort((a, b) => {
@@ -270,7 +273,7 @@ export default function History() {
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 text-primary animate-spin" />
-          <p className="text-sm text-muted-foreground">Loading your measurements history...</p>
+          <p className="text-sm text-muted-foreground">{t('history.loading')}</p>
         </div>
       </div>
     );
@@ -282,7 +285,7 @@ export default function History() {
         <div className="bg-destructive/10 border border-destructive/25 text-destructive p-4 rounded-xl flex items-center gap-3">
           <X className="h-5 w-5 shrink-0" />
           <div>
-            <h3 className="font-semibold text-sm">Error Loading History</h3>
+            <h3 className="font-semibold text-sm">{t('history.errorTitle')}</h3>
             <p className="text-xs opacity-90">{error}</p>
           </div>
         </div>
@@ -297,9 +300,9 @@ export default function History() {
       
       {/* Title */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground m-0">Measurement History</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground m-0">{t('history.title')}</h1>
         <p className="text-sm text-muted-foreground">
-          View, search, and deep-dive into all recorded body composition logs
+          {t('history.subtitle')}
         </p>
       </div>
 
@@ -331,7 +334,7 @@ export default function History() {
             <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-muted-foreground flex items-center pointer-events-none" />
             <input
               type="text"
-              placeholder="Search by date (e.g. 18/06)..."
+              placeholder={t('history.searchPlaceholder')}
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-card border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground transition-all"
@@ -345,14 +348,14 @@ export default function History() {
               }}
               className="flex items-center justify-center bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-lg transition-all cursor-pointer shadow-sm animate-in fade-in zoom-in-95 duration-250 shrink-0"
               style={{ height: '38px', width: '38px' }}
-              title={`Delete Selected (${selectedIds.length})`}
+              title={t('history.deleteSelected', { count: selectedIds.length })}
             >
               <Trash2 className="h-5 w-5" />
             </button>
           )}
         </div>
         <div className="text-xs text-muted-foreground font-medium self-end sm:self-center">
-          Showing {sortedRecords.length} of {records.length} records
+          {t('history.showingRecords', { count: sortedRecords.length, total: records.length }) || `Showing ${sortedRecords.length} of ${records.length} records`}
         </div>
       </div>
 
@@ -360,7 +363,7 @@ export default function History() {
       <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
         {sortedRecords.length === 0 ? (
           <div className="p-12 text-center text-muted-foreground text-sm">
-            No measurements match your criteria.
+            {t('history.noMatch') || 'No measurements match your criteria.'}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -396,39 +399,39 @@ export default function History() {
                     onClick={() => handleSort('date')}
                     className="px-6 py-4 cursor-pointer hover:bg-muted/80 transition-colors select-none"
                   >
-                    Date & Time {renderSortIcon('date')}
+                    {t('history.table.date')} {renderSortIcon('date')}
                   </th>
                   <th 
                     onClick={() => handleSort('weight')}
                     className="px-6 py-4 cursor-pointer hover:bg-muted/80 transition-colors select-none"
                   >
-                    Weight (kg) {renderSortIcon('weight')}
+                    {t('history.table.weight')} (kg) {renderSortIcon('weight')}
                   </th>
                   <th 
                     onClick={() => handleSort('bmi')}
                     className="px-6 py-4 cursor-pointer hover:bg-muted/80 transition-colors select-none"
                   >
-                    BMI {renderSortIcon('bmi')}
+                    {t('history.table.bmi')} {renderSortIcon('bmi')}
                   </th>
                   <th 
                     onClick={() => handleSort('body_fat_pct')}
                     className="px-6 py-4 cursor-pointer hover:bg-muted/80 transition-colors select-none"
                   >
-                    Body Fat (%) {renderSortIcon('body_fat_pct')}
+                    {t('history.table.bodyFat')} (%) {renderSortIcon('body_fat_pct')}
                   </th>
                   <th 
                     onClick={() => handleSort('skeletal_muscle_mass')}
                     className="px-6 py-4 cursor-pointer hover:bg-muted/80 transition-colors select-none"
                   >
-                    Skeletal Muscle (kg) {renderSortIcon('skeletal_muscle_mass')}
+                    {t('history.table.skeletalMuscle')} (kg) {renderSortIcon('skeletal_muscle_mass')}
                   </th>
                   <th 
                     onClick={() => handleSort('body_score')}
                     className="px-6 py-4 cursor-pointer hover:bg-muted/80 transition-colors select-none"
                   >
-                    Body Score {renderSortIcon('body_score')}
+                    {t('history.table.bodyScore') || 'Body Score'} {renderSortIcon('body_score')}
                   </th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-6 py-4 text-right">{t('history.table.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -454,7 +457,7 @@ export default function History() {
                     <td className="px-6 py-4 font-medium whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span>
-                          {new Date(record.date).toLocaleString(undefined, {
+                          {formatDateTime(record.date, {
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric',
@@ -496,7 +499,7 @@ export default function History() {
                                       onClick={() => setActiveMenuRecordId(null)}
                                     >
                                       <ExternalLink className="h-3.5 w-3.5" />
-                                      <span>Open report</span>
+                                      <span>{t('history.report.view')}</span>
                                     </a>
                                     <button
                                       onClick={() => {
@@ -507,7 +510,7 @@ export default function History() {
                                       role="menuitem"
                                     >
                                       <FileUp className="h-3.5 w-3.5" />
-                                      <span>Replace report</span>
+                                      <span>{t('history.report.upload')}</span>
                                     </button>
                                     <button
                                       onClick={() => {
@@ -518,7 +521,7 @@ export default function History() {
                                       role="menuitem"
                                     >
                                       <Trash2 className="h-3.5 w-3.5" />
-                                      <span>Delete report</span>
+                                      <span>{t('history.report.delete')}</span>
                                     </button>
                                   </>
                                 ) : (
@@ -531,7 +534,7 @@ export default function History() {
                                     role="menuitem"
                                   >
                                     <FileUp className="h-3.5 w-3.5" />
-                                    <span>Upload report</span>
+                                    <span>{t('history.report.upload')}</span>
                                   </button>
                                 )}
                               </div>
@@ -557,10 +560,10 @@ export default function History() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => setSelectedRecord(record)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border hover:bg-muted text-xs font-semibold text-foreground transition-colors cursor-pointer"
+                          className="inline-flex items-center p-1.5 rounded-lg border border-border hover:bg-muted text-foreground transition-colors cursor-pointer"
+                          title={t('history.drawer.reportTitle')}
                         >
                           <Eye className="h-3.5 w-3.5" />
-                          <span>View</span>
                         </button>
                         <button
                           onClick={() => {
@@ -596,11 +599,11 @@ export default function History() {
             {/* Drawer Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-border">
               <div>
-                <h3 className="text-xl font-bold text-foreground">Body Composition Report</h3>
+                <h3 className="text-xl font-bold text-foreground">{t('history.drawer.reportTitle') || 'Body Composition Report'}</h3>
                 <p className="text-xs text-muted-foreground">
-                  Scan date:{' '}
+                  {t('history.drawer.scanDate') || 'Scan date:'}{' '}
                   <span className="font-semibold text-foreground">
-                    {new Date(selectedRecord.date).toLocaleString(undefined, {
+                    {formatDateTime(selectedRecord.date, {
                       dateStyle: 'medium',
                       timeStyle: 'short'
                     })}
@@ -615,16 +618,16 @@ export default function History() {
               </button>
             </div>
 
-            {/* Scrollable Report Content */}
+            {/* Drawer Body Scroll */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              
-              {/* Highlight Metrics */}
-              <div className="grid grid-cols-3 gap-4">
+
+              {/* Highlight Metrics Cards */}
+              <div className="grid grid-cols-3 gap-3">
                 <div className="bg-muted/40 border border-border p-4 rounded-xl text-center space-y-1">
                   <div className="mx-auto h-7 w-7 rounded-lg bg-violet-500/10 text-violet-500 flex items-center justify-center">
                     <Scale className="h-4 w-4" />
                   </div>
-                  <p className="text-xs text-muted-foreground font-semibold">Weight</p>
+                  <p className="text-xs text-muted-foreground font-semibold">{t('dashboard.weight')}</p>
                   <p className="text-lg font-bold">{selectedRecord.weight.toFixed(1)} kg</p>
                 </div>
                 
@@ -632,7 +635,7 @@ export default function History() {
                   <div className="mx-auto h-7 w-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center">
                     <Activity className="h-4 w-4" />
                   </div>
-                  <p className="text-xs text-muted-foreground font-semibold">Body Fat</p>
+                  <p className="text-xs text-muted-foreground font-semibold">{t('dashboard.bodyFat')}</p>
                   <p className="text-lg font-bold">{selectedRecord.body_fat_pct.toFixed(1)}%</p>
                 </div>
 
@@ -640,7 +643,7 @@ export default function History() {
                   <div className="mx-auto h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
                     <Dumbbell className="h-4 w-4" />
                   </div>
-                  <p className="text-xs text-muted-foreground font-semibold">Skeletal Muscle</p>
+                  <p className="text-xs text-muted-foreground font-semibold">{t('history.table.skeletalMuscle')}</p>
                   <p className="text-lg font-bold">{selectedRecord.skeletal_muscle_mass.toFixed(1)} kg</p>
                 </div>
               </div>
@@ -649,32 +652,32 @@ export default function History() {
               <div className="bg-card border border-border rounded-xl p-5 space-y-4">
                 <h4 className="text-sm font-bold text-foreground border-b border-border pb-2 flex items-center gap-2">
                   <UserCheck className="h-4 w-4 text-primary" />
-                  <span>Core Indicators</span>
+                  <span>{t('history.drawer.coreIndicators')}</span>
                 </h4>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-6">
                   <div>
-                    <span className="block text-xs text-muted-foreground">BMI</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.bmi')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.bmi.toFixed(1)}</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">Body Score</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.bodyScore')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.body_score} / 100</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">Metabolic Age</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.metabolicAge')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.metabolic_age.toFixed(0)} yrs</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">BMR</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.bmr')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.bmr.toFixed(0)} kcal</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">Obesity Score</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.obesityScore')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.obesity_score}</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">Fat Free Mass</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.fatFreeMass')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.fat_free_mass.toFixed(1)} kg</span>
                   </div>
                 </div>
@@ -684,32 +687,32 @@ export default function History() {
               <div className="bg-card border border-border rounded-xl p-5 space-y-4">
                 <h4 className="text-sm font-bold text-foreground border-b border-border pb-2 flex items-center gap-2">
                   <Droplet className="h-4 w-4 text-sky-500" />
-                  <span>Adiposity & Hydration</span>
+                  <span>{t('history.drawer.adiposityHydration')}</span>
                 </h4>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-6">
                   <div>
-                    <span className="block text-xs text-muted-foreground">Subcutaneous Fat</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.subcutaneousFat')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.subcutaneous_fat_pct.toFixed(1)}%</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">Visceral Fat Level</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.visceralFatLevel')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.visceral_fat}</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">Fat Mass</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.fatMass')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.fat_mass.toFixed(1)} kg</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">Body Water %</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.bodyWaterPct')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.body_water_pct.toFixed(1)}%</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">Moisture Content</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.moistureContent')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.moisture_content.toFixed(1)} kg</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">Protein %</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.proteinPct')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.protein_pct.toFixed(1)}%</span>
                   </div>
                 </div>
@@ -719,40 +722,40 @@ export default function History() {
               <div className="bg-card border border-border rounded-xl p-5 space-y-4">
                 <h4 className="text-sm font-bold text-foreground border-b border-border pb-2 flex items-center gap-2">
                   <Heart className="h-4 w-4 text-rose-500" />
-                  <span>Cardiorespiratory & Musculoskeletal</span>
+                  <span>{t('history.drawer.cardiorespiratoryMusculoskeletal')}</span>
                 </h4>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-6">
                   <div>
-                    <span className="block text-xs text-muted-foreground">Heart Rate</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.heartRate')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.heart_rate || '-'} bpm</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">Heart Index</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.heartIndex')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.heart_index || '-'}</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">Bone Mass</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.boneMass')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.bone_mass.toFixed(2)} kg</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">Skeletal Muscle %</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.skeletalMusclePct')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.skeletal_muscle_mass_pct.toFixed(1)}%</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">Skeletal Muscle Mass</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.skeletalMuscleMass')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.skeletal_muscle_mass.toFixed(1)} kg</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">SMI (Skeletal Muscle Index)</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.smi')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.smi || '-'}</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">Muscle Rate %</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.muscleRatePct')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.muscle_rate_pct.toFixed(1)}%</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-muted-foreground">Total Muscle Mass</span>
+                    <span className="block text-xs text-muted-foreground">{t('history.drawer.totalMuscleMass')}</span>
                     <span className="text-sm font-semibold">{selectedRecord.muscle_mass.toFixed(1)} kg</span>
                   </div>
                 </div>
@@ -760,15 +763,15 @@ export default function History() {
 
               {/* Segmental Body Composition (Right Arm, Left Arm, Trunk, Right Leg, Left Leg) */}
               <div className="space-y-3">
-                <h4 className="text-sm font-bold text-foreground px-1">Segmental Body Composition</h4>
+                <h4 className="text-sm font-bold text-foreground px-1">{t('history.drawer.segmentalTitle')}</h4>
                 
                 <div className="space-y-3">
                   {[
-                    { title: 'Right Arm', prefix: 'right_arm' },
-                    { title: 'Left Arm', prefix: 'left_arm' },
-                    { title: 'Trunk', prefix: 'trunk' },
-                    { title: 'Right Leg', prefix: 'right_leg' },
-                    { title: 'Left Leg', prefix: 'left_leg' }
+                    { title: t('history.drawer.segments.rightArm'), prefix: 'right_arm' },
+                    { title: t('history.drawer.segments.leftArm'), prefix: 'left_arm' },
+                    { title: t('history.drawer.segments.trunk'), prefix: 'trunk' },
+                    { title: t('history.drawer.segments.rightLeg'), prefix: 'right_leg' },
+                    { title: t('history.drawer.segments.leftLeg'), prefix: 'left_leg' }
                   ].map(segment => {
                     const fatMass = selectedRecord[`${segment.prefix}_fat_mass` as keyof FitdaysRecord] as number | null;
                     const fatPct = selectedRecord[`${segment.prefix}_fat_pct` as keyof FitdaysRecord] as number | null;
@@ -791,27 +794,27 @@ export default function History() {
                           
                           {/* Segment Fat */}
                           <div className="bg-muted/30 border border-border p-2 rounded-lg text-center">
-                            <span className="block text-[10px] text-muted-foreground uppercase font-semibold">Fat Mass</span>
+                            <span className="block text-[10px] text-muted-foreground uppercase font-semibold">{t('history.drawer.fatMass')}</span>
                             <span className="text-xs font-bold text-rose-500">{formatSegmentValue(fatMass, ' kg')}</span>
-                            <span className="block text-[9px] text-muted-foreground mt-0.5">{formatSegmentValue(fatPct, '%')} ({fatLevel || 'Normal'})</span>
+                            <span className="block text-[9px] text-muted-foreground mt-0.5">{formatSegmentValue(fatPct, '%')} ({fatLevel || t('history.drawer.normal')})</span>
                           </div>
 
                           {/* Segment Muscle */}
                           <div className="bg-muted/30 border border-border p-2 rounded-lg text-center">
-                            <span className="block text-[10px] text-muted-foreground uppercase font-semibold">Muscle Mass</span>
+                            <span className="block text-[10px] text-muted-foreground uppercase font-semibold">{t('history.drawer.muscleMass')}</span>
                             <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{formatSegmentValue(musMass, ' kg')}</span>
-                            <span className="block text-[9px] text-muted-foreground mt-0.5">{formatSegmentValue(musPct, '%')} ({musLevel || 'Normal'})</span>
+                            <span className="block text-[9px] text-muted-foreground mt-0.5">{formatSegmentValue(musPct, '%')} ({musLevel || t('history.drawer.normal')})</span>
                           </div>
 
                           {/* Impedance High */}
                           <div className="bg-muted/30 border border-border p-2 rounded-lg text-center flex flex-col justify-center">
-                            <span className="block text-[10px] text-muted-foreground uppercase font-semibold">Impedance H</span>
+                            <span className="block text-[10px] text-muted-foreground uppercase font-semibold">{t('history.drawer.impedanceH')}</span>
                             <span className="text-xs font-bold">{formatSegmentValue(impHigh, ' Ω')}</span>
                           </div>
 
                           {/* Impedance Low */}
                           <div className="bg-muted/30 border border-border p-2 rounded-lg text-center flex flex-col justify-center">
-                            <span className="block text-[10px] text-muted-foreground uppercase font-semibold">Impedance L</span>
+                            <span className="block text-[10px] text-muted-foreground uppercase font-semibold">{t('history.drawer.impedanceL')}</span>
                             <span className="text-xs font-bold">{formatSegmentValue(impLow, ' Ω')}</span>
                           </div>
 
@@ -843,16 +846,17 @@ export default function History() {
                 <Trash2 className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-foreground">Confirm Deletion</h3>
-                <p className="text-xs text-muted-foreground">This action cannot be undone</p>
+                <h3 className="text-lg font-bold text-foreground">{t('history.deletePrompt.title')}</h3>
+                <p className="text-xs text-muted-foreground">{t('history.deletePrompt.confirmSubtitle') || "This action cannot be undone"}</p>
               </div>
             </div>
 
             <p className="text-sm text-foreground">
-              Are you sure you want to delete{' '}
-              <span className="font-semibold text-destructive">
-                {idsToDelete.length} measurement{idsToDelete.length > 1 ? 's' : ''}
-              </span>?
+              {idsToDelete.length === 1 ? (
+                t('history.deletePrompt.confirmSingle')
+              ) : (
+                t('history.deletePrompt.confirmMultiple', { count: idsToDelete.length })
+              )}
             </p>
 
             <div className="flex items-center justify-end gap-3 pt-2">
@@ -864,7 +868,7 @@ export default function History() {
                 }}
                 className="px-4 py-2 bg-card border border-border hover:bg-muted text-sm font-semibold rounded-lg text-foreground transition-colors cursor-pointer disabled:opacity-50"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 disabled={isDeleting}
@@ -874,10 +878,10 @@ export default function History() {
                 {isDeleting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Deleting...</span>
+                    <span>{t('history.deleting')}</span>
                   </>
                 ) : (
-                  <span>Yes, Delete</span>
+                  <span>{t('history.deletePrompt.deleteBtn')}</span>
                 )}
               </button>
             </div>
@@ -897,7 +901,7 @@ export default function History() {
           {/* Modal Content */}
           <div className="relative w-full max-w-md bg-card border border-border rounded-xl shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95 duration-250 z-10">
             <div className="flex items-center justify-between pb-2 border-b border-border">
-              <h3 className="text-lg font-bold text-foreground">Upload Mobile App Report</h3>
+              <h3 className="text-lg font-bold text-foreground">{t('history.report.modalTitle')}</h3>
               <button
                 disabled={!!uploadProgress}
                 onClick={() => {
@@ -937,15 +941,15 @@ export default function History() {
               
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-foreground">
-                  Drag and drop your report file here
+                  {t('history.report.dragDrop')}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  or click to browse from your device
+                  {t('history.report.browseDevice')}
                 </p>
               </div>
               
               <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-                PNG, JPEG, or PDF up to 5 MB
+                {t('history.report.allowedTypes')}
               </p>
             </div>
 
@@ -991,7 +995,7 @@ export default function History() {
                 }}
                 className="px-4 py-2 bg-card border border-border hover:bg-muted text-sm font-semibold rounded-lg text-foreground transition-colors cursor-pointer disabled:opacity-50"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 disabled={!selectedFile || !!uploadProgress}
@@ -1004,7 +1008,7 @@ export default function History() {
                     <span>{uploadProgress}</span>
                   </>
                 ) : (
-                  <span>Upload Report</span>
+                  <span>{t('history.report.upload')}</span>
                 )}
               </button>
             </div>
