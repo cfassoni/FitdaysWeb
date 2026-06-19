@@ -207,15 +207,15 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
           </div>
         </div>
 
-        {/* Card: Muscle Mass */}
+        {/* Card: Skeletal Muscle */}
         <div className="bg-card border border-border rounded-xl p-5 shadow-xs flex items-start justify-between">
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Muscle Mass</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Skeletal Muscle</p>
             <div className="flex items-baseline gap-2">
-              <h3 className="text-3xl font-bold">{summary?.current_muscle_mass} <span className="text-sm font-normal text-muted-foreground">kg</span></h3>
-              {formatChange(summary!.muscle_mass_change, ' kg', false)}
+              <h3 className="text-3xl font-bold">{summary?.current_skeletal_muscle_mass} <span className="text-sm font-normal text-muted-foreground">kg</span></h3>
+              {formatChange(summary!.skeletal_muscle_mass_change, ' kg', false)}
             </div>
-            <p className="text-xs text-muted-foreground">Started at {summary?.starting_muscle_mass} kg</p>
+            <p className="text-xs text-muted-foreground">Started at {summary?.starting_skeletal_muscle_mass} kg</p>
           </div>
           <div className="p-3 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 rounded-lg">
             <Dumbbell className="h-5 w-5" />
@@ -269,7 +269,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
               }`}
             >
               <div className={`h-2.5 w-2.5 rounded-full bg-emerald-500 ${showMuscle ? 'scale-100' : 'scale-50 opacity-40'} transition-transform`} />
-              <span>Muscle Mass (kg)</span>
+              <span>Skeletal Muscle (kg)</span>
             </button>
           </div>
         </div>
@@ -350,9 +350,9 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
 
                 {showMuscle && (
                   <Line
-                    name="Muscle Mass (kg)"
+                    name="Skeletal Muscle (kg)"
                     type="monotone"
-                    dataKey="muscle_mass"
+                    dataKey="skeletal_muscle_mass"
                     stroke="#10b981" // Emerald
                     strokeWidth={3}
                     dot={{ r: 3, strokeWidth: 1 }}

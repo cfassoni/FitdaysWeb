@@ -218,6 +218,22 @@ def test_records_upload_and_summary(client: TestClient):
     expected_change = round(last_record_weight - 121.5, 2)
     assert summary["weight_change"] == expected_change
 
+    # Check skeletal muscle mass summary
+    assert "starting_skeletal_muscle_mass" in summary
+    assert "current_skeletal_muscle_mass" in summary
+    assert "skeletal_muscle_mass_change" in summary
+    
+    first_record_smm = records[0]["skeletal_muscle_mass"]
+    last_record_smm = records[-1]["skeletal_muscle_mass"]
+    expected_smm_change = round(last_record_smm - first_record_smm, 2)
+    
+    assert summary["starting_skeletal_muscle_mass"] == first_record_smm
+    assert summary["current_skeletal_muscle_mass"] == last_record_smm
+    assert summary["skeletal_muscle_mass_change"] == expected_smm_change
+    
+    assert "skeletal_muscle_mass" in summary["weight_history"][0]
+    assert summary["weight_history"][0]["skeletal_muscle_mass"] == first_record_smm
+
 
 def test_records_deletion(client: TestClient):
     # 1. Register and login User A
