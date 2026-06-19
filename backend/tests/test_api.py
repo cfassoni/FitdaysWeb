@@ -234,6 +234,36 @@ def test_records_upload_and_summary(client: TestClient):
     assert "skeletal_muscle_mass" in summary["weight_history"][0]
     assert summary["weight_history"][0]["skeletal_muscle_mass"] == first_record_smm
 
+    # Check new body fat mass fields
+    assert "starting_body_fat_mass" in summary
+    assert "current_body_fat_mass" in summary
+    assert "body_fat_mass_change" in summary
+    
+    first_record_bfm = records[0]["fat_mass"]
+    last_record_bfm = records[-1]["fat_mass"]
+    expected_bfm_change = round(last_record_bfm - first_record_bfm, 2)
+    
+    assert summary["starting_body_fat_mass"] == first_record_bfm
+    assert summary["current_body_fat_mass"] == last_record_bfm
+    assert summary["body_fat_mass_change"] == expected_bfm_change
+    assert "body_fat_mass" in summary["weight_history"][0]
+    assert summary["weight_history"][0]["body_fat_mass"] == first_record_bfm
+
+    # Check new skeletal muscle percentage fields
+    assert "starting_skeletal_muscle_mass_pct" in summary
+    assert "current_skeletal_muscle_mass_pct" in summary
+    assert "skeletal_muscle_mass_pct_change" in summary
+    
+    first_record_smmp = records[0]["skeletal_muscle_mass_pct"]
+    last_record_smmp = records[-1]["skeletal_muscle_mass_pct"]
+    expected_smmp_change = round(last_record_smmp - first_record_smmp, 2)
+    
+    assert summary["starting_skeletal_muscle_mass_pct"] == first_record_smmp
+    assert summary["current_skeletal_muscle_mass_pct"] == last_record_smmp
+    assert summary["skeletal_muscle_mass_pct_change"] == expected_smmp_change
+    assert "skeletal_muscle_mass_pct" in summary["weight_history"][0]
+    assert summary["weight_history"][0]["skeletal_muscle_mass_pct"] == first_record_smmp
+
 
 def test_records_deletion(client: TestClient):
     # 1. Register and login User A

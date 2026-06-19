@@ -19,8 +19,10 @@ export interface WeightHistoryPoint {
   date: string;
   weight: number;
   body_fat_pct: number;
+  body_fat_mass: number;
   muscle_mass: number;
   skeletal_muscle_mass: number;
+  skeletal_muscle_mass_pct: number;
 }
 
 export interface DashboardSummary {
@@ -33,12 +35,18 @@ export interface DashboardSummary {
   starting_body_fat: number | null;
   current_body_fat: number | null;
   body_fat_change: number | null;
+  starting_body_fat_mass: number | null;
+  current_body_fat_mass: number | null;
+  body_fat_mass_change: number | null;
   starting_muscle_mass: number | null;
   current_muscle_mass: number | null;
   muscle_mass_change: number | null;
   starting_skeletal_muscle_mass: number | null;
   current_skeletal_muscle_mass: number | null;
   skeletal_muscle_mass_change: number | null;
+  starting_skeletal_muscle_mass_pct: number | null;
+  current_skeletal_muscle_mass_pct: number | null;
+  skeletal_muscle_mass_pct_change: number | null;
   weight_history: WeightHistoryPoint[];
 }
 

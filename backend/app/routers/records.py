@@ -94,16 +94,20 @@ def get_summary(
             date=r.date,
             weight=r.weight,
             body_fat_pct=r.body_fat_pct,
+            body_fat_mass=r.fat_mass,
             muscle_mass=r.muscle_mass,
-            skeletal_muscle_mass=r.skeletal_muscle_mass
+            skeletal_muscle_mass=r.skeletal_muscle_mass,
+            skeletal_muscle_mass_pct=r.skeletal_muscle_mass_pct
         ) for r in records
     ]
     
     # Calculate differences
     weight_change = last.weight - first.weight
     body_fat_change = last.body_fat_pct - first.body_fat_pct
+    body_fat_mass_change = last.fat_mass - first.fat_mass
     muscle_mass_change = last.muscle_mass - first.muscle_mass
     skeletal_muscle_mass_change = last.skeletal_muscle_mass - first.skeletal_muscle_mass
+    skeletal_muscle_mass_pct_change = last.skeletal_muscle_mass_pct - first.skeletal_muscle_mass_pct
     
     return DashboardSummary(
         total_records=total_records,
@@ -115,12 +119,18 @@ def get_summary(
         starting_body_fat=first.body_fat_pct,
         current_body_fat=last.body_fat_pct,
         body_fat_change=round(body_fat_change, 2),
+        starting_body_fat_mass=first.fat_mass,
+        current_body_fat_mass=last.fat_mass,
+        body_fat_mass_change=round(body_fat_mass_change, 2),
         starting_muscle_mass=first.muscle_mass,
         current_muscle_mass=last.muscle_mass,
         muscle_mass_change=round(muscle_mass_change, 2),
         starting_skeletal_muscle_mass=first.skeletal_muscle_mass,
         current_skeletal_muscle_mass=last.skeletal_muscle_mass,
         skeletal_muscle_mass_change=round(skeletal_muscle_mass_change, 2),
+        starting_skeletal_muscle_mass_pct=first.skeletal_muscle_mass_pct,
+        current_skeletal_muscle_mass_pct=last.skeletal_muscle_mass_pct,
+        skeletal_muscle_mass_pct_change=round(skeletal_muscle_mass_pct_change, 2),
         weight_history=weight_history
     )
 

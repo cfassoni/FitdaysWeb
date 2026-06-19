@@ -36,6 +36,24 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
   const [showBodyFat, setShowBodyFat] = useState(false);
   const [showMuscle, setShowMuscle] = useState(false);
 
+  // States for unit toggling on cards & graphs
+  const [bodyFatUnit, setBodyFatUnit] = useState<'pct' | 'kg'>(() => {
+    return (localStorage.getItem('fitdays_body_fat_unit') as 'pct' | 'kg') || 'pct';
+  });
+  const [muscleUnit, setMuscleUnit] = useState<'kg' | 'pct'>(() => {
+    return (localStorage.getItem('fitdays_muscle_unit') as 'kg' | 'pct') || 'kg';
+  });
+
+  const handleBodyFatUnitChange = (unit: 'pct' | 'kg') => {
+    setBodyFatUnit(unit);
+    localStorage.setItem('fitdays_body_fat_unit', unit);
+  };
+
+  const handleMuscleUnitChange = (unit: 'kg' | 'pct') => {
+    setMuscleUnit(unit);
+    localStorage.setItem('fitdays_muscle_unit', unit);
+  };
+
   useEffect(() => {
     const fetchSummary = async () => {
       try {
@@ -194,30 +212,110 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
 
         {/* Card: Body Fat */}
         <div className="bg-card border border-border rounded-xl p-5 shadow-xs flex items-start justify-between">
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Body Fat</p>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-3xl font-bold">{summary?.current_body_fat} <span className="text-sm font-normal text-muted-foreground">%</span></h3>
-              {formatChange(summary!.body_fat_change, '%', true)}
+          <div className="space-y-2 flex-1 mr-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Body Fat</p>
+              <div className="flex bg-muted p-0.5 rounded-md border border-border text-[10px]">
+                <button
+                  onClick={() => handleBodyFatUnitChange('pct')}
+                  className={`px-2 py-0.5 rounded-sm font-semibold transition-all cursor-pointer ${
+                    bodyFatUnit === 'pct'
+                      ? 'bg-card text-foreground shadow-xs font-bold'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  %
+                </button>
+                <button
+                  onClick={() => handleBodyFatUnitChange('kg')}
+                  className={`px-2 py-0.5 rounded-sm font-semibold transition-all cursor-pointer ${
+                    bodyFatUnit === 'kg'
+                      ? 'bg-card text-foreground shadow-xs font-bold'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  kg
+                </button>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">Started at {summary?.starting_body_fat}%</p>
+            <div className="flex items-baseline gap-2">
+              <h3 className="text-3xl font-bold">
+                {bodyFatUnit === 'pct' ? (
+                  <>
+                    {summary?.current_body_fat}{' '}
+                    <span className="text-sm font-normal text-muted-foreground">%</span>
+                  </>
+                ) : (
+                  <>
+                    {summary?.current_body_fat_mass}{' '}
+                    <span className="text-sm font-normal text-muted-foreground">kg</span>
+                  </>
+                )}
+              </h3>
+              {bodyFatUnit === 'pct'
+                ? formatChange(summary!.body_fat_change, '%', true)
+                : formatChange(summary!.body_fat_mass_change, ' kg', true)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Started at {bodyFatUnit === 'pct' ? `${summary?.starting_body_fat}%` : `${summary?.starting_body_fat_mass} kg`}
+            </p>
           </div>
-          <div className="p-3 bg-rose-500/10 text-rose-500 dark:text-rose-400 rounded-lg">
+          <div className="p-3 bg-rose-500/10 text-rose-500 dark:text-rose-400 rounded-lg shrink-0">
             <Activity className="h-5 w-5" />
           </div>
         </div>
 
         {/* Card: Skeletal Muscle */}
         <div className="bg-card border border-border rounded-xl p-5 shadow-xs flex items-start justify-between">
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Skeletal Muscle</p>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-3xl font-bold">{summary?.current_skeletal_muscle_mass} <span className="text-sm font-normal text-muted-foreground">kg</span></h3>
-              {formatChange(summary!.skeletal_muscle_mass_change, ' kg', false)}
+          <div className="space-y-2 flex-1 mr-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Skeletal Muscle</p>
+              <div className="flex bg-muted p-0.5 rounded-md border border-border text-[10px]">
+                <button
+                  onClick={() => handleMuscleUnitChange('pct')}
+                  className={`px-2 py-0.5 rounded-sm font-semibold transition-all cursor-pointer ${
+                    muscleUnit === 'pct'
+                      ? 'bg-card text-foreground shadow-xs font-bold'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  %
+                </button>
+                <button
+                  onClick={() => handleMuscleUnitChange('kg')}
+                  className={`px-2 py-0.5 rounded-sm font-semibold transition-all cursor-pointer ${
+                    muscleUnit === 'kg'
+                      ? 'bg-card text-foreground shadow-xs font-bold'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  kg
+                </button>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">Started at {summary?.starting_skeletal_muscle_mass} kg</p>
+            <div className="flex items-baseline gap-2">
+              <h3 className="text-3xl font-bold">
+                {muscleUnit === 'kg' ? (
+                  <>
+                    {summary?.current_skeletal_muscle_mass}{' '}
+                    <span className="text-sm font-normal text-muted-foreground">kg</span>
+                  </>
+                ) : (
+                  <>
+                    {summary?.current_skeletal_muscle_mass_pct}{' '}
+                    <span className="text-sm font-normal text-muted-foreground">%</span>
+                  </>
+                )}
+              </h3>
+              {muscleUnit === 'kg'
+                ? formatChange(summary!.skeletal_muscle_mass_change, ' kg', false)
+                : formatChange(summary!.skeletal_muscle_mass_pct_change, '%', false)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Started at {muscleUnit === 'kg' ? `${summary?.starting_skeletal_muscle_mass} kg` : `${summary?.starting_skeletal_muscle_mass_pct}%`}
+            </p>
           </div>
-          <div className="p-3 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 rounded-lg">
+          <div className="p-3 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 rounded-lg shrink-0">
             <Dumbbell className="h-5 w-5" />
           </div>
         </div>
@@ -257,7 +355,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
               }`}
             >
               <div className={`h-2.5 w-2.5 rounded-full bg-rose-500 ${showBodyFat ? 'scale-100' : 'scale-50 opacity-40'} transition-transform`} />
-              <span>Body Fat (%)</span>
+              <span>Body Fat ({bodyFatUnit === 'pct' ? '%' : 'kg'})</span>
             </button>
             
             <button
@@ -269,7 +367,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
               }`}
             >
               <div className={`h-2.5 w-2.5 rounded-full bg-emerald-500 ${showMuscle ? 'scale-100' : 'scale-50 opacity-40'} transition-transform`} />
-              <span>Skeletal Muscle (kg)</span>
+              <span>Skeletal Muscle ({muscleUnit === 'kg' ? 'kg' : '%'})</span>
             </button>
           </div>
         </div>
@@ -305,6 +403,13 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
                 />
                 
                 <Tooltip
+                  formatter={(value: any, name?: any) => {
+                    const valNum = typeof value === 'number' ? value.toFixed(1) : value;
+                    const nameStr = name || '';
+                    if (nameStr.includes('%')) return [`${valNum}%`, nameStr];
+                    if (nameStr.includes('kg')) return [`${valNum} kg`, nameStr];
+                    return [valNum, nameStr];
+                  }}
                   contentStyle={{
                     backgroundColor: 'var(--color-card)',
                     borderColor: 'var(--color-border)',
@@ -338,9 +443,9 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
 
                 {showBodyFat && (
                   <Line
-                    name="Body Fat (%)"
+                    name={`Body Fat (${bodyFatUnit === 'pct' ? '%' : 'kg'})`}
                     type="monotone"
-                    dataKey="body_fat_pct"
+                    dataKey={bodyFatUnit === 'pct' ? 'body_fat_pct' : 'body_fat_mass'}
                     stroke="#f43f5e" // Rose
                     strokeWidth={3}
                     dot={{ r: 3, strokeWidth: 1 }}
@@ -350,9 +455,9 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
 
                 {showMuscle && (
                   <Line
-                    name="Skeletal Muscle (kg)"
+                    name={`Skeletal Muscle (${muscleUnit === 'kg' ? 'kg' : '%'})`}
                     type="monotone"
-                    dataKey="skeletal_muscle_mass"
+                    dataKey={muscleUnit === 'kg' ? 'skeletal_muscle_mass' : 'skeletal_muscle_mass_pct'}
                     stroke="#10b981" // Emerald
                     strokeWidth={3}
                     dot={{ r: 3, strokeWidth: 1 }}

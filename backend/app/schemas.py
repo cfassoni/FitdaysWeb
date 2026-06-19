@@ -175,8 +175,10 @@ class WeightHistoryPoint(BaseModel):
     date: datetime
     weight: float
     body_fat_pct: float
+    body_fat_mass: float
     muscle_mass: float
     skeletal_muscle_mass: float
+    skeletal_muscle_mass_pct: float
 
 class DashboardSummary(BaseModel):
     total_records: int
@@ -192,6 +194,10 @@ class DashboardSummary(BaseModel):
     current_body_fat: float | None = None
     body_fat_change: float | None = None
     
+    starting_body_fat_mass: float | None = None
+    current_body_fat_mass: float | None = None
+    body_fat_mass_change: float | None = None
+
     starting_muscle_mass: float | None = None
     current_muscle_mass: float | None = None
     muscle_mass_change: float | None = None
@@ -199,6 +205,10 @@ class DashboardSummary(BaseModel):
     starting_skeletal_muscle_mass: float | None = None
     current_skeletal_muscle_mass: float | None = None
     skeletal_muscle_mass_change: float | None = None
+
+    starting_skeletal_muscle_mass_pct: float | None = None
+    current_skeletal_muscle_mass_pct: float | None = None
+    skeletal_muscle_mass_pct_change: float | None = None
 
     weight_history: List[WeightHistoryPoint]
 
