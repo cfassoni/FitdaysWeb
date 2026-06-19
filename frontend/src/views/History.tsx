@@ -13,7 +13,9 @@ import {
   Dumbbell,
   Heart,
   Droplet,
-  UserCheck
+  UserCheck,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function History() {
@@ -28,6 +30,53 @@ export default function History() {
 
   // Drawer state
   const [selectedRecord, setSelectedRecord] = useState<FitdaysRecord | null>(null);
+
+  // Deletion States
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [idsToDelete, setIdsToDelete] = useState<number[]>([]);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteFeedback, setDeleteFeedback] = useState<{ success: boolean; message: string } | null>(null);
+
+  const handleDeleteConfirm = async () => {
+    try {
+      setIsDeleting(true);
+      const res = await api.deleteRecords(idsToDelete);
+      
+      const successCount = res.deleted.length;
+      const failCount = res.failed.length;
+      
+      if (successCount > 0) {
+        setRecords(prev => prev.filter(r => !res.deleted.includes(r.id)));
+        setSelectedIds(prev => prev.filter(id => !res.deleted.includes(id)));
+      }
+      
+      if (failCount === 0) {
+        setDeleteFeedback({
+          success: true,
+          message: `${successCount} record${successCount > 1 ? 's' : ''} deleted successfully.`
+        });
+      } else {
+        const failReasons = res.failed.map(f => `ID ${f.id}: ${f.reason}`).join('\n');
+        setDeleteFeedback({
+          success: false,
+          message: `${successCount} deleted, ${failCount} failed.\nFailures:\n${failReasons}`
+        });
+      }
+      
+      setIsDeleteConfirmOpen(false);
+      setIdsToDelete([]);
+    } catch (err: any) {
+      setDeleteFeedback({
+        success: false,
+        message: err.message || 'An error occurred during deletion.'
+      });
+      setIsDeleteConfirmOpen(false);
+      setIdsToDelete([]);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     const fetchRecords = async () => {
@@ -130,17 +179,53 @@ export default function History() {
         </p>
       </div>
 
+      {/* Delete Feedback Alert */}
+      {deleteFeedback && (
+        <div className={`p-4 rounded-xl border flex items-start gap-3 animate-in fade-in slide-in-from-top duration-300 ${
+          deleteFeedback.success 
+            ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-800 dark:text-emerald-300' 
+            : 'bg-amber-500/10 border-amber-500/25 text-amber-800 dark:text-amber-300'
+        }`}>
+          <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold">{deleteFeedback.success ? 'Deletion Successful' : 'Deletion Warning / Error'}</p>
+            <p className="text-xs opacity-90 mt-0.5 whitespace-pre-line">{deleteFeedback.message}</p>
+          </div>
+          <button 
+            onClick={() => setDeleteFeedback(null)}
+            className="p-1 rounded-md hover:bg-muted/50 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full sm:max-w-xs">
-          <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-muted-foreground flex items-center pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search by date (e.g. 18/06)..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-card border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground transition-all"
-          />
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-center">
+          <div className="relative w-full sm:max-w-xs">
+            <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-muted-foreground flex items-center pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search by date (e.g. 18/06)..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-card border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground transition-all"
+            />
+          </div>
+          {selectedIds.length > 0 && (
+            <button
+              onClick={() => {
+                setIdsToDelete(selectedIds);
+                setIsDeleteConfirmOpen(true);
+              }}
+              className="flex items-center justify-center bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-lg transition-all cursor-pointer shadow-sm animate-in fade-in zoom-in-95 duration-250 shrink-0"
+              style={{ height: '38px', width: '38px' }}
+              title={`Delete Selected (${selectedIds.length})`}
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
+          )}
         </div>
         <div className="text-xs text-muted-foreground font-medium self-end sm:self-center">
           Showing {sortedRecords.length} of {records.length} records
@@ -158,6 +243,31 @@ export default function History() {
             <table className="w-full border-collapse text-left text-sm text-foreground">
               <thead className="bg-muted/50 border-b border-border text-muted-foreground font-semibold text-xs tracking-wider uppercase">
                 <tr>
+                  <th className="px-6 py-4 w-12 text-center">
+                    <input
+                      type="checkbox"
+                      checked={
+                        sortedRecords.length > 0 &&
+                        sortedRecords.every((r) => selectedIds.includes(r.id))
+                      }
+                      onChange={() => {
+                        const pageIds = sortedRecords.map((r) => r.id);
+                        const allSelected = pageIds.every((id) => selectedIds.includes(id));
+                        if (allSelected) {
+                          setSelectedIds((prev) => prev.filter((id) => !pageIds.includes(id)));
+                        } else {
+                          setSelectedIds((prev) => {
+                            const next = [...prev];
+                            pageIds.forEach((id) => {
+                              if (!next.includes(id)) next.push(id);
+                            });
+                            return next;
+                          });
+                        }
+                      }}
+                      className="rounded border-border text-primary focus:ring-primary h-4 w-4 bg-card cursor-pointer"
+                    />
+                  </th>
                   <th 
                     onClick={() => handleSort('date')}
                     className="px-6 py-4 cursor-pointer hover:bg-muted/80 transition-colors select-none"
@@ -194,7 +304,7 @@ export default function History() {
                   >
                     Body Score {renderSortIcon('body_score')}
                   </th>
-                  <th className="px-6 py-4 text-right">Details</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -203,6 +313,20 @@ export default function History() {
                     key={record.id}
                     className="hover:bg-muted/20 transition-colors"
                   >
+                    <td className="px-6 py-4 text-center whitespace-nowrap w-12">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(record.id)}
+                        onChange={() => {
+                          setSelectedIds((prev) =>
+                            prev.includes(record.id)
+                              ? prev.filter((id) => id !== record.id)
+                              : [...prev, record.id]
+                          );
+                        }}
+                        className="rounded border-border text-primary focus:ring-primary h-4 w-4 bg-card cursor-pointer"
+                      />
+                    </td>
                     <td className="px-6 py-4 font-medium whitespace-nowrap">
                       {new Date(record.date).toLocaleString(undefined, {
                         year: 'numeric',
@@ -225,14 +349,26 @@ export default function History() {
                         {record.body_score}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right whitespace-nowrap">
-                      <button
-                        onClick={() => setSelectedRecord(record)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border hover:bg-muted text-xs font-semibold text-foreground transition-colors cursor-pointer"
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                        <span>View</span>
-                      </button>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setSelectedRecord(record)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border hover:bg-muted text-xs font-semibold text-foreground transition-colors cursor-pointer"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          <span>View</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIdsToDelete([record.id]);
+                            setIsDeleteConfirmOpen(true);
+                          }}
+                          className="inline-flex items-center p-1.5 rounded-lg border border-destructive/20 text-destructive hover:bg-destructive/10 hover:border-destructive/30 transition-colors cursor-pointer"
+                          title="Delete measurement"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -474,6 +610,64 @@ export default function History() {
                 </div>
               </div>
 
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity" 
+            onClick={() => !isDeleting && setIsDeleteConfirmOpen(false)}
+          />
+
+          {/* Modal Content */}
+          <div className="relative w-full max-w-md bg-card border border-border rounded-xl shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95 duration-250 z-10">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-destructive/10 text-destructive rounded-lg">
+                <Trash2 className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-foreground">Confirm Deletion</h3>
+                <p className="text-xs text-muted-foreground">This action cannot be undone</p>
+              </div>
+            </div>
+
+            <p className="text-sm text-foreground">
+              Are you sure you want to delete{' '}
+              <span className="font-semibold text-destructive">
+                {idsToDelete.length} measurement{idsToDelete.length > 1 ? 's' : ''}
+              </span>?
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                disabled={isDeleting}
+                onClick={() => {
+                  setIsDeleteConfirmOpen(false);
+                  setIdsToDelete([]);
+                }}
+                className="px-4 py-2 bg-card border border-border hover:bg-muted text-sm font-semibold rounded-lg text-foreground transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={isDeleting}
+                onClick={handleDeleteConfirm}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-destructive text-destructive-foreground hover:bg-destructive/90 text-sm font-semibold rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Yes, Delete</span>
+                )}
+              </button>
             </div>
           </div>
         </div>

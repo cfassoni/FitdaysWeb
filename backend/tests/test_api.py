@@ -217,3 +217,125 @@ def test_records_upload_and_summary(client: TestClient):
     last_record_weight = records[-1]["weight"]
     expected_change = round(last_record_weight - 121.5, 2)
     assert summary["weight_change"] == expected_change
+
+
+def test_records_deletion(client: TestClient):
+    # 1. Register and login User A
+    client.post(
+        "/api/users/register",
+        json={
+            "login": "usera",
+            "email": "usera@example.com",
+            "password": "password123",
+            "display_name": "User A",
+            "gender": "male",
+            "birthday": "1990-01-01",
+            "height_cm": 175.0,
+            "target_weight_kg": 70.0,
+            "preferred_language": "en"
+        }
+    )
+    login_a = client.post(
+        "/api/users/login",
+        data={"username": "usera", "password": "password123"}
+    )
+    token_a = login_a.json()["access_token"]
+    headers_a = {"Authorization": f"Bearer {token_a}"}
+
+    # 2. Register and login User B
+    client.post(
+        "/api/users/register",
+        json={
+            "login": "userb",
+            "email": "userb@example.com",
+            "password": "password123",
+            "display_name": "User B",
+            "gender": "female",
+            "birthday": "1992-02-02",
+            "height_cm": 165.0,
+            "target_weight_kg": 60.0,
+            "preferred_language": "en"
+        }
+    )
+    login_b = client.post(
+        "/api/users/login",
+        data={"username": "userb", "password": "password123"}
+    )
+    token_b = login_b.json()["access_token"]
+    headers_b = {"Authorization": f"Bearer {token_b}"}
+
+    # 3. Upload data for User A
+    test_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path = os.path.abspath(os.path.join(test_dir, "..", "..", "test-data", "Fitdays-test-data.csv"))
+    with open(csv_path, "rb") as f:
+        client.post(
+            "/api/records/upload",
+            headers=headers_a,
+            files={"file": ("Fitdays-test-data.csv", f, "application/octet-stream")}
+        )
+
+    # 4. Upload data for User B
+    with open(csv_path, "rb") as f:
+        client.post(
+            "/api/records/upload",
+            headers=headers_b,
+            files={"file": ("Fitdays-test-data.csv", f, "application/octet-stream")}
+        )
+
+    # Get records of User A and User B to find their IDs
+    records_a = client.get("/api/records", headers=headers_a).json()
+    records_b = client.get("/api/records", headers=headers_b).json()
+
+    id_a1 = records_a[0]["id"]
+    id_a2 = records_a[1]["id"]
+    id_b = records_b[0]["id"]
+
+    # 5. Delete a single record of User A successfully
+    del_response = client.post(
+        "/api/records/delete",
+        headers=headers_a,
+        json={"ids": [id_a1]}
+    )
+    assert del_response.status_code == 200
+    res = del_response.json()
+    assert id_a1 in res["deleted"]
+    assert len(res["failed"]) == 0
+
+    # Verify record was deleted for User A
+    records_a_after = client.get("/api/records", headers=headers_a).json()
+    assert len(records_a_after) == len(records_a) - 1
+    assert all(r["id"] != id_a1 for r in records_a_after)
+
+    # 6. Attempt deleting User B's record using User A's token (unauthorized)
+    del_unauth = client.post(
+        "/api/records/delete",
+        headers=headers_a,
+        json={"ids": [id_b]}
+    )
+    assert del_unauth.status_code == 200
+    res_unauth = del_unauth.json()
+    assert len(res_unauth["deleted"]) == 0
+    assert len(res_unauth["failed"]) == 1
+    assert res_unauth["failed"][0]["id"] == id_b
+    assert res_unauth["failed"][0]["reason"] == "unauthorized"
+
+    # 7. Batch delete with mix of valid, unauthorized, and non-existent IDs
+    non_existent_id = 99999
+    mix_response = client.post(
+        "/api/records/delete",
+        headers=headers_a,
+        json={"ids": [id_a2, id_b, non_existent_id]}
+    )
+    assert mix_response.status_code == 200
+    res_mix = mix_response.json()
+    
+    # id_a2 should be deleted successfully
+    assert id_a2 in res_mix["deleted"]
+    
+    # id_b and non_existent_id should be failed
+    failed_ids = {f["id"]: f["reason"] for f in res_mix["failed"]}
+    assert failed_ids[id_b] == "unauthorized"
+    assert failed_ids[non_existent_id] == "not_found"
+    assert len(res_mix["deleted"]) == 1
+    assert len(res_mix["failed"]) == 2
+

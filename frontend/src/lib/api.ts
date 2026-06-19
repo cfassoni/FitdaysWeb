@@ -124,6 +124,17 @@ export interface UploadResponse {
   total_processed: number;
 }
 
+export interface FailedDeletion {
+  id: number;
+  reason: string;
+}
+
+export interface DeleteRecordsResponse {
+  deleted: number[];
+  failed: FailedDeletion[];
+}
+
+
 const TOKEN_KEY = 'fitdays_token';
 
 export const getAuthToken = (): string | null => localStorage.getItem(TOKEN_KEY);
@@ -282,6 +293,13 @@ export const api = {
     return apiFetch<UploadResponse>('/api/records/upload', {
       method: 'POST',
       formData,
+    });
+  },
+
+  async deleteRecords(ids: number[]): Promise<DeleteRecordsResponse> {
+    return apiFetch<DeleteRecordsResponse>('/api/records/delete', {
+      method: 'POST',
+      json: { ids },
     });
   },
 };
