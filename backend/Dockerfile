@@ -14,9 +14,13 @@ RUN pip install --no-cache-dir --upgrade pip && \
     "passlib[bcrypt]>=1.7.4" \
     "bcrypt>=4.0.0" \
     "python-multipart>=0.0.9" \
-    "email-validator>=2.0.0"
+    "email-validator>=2.0.0" \
+    "pillow>=10.0.0" \
+    "alembic>=1.11.0"
 
-# Copy source code
+# Copy source code and migration files
+COPY alembic.ini ./
+COPY migrations/ ./migrations/
 COPY app/ ./app/
 
 # Expose port

@@ -43,3 +43,6 @@ pnpm-debug.log*
 
 # Test Data
 test-data/
+
+# User Profile Picture Uploads
+backend/uploads/

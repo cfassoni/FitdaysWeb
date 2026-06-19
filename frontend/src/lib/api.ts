@@ -2,8 +2,16 @@
 
 export interface User {
   id: number;
-  username: string;
+  login: string;
   email: string;
+  display_name: string | null;
+  gender: string | null;
+  birthday: string | null;
+  height_cm: number | null;
+  target_weight_kg: number | null;
+  profile_image_path: string | null;
+  profile_image_url: string | null;
+  preferred_language: string | null;
   created_at: string;
 }
 
@@ -177,17 +185,37 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
 }
 
 export const api = {
-  async register(username: string, email: string, password: string): Promise<User> {
+  async register(
+    login: string,
+    email: string,
+    password: string,
+    display_name: string,
+    gender: string,
+    birthday: string,
+    height_cm: number,
+    target_weight_kg: number,
+    preferred_language: string
+  ): Promise<User> {
     return apiFetch<User>('/api/users/register', {
       method: 'POST',
-      json: { username, email, password },
+      json: {
+        login,
+        email,
+        password,
+        display_name,
+        gender,
+        birthday,
+        height_cm,
+        target_weight_kg,
+        preferred_language
+      },
     });
   },
 
-  async login(username: string, password: string): Promise<{ access_token: string; token_type: string }> {
+  async login(login: string, password: string): Promise<{ access_token: string; token_type: string }> {
     // OAuth2PasswordRequestForm expects application/x-www-form-urlencoded
     const params = new URLSearchParams();
-    params.append('username', username);
+    params.append('username', login);
     params.append('password', password);
 
     const response = await fetch('/api/users/login', {
@@ -199,7 +227,7 @@ export const api = {
     });
 
     if (!response.ok) {
-      let errorMessage = 'Incorrect username or password';
+      let errorMessage = 'Incorrect login or password';
       try {
         const err = await response.json();
         errorMessage = err.detail || errorMessage;
@@ -217,6 +245,22 @@ export const api = {
   async getMe(): Promise<User> {
     return apiFetch<User>('/api/users/me', {
       method: 'GET',
+    });
+  },
+
+  async updateProfile(profileData: Partial<Omit<User, 'id' | 'created_at' | 'profile_image_path' | 'profile_image_url'>>): Promise<User> {
+    return apiFetch<User>('/api/users/profile', {
+      method: 'PUT',
+      json: profileData,
+    });
+  },
+
+  async uploadProfilePicture(file: File): Promise<User> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiFetch<User>('/api/users/profile-picture', {
+      method: 'POST',
+      formData,
     });
   },
 

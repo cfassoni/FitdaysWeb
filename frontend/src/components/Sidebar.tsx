@@ -14,8 +14,8 @@ import ThemeToggle from './ThemeToggle';
 import type { User } from '../lib/api';
 
 interface SidebarProps {
-  currentView: 'dashboard' | 'history' | 'import';
-  onViewChange: (view: 'dashboard' | 'history' | 'import') => void;
+  currentView: 'dashboard' | 'history' | 'import' | 'profile';
+  onViewChange: (view: 'dashboard' | 'history' | 'import' | 'profile') => void;
   user: User | null;
   onLogout: () => void;
 }
@@ -30,7 +30,7 @@ export default function Sidebar({ currentView, onViewChange, user, onLogout }: S
     { id: 'import', label: 'Import CSV Data', icon: Upload },
   ] as const;
 
-  const handleNavClick = (view: 'dashboard' | 'history' | 'import') => {
+  const handleNavClick = (view: 'dashboard' | 'history' | 'import' | 'profile') => {
     onViewChange(view);
     setIsMobileOpen(false);
   };
@@ -99,15 +99,26 @@ export default function Sidebar({ currentView, onViewChange, user, onLogout }: S
 
             {/* Footer / User / Theme info */}
             <div className="border-t border-border pt-4 mt-auto space-y-4">
-              <div className="flex items-center gap-3 px-2">
-                <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm">
-                  {user?.username ? user.username.slice(0, 2).toUpperCase() : 'US'}
-                </div>
+              <button
+                onClick={() => handleNavClick('profile')}
+                className="flex items-center w-full gap-3 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors cursor-pointer text-left focus:outline-none"
+              >
+                {user?.profile_image_url ? (
+                  <img
+                    src={user.profile_image_url}
+                    alt={user.display_name || user.login}
+                    className="h-9 w-9 rounded-full object-cover border border-border shrink-0"
+                  />
+                ) : (
+                  <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm shrink-0">
+                    {user?.display_name ? user.display_name.slice(0, 2).toUpperCase() : (user?.login ? user.login.slice(0, 2).toUpperCase() : 'US')}
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{user?.username || 'User'}</p>
+                  <p className="text-sm font-semibold truncate leading-none mb-1">{user?.display_name || user?.login || 'User'}</p>
                   <p className="text-xs text-muted-foreground truncate">{user?.email || 'email@example.com'}</p>
                 </div>
-              </div>
+              </button>
 
               <div className="flex flex-col gap-2">
                 <ThemeToggle />
@@ -178,17 +189,29 @@ export default function Sidebar({ currentView, onViewChange, user, onLogout }: S
 
         {/* User profile & controls */}
         <div className="p-4 border-t border-border space-y-3">
-          <div className={`flex items-center gap-3 px-2 ${isCollapsed ? 'justify-center' : ''}`}>
-            <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm shrink-0">
-              {user?.username ? user.username.slice(0, 2).toUpperCase() : 'US'}
-            </div>
+          <button
+            onClick={() => onViewChange('profile')}
+            className={`flex items-center w-full gap-3 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors cursor-pointer text-left focus:outline-none ${isCollapsed ? 'justify-center' : ''}`}
+            title="Edit Profile"
+          >
+            {user?.profile_image_url ? (
+              <img
+                src={user.profile_image_url}
+                alt={user.display_name || user.login}
+                className="h-9 w-9 rounded-full object-cover border border-border shrink-0"
+              />
+            ) : (
+              <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm shrink-0">
+                {user?.display_name ? user.display_name.slice(0, 2).toUpperCase() : (user?.login ? user.login.slice(0, 2).toUpperCase() : 'US')}
+              </div>
+            )}
             {!isCollapsed && (
               <div className="flex-1 min-w-0 animate-in fade-in duration-200">
-                <p className="text-sm font-semibold truncate leading-none mb-1">{user?.username || 'User'}</p>
+                <p className="text-sm font-semibold truncate leading-none mb-1">{user?.display_name || user?.login || 'User'}</p>
                 <p className="text-xs text-muted-foreground truncate">{user?.email || 'email@example.com'}</p>
               </div>
             )}
-          </div>
+          </button>
 
           <div className="flex flex-col gap-1.5 pt-2">
             <div className={isCollapsed ? 'flex justify-center' : ''}>
