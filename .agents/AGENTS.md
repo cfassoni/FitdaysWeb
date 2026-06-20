@@ -8,6 +8,8 @@
 
 - **Python Management via UV**: This project uses `uv` for Python environment and dependency management. Always run Python/pip related commands, tests, database migrations, and scripts using `uv` (e.g., `uv run`, `uv pip`, etc.).
 
+- **Contribution Guidelines**: Always read and follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md) when developing features, tracking versions, or preparing releases (e.g., using `python scripts/bump_version.py` for version bumps).
+
 ## Git Commits and Push Policy
 
 - Use **Conventional Commits** for all commit messages in this project.
