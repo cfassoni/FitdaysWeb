@@ -41,8 +41,5 @@ pnpm-debug.log*
 *.sln
 *.sw?
 
-# Test Data
-test-data/
-
 # User Profile Picture Uploads
 backend/uploads/
