@@ -34,8 +34,13 @@ def upgrade() -> None:
     sa.UniqueConstraint('record_id')
     )
     op.create_index(op.f('ix_fitdays_reports_id'), 'fitdays_reports', ['id'], unique=False)
-    op.drop_index(op.f('ix_users_username'), table_name='users')
-    op.create_index(op.f('ix_users_login'), 'users', ['login'], unique=True)
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    indexes = [idx['name'] for idx in inspector.get_indexes('users')]
+    if 'ix_users_username' in indexes:
+        op.drop_index('ix_users_username', table_name='users')
+    if 'ix_users_login' not in indexes:
+        op.create_index(op.f('ix_users_login'), 'users', ['login'], unique=True)
     # ### end Alembic commands ###
 
 
