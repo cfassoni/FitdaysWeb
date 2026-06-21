@@ -75,6 +75,20 @@
     "editProfile": "Edit Profile",
     "toggleTheme": "Toggle Theme"
   },
+  "toolbar": {
+    "toggleMenu": "Toggle navigation menu",
+    "supportUs": "support us!",
+    "openGithub": "Open GitHub project (opens in new tab)",
+    "reportBug": "report bug",
+    "openIssues": "Open issues (opens in new tab)",
+    "toggleLanguage": "Change Language: {{lang}}",
+    "currentLanguage": "Language selector, current language: {{lang}}",
+    "userMenu": "User profile menu",
+    "editProfile": "Edit Profile",
+    "logout": "Logout",
+    "switchToDark": "Switch to Dark Mode",
+    "switchToLight": "Switch to Light Mode"
+  },
   "dashboard": {
     "title": "Progress Dashboard",
     "subtitle": "Analyzing {{count}} measurements since {{startDate}}",

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { api, removeAuthToken, getAuthToken } from './lib/api';
 import type { User } from './lib/api';
 import Sidebar from './components/Sidebar';
+import TopToolbar from './components/TopToolbar';
 import Login from './views/Login';
 import Register from './views/Register';
 import Dashboard from './views/Dashboard';
@@ -20,6 +21,7 @@ export default function App() {
   
   const [currentView, setCurrentView] = useState<'dashboard' | 'history' | 'import' | 'profile'>('dashboard');
   const [lastSyncedLang, setLastSyncedLang] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   // Sync preferred language from logged-in user profile
   useEffect(() => {
@@ -118,31 +120,42 @@ export default function App() {
 
   // Authenticated Dashboard Layout
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-background text-foreground overflow-hidden">
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-background text-foreground">
       
-      {/* Navigation Sidebar */}
-      <Sidebar 
-        currentView={currentView}
-        onViewChange={setCurrentView}
+      {/* Top Toolbar */}
+      <TopToolbar 
         user={user}
         onLogout={handleLogout}
+        onEditProfile={() => setCurrentView('profile')}
+        onUserUpdate={setUser}
+        onMobileMenuToggle={() => setIsMobileMenuOpen(prev => !prev)}
       />
 
-      {/* Main View Container */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        {currentView === 'dashboard' && (
-          <Dashboard onNavigateToImport={() => setCurrentView('import')} />
-        )}
-        {currentView === 'history' && (
-          <History />
-        )}
-        {currentView === 'import' && (
-          <Import onImportSuccess={() => setCurrentView('dashboard')} />
-        )}
-        {currentView === 'profile' && (
-          <Profile user={user} onProfileUpdated={(updatedUser) => setUser(updatedUser)} />
-        )}
-      </main>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Navigation Sidebar */}
+        <Sidebar 
+          currentView={currentView}
+          onViewChange={setCurrentView}
+          isMobileOpen={isMobileMenuOpen}
+          onMobileClose={() => setIsMobileMenuOpen(false)}
+        />
+
+        {/* Main View Container */}
+        <main className="flex-1 flex flex-col h-full overflow-hidden">
+          {currentView === 'dashboard' && (
+            <Dashboard onNavigateToImport={() => setCurrentView('import')} />
+          )}
+          {currentView === 'history' && (
+            <History />
+          )}
+          {currentView === 'import' && (
+            <Import onImportSuccess={() => setCurrentView('dashboard')} />
+          )}
+          {currentView === 'profile' && (
+            <Profile user={user} onProfileUpdated={(updatedUser) => setUser(updatedUser)} />
+          )}
+        </main>
+      </div>
       
     </div>
   );
