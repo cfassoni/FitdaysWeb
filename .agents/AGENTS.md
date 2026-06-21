@@ -10,6 +10,8 @@
 
 - **Contribution Guidelines**: Always read and follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md) when developing features, tracking versions, or preparing releases (e.g., using `python scripts/bump_version.py` for version bumps).
 
+- **Frontend Internationalization (i18n)**: All user-facing text, tooltips (`title`), screen reader descriptions (`aria-label`), and menu/button labels in the React frontend must be fully internationalized using `useTranslation` from `react-i18next`. Avoid hardcoded strings in components. Ensure new translation keys are updated in all locale JSON files (`en.json`, `pt.json`, `es.json`) and appropriate test mocks are updated.
+
 ## Git Commits and Push Policy
 
 - Use **Conventional Commits** for all commit messages in this project.

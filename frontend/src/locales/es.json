@@ -75,6 +75,20 @@
     "editProfile": "Editar Perfil",
     "toggleTheme": "Cambiar Tema"
   },
+  "toolbar": {
+    "toggleMenu": "Alternar menú de navegación",
+    "supportUs": "¡apóyanos!",
+    "openGithub": "Abrir proyecto en GitHub (abre en nueva pestaña)",
+    "reportBug": "reportar error",
+    "openIssues": "Abrir problemas (abre en nueva pestaña)",
+    "toggleLanguage": "Cambiar Idioma: {{lang}}",
+    "currentLanguage": "Selector de idioma, idioma actual: {{lang}}",
+    "userMenu": "Menú de perfil de usuario",
+    "editProfile": "Editar Perfil",
+    "logout": "Cerrar Sesión",
+    "switchToDark": "Cambiar a Modo Oscuro",
+    "switchToLight": "Cambiar a Modo Claro"
+  },
   "dashboard": {
     "title": "Tablero de Progreso",
     "subtitle": "Analizando {{count}} medición desde {{startDate}}",
