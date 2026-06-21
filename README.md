@@ -45,42 +45,6 @@ A modern, full-stack application designed to import, parse, store, and visualize
 
 ---
 
-## 📁 Project Structure
-
-```text
-FitdaysWeb/
-├── backend/                  # FastAPI Backend
-│   ├── app/
-│   │   ├── routers/          # Users and records API endpoints
-│   │   ├── auth.py           # JWT generation and security utilities
-│   │   ├── database.py       # SQLAlchemy engine & session setup
-│   │   ├── models.py         # SQLAlchemy tables (User, FitdaysRecord)
-│   │   ├── parser.py         # Fitdays CSV parser logic
-│   │   ├── schemas.py        # Pydantic validation schemas
-│   │   └── main.py           # FastAPI entrypoint and CORS setup
-│   ├── tests/                # Pytest suite
-│   ├── Dockerfile            # Python-slim Docker instructions
-│   └── pyproject.toml        # Backend dependencies definition
-│
-├── frontend/                 # Vite + React Frontend
-│   ├── src/
-│   │   ├── components/       # Reusable components (Sidebar, ThemeToggle)
-│   │   ├── lib/              # API Client helper (api.ts)
-│   │   ├── views/            # Screen views (Dashboard, History, Import, Auth)
-│   │   ├── App.tsx           # Router and auth orchestrator
-│   │   ├── index.css         # Tailwind v4 directives & light/dark mode variables
-│   │   └── main.tsx          # React render entrypoint
-│   ├── nginx.conf            # Nginx reverse proxy configuration
-│   ├── Dockerfile            # Multi-stage Node builder + Nginx image instructions
-│   └── package.json          # Node dependencies definition
-│
-├── test-data/                # Ignored folder housing sample Fitdays exports
-├── docker-compose.yml        # Multi-container coordinator
-└── README.md                 # Project documentation
-```
-
----
-
 ## ⚙️ Getting Started
 
 ### Option A: Running with Docker Desktop (Recommended)
@@ -107,25 +71,20 @@ For deploying this application in a production environment via Portainer.io stac
 If you prefer to run the components separately without Docker:
 
 #### 1. Setup Backend
+
+This project uses `uv` for Python environment and dependency management.
+
 1. Navigate to the `backend/` directory:
    ```bash
    cd backend
    ```
-2. Create and activate a Python virtual environment:
+2. Sync the dependencies and initialize the virtual environment:
    ```bash
-   python -m venv .venv
-   # Windows:
-   .venv\Scripts\activate
-   # Linux/macOS:
-   source .venv/bin/activate
+   uv sync
    ```
-3. Install dependencies:
+3. Launch the dev server:
    ```bash
-   pip install -r pyproject.toml # or use `uv pip sync` / `pip install .`
-   ```
-4. Launch the dev server:
-   ```bash
-   uvicorn app.main:app --reload
+   uv run uvicorn app.main:app --reload
    ```
    *The backend will run on `http://localhost:8000`.*
 
