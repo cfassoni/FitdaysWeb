@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, UniqueConstraint, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
@@ -21,6 +21,7 @@ class User(Base):
 
     # Relationships
     records = relationship("FitdaysRecord", back_populates="user", cascade="all, delete-orphan")
+    shared_links = relationship("SharedLink", back_populates="owner", cascade="all, delete-orphan")
 
 
 class FitdaysRecord(Base):
@@ -154,3 +155,36 @@ def receive_after_delete(mapper, connection, target):
             os.remove(target.file_path)
         except Exception:
             pass
+
+
+class SharedLink(Base):
+    __tablename__ = "shared_links"
+
+    id = Column(String, primary_key=True, index=True)
+    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    token = Column(String, unique=True, index=True, nullable=False)
+    description = Column(String, nullable=False)
+    password_hash = Column(String, nullable=True)
+    include_attachments = Column(Boolean, default=True, nullable=False)
+    expires_at = Column(DateTime, nullable=True)
+    snapshot_data = Column(String, nullable=False)  # JSON string
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    # Relationships
+    owner = relationship("User", back_populates="shared_links")
+    audit_logs = relationship("SharedLinkAuditLog", back_populates="shared_link", cascade="all, delete-orphan")
+
+
+class SharedLinkAuditLog(Base):
+    __tablename__ = "shared_link_audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    shared_link_id = Column(String, ForeignKey("shared_links.id", ondelete="CASCADE"), nullable=False)
+    accessed_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    ip_address = Column(String, nullable=True)
+    user_agent = Column(String, nullable=True)
+    status = Column(String, nullable=False)
+
+    # Relationships
+    shared_link = relationship("SharedLink", back_populates="audit_logs")
+

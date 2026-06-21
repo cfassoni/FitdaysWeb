@@ -173,7 +173,7 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
   const token = getAuthToken();
   const headers = new Headers(options.headers || {});
 
-  if (token) {
+  if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`);
   }
 
@@ -340,4 +340,109 @@ export const api = {
       method: 'DELETE',
     });
   },
+
+  async createSharedLink(
+    description: string,
+    password: string | null,
+    include_attachments: boolean,
+    expires_at: string | null,
+    entry_ids: number[]
+  ): Promise<SharedLink> {
+    return apiFetch<SharedLink>('/api/shared-links', {
+      method: 'POST',
+      json: {
+        description,
+        password,
+        include_attachments,
+        expires_at,
+        entry_ids
+      }
+    });
+  },
+
+  async getSharedLinks(): Promise<SharedLink[]> {
+    return apiFetch<SharedLink[]>('/api/shared-links', {
+      method: 'GET'
+    });
+  },
+
+  async getSharedLinkDetails(linkId: string): Promise<SharedLink> {
+    return apiFetch<SharedLink>(`/api/shared-links/${linkId}`, {
+      method: 'GET'
+    });
+  },
+
+  async updateSharedLink(
+    linkId: string,
+    updateData: {
+      description?: string;
+      expires_at?: string | null;
+      password?: string;
+      clear_password?: boolean;
+    }
+  ): Promise<SharedLink> {
+    return apiFetch<SharedLink>(`/api/shared-links/${linkId}`, {
+      method: 'PATCH',
+      json: updateData
+    });
+  },
+
+  async deleteSharedLink(linkId: string): Promise<void> {
+    await apiFetch<void>(`/api/shared-links/${linkId}`, {
+      method: 'DELETE'
+    });
+  },
+
+  async getPublicSharedLinkMetadata(token: string): Promise<SharedLinkPublicMetadata> {
+    return apiFetch<SharedLinkPublicMetadata>(`/api/shared-links/public/${token}`, {
+      method: 'GET'
+    });
+  },
+
+  async verifyPublicSharedLinkPassword(token: string, password: string): Promise<{ guest_token: string }> {
+    return apiFetch<{ guest_token: string }>(`/api/shared-links/public/${token}/verify`, {
+      method: 'POST',
+      json: { password }
+    });
+  },
+
+  async getPublicSharedLinkData(token: string, guestToken?: string | null): Promise<SharedLinkPublicData> {
+    const headers: Record<string, string> = {};
+    if (guestToken) {
+      headers['Authorization'] = `Bearer ${guestToken}`;
+    }
+    return apiFetch<SharedLinkPublicData>(`/api/shared-links/public/${token}/data`, {
+      method: 'GET',
+      headers
+    });
+  }
 };
+
+export interface SharedLink {
+  id: string;
+  token: string;
+  description: string;
+  has_password: boolean;
+  include_attachments: boolean;
+  expires_at: string | null;
+  created_at: string;
+  entry_count: number;
+  access_count: number;
+  last_accessed_at: string | null;
+}
+
+export interface SharedLinkPublicMetadata {
+  id: string;
+  description: string;
+  has_password: boolean;
+  expires_at: string | null;
+  created_at: string;
+  owner_name: string | null;
+  owner_email: string | null;
+  latest_measurement_date: string | null;
+}
+
+export interface SharedLinkPublicData {
+  dashboard: DashboardSummary;
+  entries: FitdaysRecord[];
+}

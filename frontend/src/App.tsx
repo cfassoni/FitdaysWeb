@@ -10,6 +10,8 @@ import Dashboard from './views/Dashboard';
 import History from './views/History';
 import Import from './views/Import';
 import Profile from './views/Profile';
+import SharedReports from './views/SharedReports';
+import GuestSharedReport from './views/GuestSharedReport';
 import { Loader2 } from 'lucide-react';
 
 export default function App() {
@@ -19,9 +21,10 @@ export default function App() {
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
   
-  const [currentView, setCurrentView] = useState<'dashboard' | 'history' | 'import' | 'profile'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'history' | 'import' | 'profile' | 'shared_links'>('dashboard');
   const [lastSyncedLang, setLastSyncedLang] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const [sharedLinksCount, setSharedLinksCount] = useState<number>(0);
 
   // Sync preferred language from logged-in user profile
   useEffect(() => {
@@ -55,6 +58,11 @@ export default function App() {
       const currentUser = await api.getMe();
       setUser(currentUser);
       setIsAuthenticated(true);
+      
+      // Fetch initial shared links count
+      const links = await api.getSharedLinks();
+      const activeCount = links.filter(l => !l.expires_at || new Date(l.expires_at) > new Date()).length;
+      setSharedLinksCount(activeCount);
     } catch {
       // Token is invalid/expired
       removeAuthToken();
@@ -92,6 +100,15 @@ export default function App() {
     setLastSyncedLang(null);
     setCurrentView('dashboard');
   };
+
+  // Check if current URL is a guest-facing shared link URL
+  const isSharedPath = window.location.pathname.startsWith('/shared/');
+  const sharedToken = isSharedPath ? window.location.pathname.split('/shared/')[1] : null;
+
+  // If visiting a shared report link, bypass checkAuth and authentication requirements
+  if (isSharedPath && sharedToken) {
+    return <GuestSharedReport token={sharedToken} />;
+  }
 
   // Auth Loading State
   if (isCheckingAuth) {
@@ -138,6 +155,7 @@ export default function App() {
           onViewChange={setCurrentView}
           isMobileOpen={isMobileMenuOpen}
           onMobileClose={() => setIsMobileMenuOpen(false)}
+          sharedLinksCount={sharedLinksCount}
         />
 
         {/* Main View Container */}
@@ -146,13 +164,16 @@ export default function App() {
             <Dashboard onNavigateToImport={() => setCurrentView('import')} />
           )}
           {currentView === 'history' && (
-            <History />
+            <History onLinksUpdated={setSharedLinksCount} />
           )}
           {currentView === 'import' && (
             <Import onImportSuccess={() => setCurrentView('dashboard')} />
           )}
           {currentView === 'profile' && (
             <Profile user={user} onProfileUpdated={(updatedUser) => setUser(updatedUser)} />
+          )}
+          {currentView === 'shared_links' && (
+            <SharedReports onLinksUpdated={setSharedLinksCount} />
           )}
         </main>
       </div>

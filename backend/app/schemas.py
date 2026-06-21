@@ -246,3 +246,68 @@ class DeleteRecordsResponse(BaseModel):
     deleted: List[int]
     failed: List[FailedDeletion]
 
+
+# Shared Link Schemas
+class SharedLinkCreate(BaseModel):
+    description: str
+    password: str | None = None
+    include_attachments: bool = True
+    expires_at: datetime | None = None
+    entry_ids: List[int]
+
+class SharedLinkUpdate(BaseModel):
+    description: str | None = None
+    password: str | None = None
+    clear_password: bool | None = False
+    expires_at: datetime | None = None
+
+class SharedLinkResponse(BaseModel):
+    id: str
+    token: str
+    description: str
+    has_password: bool
+    include_attachments: bool
+    expires_at: datetime | None = None
+    created_at: datetime
+    entry_count: int
+    access_count: int = 0
+    last_accessed_at: datetime | None = None
+
+    model_config = {
+        "from_attributes": True
+    }
+
+class SharedLinkPublicResponse(BaseModel):
+    id: str
+    description: str
+    has_password: bool
+    expires_at: datetime | None = None
+    created_at: datetime
+    owner_name: str | None = None
+    owner_email: str | None = None
+    latest_measurement_date: datetime | None = None
+
+class SharedLinkVerifyRequest(BaseModel):
+    password: str
+
+class FitdaysReportGuestResponse(BaseModel):
+    id: int
+    record_id: int
+    filename: str
+    mime_type: str
+    file_size: int
+    uploaded_at: datetime
+    url: str
+
+    model_config = {
+        "from_attributes": True
+    }
+
+class FitdaysRecordGuestResponse(FitdaysRecordResponse):
+    report: FitdaysReportGuestResponse | None = None
+
+class SharedLinkPublicDataResponse(BaseModel):
+    dashboard: DashboardSummary
+    entries: List[FitdaysRecordGuestResponse]
+
+

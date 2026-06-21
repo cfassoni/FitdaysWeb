@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
+import LocalizedDatePicker from '../components/LocalizedDatePicker';
 import type { FitdaysRecord } from '../lib/api';
 import { formatDate, formatDateTime } from '../lib/i18n';
 import { 
@@ -20,11 +21,14 @@ import {
   AlertTriangle,
   Paperclip,
   FileUp,
-  ExternalLink
+  ExternalLink,
+  Share2,
+  Copy,
+  Check
 } from 'lucide-react';
 
-export default function History() {
-  const { t } = useTranslation();
+export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: number) => void } = {}) {
+  const { t, i18n } = useTranslation();
   const [records, setRecords] = useState<FitdaysRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,6 +66,88 @@ export default function History() {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteFeedback, setDeleteFeedback] = useState<{ success: boolean; title?: string; message: string } | null>(null);
+
+  // Share Modal States
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [shareDescription, setShareDescription] = useState('');
+  const [sharePassword, setSharePassword] = useState('');
+  const [shareIncludeAttachments, setShareIncludeAttachments] = useState(true);
+  const [shareExpiration, setShareExpiration] = useState<'never' | '1d' | '7d' | '30d' | 'custom'>('never');
+  const [shareCustomExpiryDate, setShareCustomExpiryDate] = useState('');
+  const [isCreatingShare, setIsCreatingShare] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
+  const [createdShareLink, setCreatedShareLink] = useState<string | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleCreateShareSubmit = async () => {
+    if (!shareDescription.trim()) {
+      setShareError(t('common.required'));
+      return;
+    }
+    
+    try {
+      setIsCreatingShare(true);
+      setShareError(null);
+      
+      let expires_at: string | null = null;
+      if (shareExpiration === '1d') {
+        expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      } else if (shareExpiration === '7d') {
+        expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      } else if (shareExpiration === '30d') {
+        expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      } else if (shareExpiration === 'custom' && shareCustomExpiryDate) {
+        expires_at = new Date(shareCustomExpiryDate + 'T23:59:59').toISOString();
+      }
+      
+      const response = await api.createSharedLink(
+        shareDescription,
+        sharePassword || null,
+        shareIncludeAttachments,
+        expires_at,
+        selectedIds
+      );
+
+      if (onLinksUpdated) {
+        try {
+          const links = await api.getSharedLinks();
+          const activeCount = links.filter(l => !l.expires_at || new Date(l.expires_at) > new Date()).length;
+          onLinksUpdated(activeCount);
+        } catch (err) {
+          console.error("Failed to update active link count:", err);
+        }
+      }
+      
+      const linkUrl = `${window.location.origin}/shared/${response.token}`;
+      setCreatedShareLink(linkUrl);
+      
+      // Auto-copy to clipboard
+      try {
+        await navigator.clipboard.writeText(linkUrl);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      } catch (err) {
+        console.error("Clipboard copy failed:", err);
+      }
+      
+    } catch (err: any) {
+      setShareError(err.message || t('sharing.limitError'));
+    } finally {
+      setIsCreatingShare(false);
+    }
+  };
+
+  const handleCloseShareModal = () => {
+    setIsShareModalOpen(false);
+    setShareDescription('');
+    setSharePassword('');
+    setShareIncludeAttachments(true);
+    setShareExpiration('never');
+    setShareCustomExpiryDate('');
+    setCreatedShareLink(null);
+    setShareError(null);
+    setIsCopied(false);
+  };
 
   const handleDeleteConfirm = async () => {
     try {
@@ -341,17 +427,27 @@ export default function History() {
             />
           </div>
           {selectedIds.length > 0 && (
-            <button
-              onClick={() => {
-                setIdsToDelete(selectedIds);
-                setIsDeleteConfirmOpen(true);
-              }}
-              className="flex items-center justify-center bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-lg transition-all cursor-pointer shadow-sm animate-in fade-in zoom-in-95 duration-250 shrink-0"
-              style={{ height: '38px', width: '38px' }}
-              title={t('history.deleteSelected', { count: selectedIds.length })}
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setIdsToDelete(selectedIds);
+                  setIsDeleteConfirmOpen(true);
+                }}
+                className="flex items-center justify-center bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-lg transition-all cursor-pointer shadow-sm animate-in fade-in zoom-in-95 duration-250 shrink-0"
+                style={{ height: '38px', width: '38px' }}
+                title={t('history.deleteSelected', { count: selectedIds.length })}
+              >
+                <Trash2 className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => setIsShareModalOpen(true)}
+                className="flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/95 rounded-lg transition-all cursor-pointer shadow-sm animate-in fade-in zoom-in-95 duration-250 shrink-0"
+                style={{ height: '38px', width: '38px' }}
+                title={t('sharing.shareButton')}
+              >
+                <Share2 className="h-5 w-5" />
+              </button>
+            </div>
           )}
         </div>
         <div className="text-xs text-muted-foreground font-medium self-end sm:self-center">
@@ -1012,6 +1108,197 @@ export default function History() {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Share Link Modal */}
+      {isShareModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity" 
+            onClick={handleCloseShareModal}
+          />
+
+          {/* Modal Container */}
+          <div className="relative w-full max-w-lg bg-card border border-border rounded-xl shadow-2xl flex flex-col p-6 overflow-hidden animate-in zoom-in-95 duration-200 z-10 text-foreground">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-border">
+              <h2 className="text-xl font-bold tracking-tight m-0">{t('sharing.modalTitle')}</h2>
+              <button
+                disabled={isCreatingShare}
+                onClick={handleCloseShareModal}
+                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors cursor-pointer"
+                aria-label="Close modal"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {!createdShareLink ? (
+              <div className="space-y-4">
+                {/* Warning Alert */}
+                <div className="p-3 rounded-lg border border-amber-500/20 bg-amber-500/10 text-amber-800 dark:text-amber-300 text-xs flex items-start gap-2 leading-relaxed">
+                  <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>{t('sharing.warningDataPrivacy')}</span>
+                </div>
+
+                {/* Description Input */}
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5" htmlFor="share-desc">
+                    {t('sharing.descriptionLabel')} <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    id="share-desc"
+                    type="text"
+                    required
+                    placeholder={t('sharing.descriptionPlaceholder')}
+                    value={shareDescription}
+                    onChange={e => setShareDescription(e.target.value)}
+                    className="w-full px-3 py-2 bg-muted/30 border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground transition-all"
+                  />
+                </div>
+
+                {/* Password Input */}
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5" htmlFor="share-pwd">
+                    {t('sharing.passwordLabel')}
+                  </label>
+                  <input
+                    id="share-pwd"
+                    type="password"
+                    placeholder={t('sharing.passwordPlaceholder')}
+                    value={sharePassword}
+                    onChange={e => setSharePassword(e.target.value)}
+                    className="w-full px-3 py-2 bg-muted/30 border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground transition-all"
+                  />
+                </div>
+
+                {/* Attachments Toggle */}
+                <div className="flex items-center justify-between py-2 border-y border-border">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-medium text-foreground">{t('sharing.includeAttachmentsLabel')}</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={shareIncludeAttachments}
+                    onChange={e => setShareIncludeAttachments(e.target.checked)}
+                    className="rounded border-border text-primary focus:ring-primary h-4 w-4 bg-card cursor-pointer"
+                  />
+                </div>
+
+                {/* Expiry Selector */}
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                    {t('sharing.expiresLabel')}
+                  </label>
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                    {(['never', '1d', '7d', '30d', 'custom'] as const).map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => setShareExpiration(option)}
+                        className={`py-1.5 px-2 rounded-lg text-xs font-medium border text-center transition-all cursor-pointer ${
+                          shareExpiration === option
+                            ? 'bg-primary border-primary text-primary-foreground shadow-xs'
+                            : 'bg-card border-border hover:bg-muted text-muted-foreground'
+                        }`}
+                      >
+                        {t(`sharing.expires${option.charAt(0).toUpperCase() + option.slice(1)}` as any) || option}
+                      </button>
+                    ))}
+                  </div>
+
+                  {shareExpiration === 'custom' && (
+                    <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <LocalizedDatePicker
+                        lang={i18n.language}
+                        min={new Date().toISOString().split('T')[0]}
+                        value={shareCustomExpiryDate}
+                        onChange={setShareCustomExpiryDate}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Error Display */}
+                {shareError && (
+                  <div className="p-3 rounded-lg border border-destructive/20 bg-destructive/10 text-destructive text-xs flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>{shareError}</span>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    disabled={isCreatingShare}
+                    onClick={handleCloseShareModal}
+                    className="px-4 py-2 bg-card border border-border hover:bg-muted text-sm font-semibold rounded-lg text-foreground transition-colors cursor-pointer"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button
+                    disabled={isCreatingShare}
+                    onClick={handleCreateShareSubmit}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/95 text-sm font-semibold rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {isCreatingShare ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>{t('common.loading')}</span>
+                      </>
+                    ) : (
+                      <span>{t('sharing.shareButton')}</span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4 py-2">
+                <div className="p-3 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 text-sm font-semibold text-center animate-pulse">
+                  {t('sharing.createSuccess')}
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                    {t('sharing.copied')}
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={createdShareLink}
+                      className="flex-1 px-3 py-2 bg-muted/40 border border-border rounded-lg text-sm text-foreground focus:outline-none"
+                      onClick={e => (e.target as HTMLInputElement).select()}
+                    />
+                    <button
+                      onClick={async () => {
+                        if (createdShareLink) {
+                          await navigator.clipboard.writeText(createdShareLink);
+                          setIsCopied(true);
+                          setTimeout(() => setIsCopied(false), 2000);
+                        }
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground hover:bg-primary/95 text-sm font-semibold rounded-lg transition-colors cursor-pointer"
+                    >
+                      {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      <span>{isCopied ? t('common.success') : t('sharing.copiedBtn')}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    onClick={handleCloseShareModal}
+                    className="px-4 py-2 bg-card border border-border hover:bg-muted text-sm font-semibold rounded-lg text-foreground transition-colors cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
