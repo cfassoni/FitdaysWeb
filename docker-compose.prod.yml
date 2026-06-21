@@ -1,0 +1,26 @@
+services:
+  backend:
+    image: ghcr.io/cfassoni/fitdaysweb/backend:latest
+    container_name: fitdays-backend
+    environment:
+      - DATABASE_URL=sqlite:////app/data/fitdays.db
+      - UPLOAD_DIR=/app/data/uploads/profile_pics
+      - REPORTS_DIR=/app/data/uploads/reports
+      - SECRET_KEY=${SECRET_KEY}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
+    volumes:
+      - fitdays-db-data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/cfassoni/fitdaysweb/frontend:latest
+    container_name: fitdays-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  fitdays-db-data:
+    driver: local

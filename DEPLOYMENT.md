@@ -19,6 +19,9 @@ Portainer organizes multi-container applications using **Stacks** (which use Doc
 
 ### Method A: Web Editor (Pasting Compose File) - Recommended for quick setups
 
+> [!NOTE]
+> Since this method uses pre-built images from the GitHub Container Registry, you do not need to download or clone the source repository on the host server; only the Docker Compose definition is required.
+
 1. Log in to your **Portainer** dashboard.
 2. Select the **Environment** where you want to deploy (e.g., `local`).
 3. Click on **Stacks** in the left sidebar, then click **Add stack** in the top right.
@@ -27,13 +30,9 @@ Portainer organizes multi-container applications using **Stacks** (which use Doc
 6. Paste the following production-ready Compose definition:
 
 ```yaml
-version: '3.8'
-
 services:
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/cfassoni/fitdaysweb/backend:latest
     container_name: fitdays-backend
     environment:
       - DATABASE_URL=sqlite:////app/data/fitdays.db
@@ -46,9 +45,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ghcr.io/cfassoni/fitdaysweb/frontend:latest
     container_name: fitdays-frontend
     ports:
       - "80:80"
@@ -73,9 +70,34 @@ If your code is hosted on an internal Git server (e.g., GitLab, Gitea, GitHub En
 4. Fill in your Git repository details:
    - **Repository URL**: `https://github.com/YOUR_USERNAME/FitdaysWeb.git` (or your internal URL)
    - **Repository reference**: `refs/heads/main`
-   - **Compose path**: `docker-compose.yml`
+   - **Compose path**: `docker-compose.prod.yml` *(Note: We use `docker-compose.prod.yml` here as it points to the pre-built GHCR images, avoiding compilation/build overhead on the host server)*
 5. Enable **Authentication** if your repository is private, and input your credentials / Personal Access Token (PAT).
 6. Enable **Automatic updates** (Webhook or Polling) if you want Portainer to redeploy the stack whenever new code is pushed to your git branch.
+
+---
+
+## 📌 Pinning Image Versions
+
+By default, the production Compose configurations pull the `latest` image tags:
+- `ghcr.io/cfassoni/fitdaysweb/backend:latest`
+- `ghcr.io/cfassoni/fitdaysweb/frontend:latest`
+
+While `latest` is useful for automatic updates, it is highly recommended to pin your deployment to specific tagged releases in production (e.g., `v0.1.0`) to avoid unexpected changes.
+
+To pin a specific version:
+1. Identify the version tag you want to deploy from the repository's releases or GitHub Packages page.
+2. Edit your Compose configuration (either in the Portainer Web Editor for Method A, or by committing changes to your repository if using Method B).
+3. Replace `:latest` with your specific version tag:
+   ```yaml
+   services:
+     backend:
+       image: ghcr.io/cfassoni/fitdaysweb/backend:v0.1.0
+       # ...
+     frontend:
+       image: ghcr.io/cfassoni/fitdaysweb/frontend:v0.1.0
+       # ...
+   ```
+4. Redeploy or update the stack in Portainer.
 
 ---
 
