@@ -65,7 +65,8 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
   };
 
   useEffect(() => {
-    fetchLinks();
+    (async () => { await fetchLinks(); })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCopyLink = async (link: SharedLink) => {

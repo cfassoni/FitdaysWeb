@@ -119,7 +119,8 @@ export default function GuestSharedReport({ token }: GuestSharedReportProps) {
   };
 
   useEffect(() => {
-    fetchMetadata();
+    (async () => { await fetchMetadata(); })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
