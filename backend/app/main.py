@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from alembic.config import Config
 from alembic import command
 from app.database import engine
-from app.routers import users, records
+from app.routers import users, records, shared_links
 
 # Run Alembic migrations on startup
 def run_migrations():
@@ -47,6 +47,7 @@ app.mount("/uploads/reports", StaticFiles(directory=REPORTS_DIR), name="reports"
 # Include routers
 app.include_router(users.router)
 app.include_router(records.router)
+app.include_router(shared_links.router)
 
 @app.get("/")
 def read_root():

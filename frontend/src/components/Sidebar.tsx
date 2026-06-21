@@ -6,7 +6,8 @@ import {
   Upload, 
   X, 
   ChevronLeft, 
-  ChevronRight
+  ChevronRight,
+  Link2
 } from 'lucide-react';
 import packageJson from '../../package.json';
 
@@ -25,13 +26,14 @@ const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 interface SidebarProps {
-  currentView: 'dashboard' | 'history' | 'import' | 'profile';
-  onViewChange: (view: 'dashboard' | 'history' | 'import' | 'profile') => void;
+  currentView: 'dashboard' | 'history' | 'import' | 'profile' | 'shared_links';
+  onViewChange: (view: 'dashboard' | 'history' | 'import' | 'profile' | 'shared_links') => void;
   isMobileOpen: boolean;
   onMobileClose: () => void;
+  sharedLinksCount: number;
 }
 
-export default function Sidebar({ currentView, onViewChange, isMobileOpen, onMobileClose }: SidebarProps) {
+export default function Sidebar({ currentView, onViewChange, isMobileOpen, onMobileClose, sharedLinksCount }: SidebarProps) {
   const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -41,7 +43,7 @@ export default function Sidebar({ currentView, onViewChange, isMobileOpen, onMob
     { id: 'import', label: 'Import CSV Data', icon: Upload },
   ] as const;
 
-  const handleNavClick = (view: 'dashboard' | 'history' | 'import' | 'profile') => {
+  const handleNavClick = (view: 'dashboard' | 'history' | 'import' | 'profile' | 'shared_links') => {
     onViewChange(view);
     onMobileClose();
   };
@@ -90,6 +92,20 @@ export default function Sidebar({ currentView, onViewChange, isMobileOpen, onMob
                   </button>
                 );
               })}
+
+              {sharedLinksCount > 0 && (
+                <button
+                  onClick={() => handleNavClick('shared_links')}
+                  className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                    currentView === 'shared_links'
+                      ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  }`}
+                >
+                  <Link2 className="h-5 w-5 shrink-0" />
+                  <span>{t('sidebar.sharedReports')}</span>
+                </button>
+              )}
             </nav>
 
             {/* Version Info */}
@@ -147,6 +163,25 @@ export default function Sidebar({ currentView, onViewChange, isMobileOpen, onMob
               </button>
             );
           })}
+
+          {sharedLinksCount > 0 && (
+            <button
+              onClick={() => handleNavClick('shared_links')}
+              className={`flex items-center w-full gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
+                currentView === 'shared_links'
+                  ? 'bg-primary text-primary-foreground shadow-md shadow-primary/10' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              } ${isCollapsed ? 'justify-center' : ''}`}
+              title={isCollapsed ? t('sidebar.sharedReports') : undefined}
+            >
+              <Link2 className="h-5 w-5 shrink-0" />
+              {!isCollapsed && (
+                <span className="animate-in fade-in duration-200 text-left">
+                  {t('sidebar.sharedReports')}
+                </span>
+              )}
+            </button>
+          )}
         </nav>
 
         {/* Version Info */}
