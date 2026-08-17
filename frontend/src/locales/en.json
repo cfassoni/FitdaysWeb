@@ -26,7 +26,11 @@
       "heightRange": "Height must be a number between 40 and 300 cm",
       "weightRange": "Target weight must be a number between 10 and 500 kg",
       "langFormat": "Preferred language must be in ISO format (e.g. en, pt-br)"
-    }
+    },
+    "close": "Close",
+    "closeModal": "Close modal",
+    "saveChanges": "Save Changes",
+    "delete": "Delete"
   },
   "login": {
     "title": "Welcome back",
@@ -66,7 +70,10 @@
     "haveAccount": "Already have an account?",
     "signInLink": "Sign in",
     "successMsg": "Account created successfully! Redirecting...",
-    "registering": "Registering..."
+    "registering": "Registering...",
+    "errorSignInFailed": "Account created, but automatic sign in failed. Please log in manually.",
+    "errorRegisterFailed": "Registration failed. Username or email might be taken.",
+    "photoPreviewAlt": "Profile preview"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -74,7 +81,9 @@
     "import": "Import CSV Data",
     "editProfile": "Edit Profile",
     "toggleTheme": "Toggle Theme",
-    "sharedReports": "Shared Reports"
+    "sharedReports": "Shared Reports",
+    "navigation": "Navigation",
+    "closeMenu": "Close menu"
   },
   "toolbar": {
     "toggleMenu": "Toggle navigation menu",
@@ -84,7 +93,9 @@
     "editProfile": "Edit Profile",
     "logout": "Logout",
     "switchToDark": "Switch to Dark Mode",
-    "switchToLight": "Switch to Light Mode"
+    "switchToLight": "Switch to Light Mode",
+    "languages": "Languages",
+    "userOptions": "User options"
   },
   "version": {
     "github": "Support us on GitHub",
@@ -125,7 +136,8 @@
     "current": "Current",
     "change": "Change",
     "target": "Target",
-    "unit": "Unit"
+    "unit": "Unit",
+    "errorLoad": "Failed to load dashboard summary"
   },
   "history": {
     "title": "Body Composition History",
@@ -158,12 +170,17 @@
       "uploading": "Uploading...",
       "exceedsSize": "File size exceeds the 5MB limit.",
       "pdfOnly": "Only PNG, JPEG, and PDF files are allowed.",
-      "uploadSuccess": "Report uploaded successfully",
-      "deleteSuccess": "Report deleted successfully",
+      "uploadSuccess": "Report uploaded successfully.",
+      "deleteSuccess": "Report deleted successfully.",
       "modalTitle": "Upload Report",
       "dragDrop": "Drag and drop your report file here",
       "browseDevice": "or click to browse from your device",
-      "allowedTypes": "PNG, JPEG, or PDF up to 5 MB"
+      "allowedTypes": "PNG, JPEG, or PDF up to 5 MB",
+      "uploadSuccessTitle": "Upload Successful",
+      "deleteSuccessTitle": "Deletion Successful",
+      "deleteFailedTitle": "Deletion Failed",
+      "deleteFailed": "Failed to delete report.",
+      "deleteConfirm": "Are you sure you want to delete this attached report?"
     },
     "deletePrompt": {
       "title": "Delete Records",
@@ -173,7 +190,10 @@
       "deleteBtn": "Delete",
       "successSingle": "Record deleted successfully",
       "successMultiple": "Successfully deleted {{deletedCount}} records",
-      "failedCount": "{{failedCount}} records failed to delete"
+      "failedCount": "{{failedCount}} records failed to delete",
+      "successTitle": "Deletion Successful",
+      "failedTitle": "Deletion Warning / Error",
+      "errorGeneric": "An error occurred during deletion."
     },
     "drawer": {
       "reportTitle": "Body Composition Report",
@@ -208,7 +228,6 @@
       "impedanceL": "Impedance L",
       "muscleMass": "Muscle Mass",
       "segment": "Segment",
-      "fatMass": "Fat Mass",
       "fatPct": "Fat %",
       "musclePct": "Muscle %",
       "bodyCompositionDetails": "Body Composition Details",
@@ -219,7 +238,11 @@
         "rightLeg": "Right Leg",
         "leftLeg": "Left Leg"
       }
-    }
+    },
+    "noMatch": "No measurements match your criteria.",
+    "deleteTooltip": "Delete measurement",
+    "errorLoad": "Failed to load records",
+    "reportUploadError": "Failed to upload report"
   },
   "import": {
     "title": "Import CSV Data",
@@ -266,7 +289,9 @@
       "language": "Preferred Language",
       "height": "Height (cm)",
       "weight": "Goal Weight (kg)"
-    }
+    },
+    "uploadPhotoError": "Failed to upload profile picture",
+    "updateError": "Failed to update profile settings"
   },
   "sharing": {
     "title": "Shared Reports",
@@ -326,6 +351,28 @@
     "accessCount_one": "1 access",
     "accessCount_other": "{{count}} accesses",
     "lastAccessLabel": "Last: {{date}}",
-    "neverAccessed": "Never"
+    "neverAccessed": "Never",
+    "subtitle": "Manage shared guest access links for doctors, nutritionists, or coaches",
+    "emptyTitle": "No reports shared yet",
+    "emptyInstructions": "Go to the Detailed History view, select one or more scans, and click Share.",
+    "editTooltip": "Edit share link details",
+    "revokeTooltip": "Revoke shared link immediately",
+    "guestViewDetailsTooltip": "View detailed segments",
+    "editModalTitle": "Edit Shared Report",
+    "passwordSecurityTitle": "Password Security",
+    "passwordKeep": "Keep Current Password (if any)",
+    "passwordRemove": "Remove Password",
+    "passwordChange": "Change/Set Password",
+    "passwordNewPlaceholder": "Enter new password",
+    "revokeModalTitle": "Revoke Shared Link",
+    "errorLoad": "Failed to load shared links",
+    "errorUpdate": "Failed to update shared link",
+    "errorRevoke": "Failed to revoke shared link",
+    "errorLinkNotFound": "Shared link not found or expired.",
+    "errorLoadGuest": "Failed to load report data.",
+    "errorIncorrectPassword": "Incorrect password.",
+    "recordCount_one": "1 record",
+    "recordCount_other": "{{count}} records",
+    "withFiles": " + files"
   }
 }

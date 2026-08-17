@@ -119,7 +119,7 @@ export default function Import({ onImportSuccess }: ImportProps) {
       {/* Upload layout */}
       {!result ? (
         <div className="bg-card border border-border rounded-2xl p-6 shadow-xs space-y-6">
-          <h3 className="text-lg font-bold text-foreground mb-1">{t('import.selectFile') || 'Select File'}</h3>
+          <h3 className="text-lg font-bold text-foreground mb-1">{t('import.selectFile')}</h3>
 
           {/* Dotted drag zone */}
           <div
@@ -147,10 +147,10 @@ export default function Import({ onImportSuccess }: ImportProps) {
             </div>
             
             <p className="text-sm font-semibold mb-1">
-              {t('import.dragDrop') || 'Drag & drop your CSV file here, or'} <span className="text-primary hover:underline cursor-pointer">{t('import.browse') || 'browse'}</span>
+              {t('import.dragDrop')} <span className="text-primary hover:underline cursor-pointer">{t('import.browse')}</span>
             </p>
             <p className="text-xs text-muted-foreground">
-              {t('import.supportedFiles') || 'Only standard Fitdays CSV reports are supported.'}
+              {t('import.supportedFiles')}
             </p>
           </div>
 
@@ -179,7 +179,7 @@ export default function Import({ onImportSuccess }: ImportProps) {
                   </>
                 ) : (
                   <>
-                    <span>{t('import.uploadBtn') || 'Upload & Parse'}</span>
+                    <span>{t('import.uploadBtn')}</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </>
                 )}
@@ -207,7 +207,7 @@ export default function Import({ onImportSuccess }: ImportProps) {
               <div className="mx-auto h-7 w-7 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
                 <Database className="h-4 w-4" />
               </div>
-              <span className="block text-[10px] text-muted-foreground uppercase font-semibold">{t('import.processed') || 'Processed'}</span>
+              <span className="block text-[10px] text-muted-foreground uppercase font-semibold">{t('import.processed')}</span>
               <span className="text-base font-bold">{result.total_processed}</span>
             </div>
 
@@ -215,7 +215,7 @@ export default function Import({ onImportSuccess }: ImportProps) {
               <div className="mx-auto h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
                 <Plus className="h-4 w-4" />
               </div>
-              <span className="block text-[10px] text-muted-foreground uppercase font-semibold">{t('import.inserted') || 'Inserted'}</span>
+              <span className="block text-[10px] text-muted-foreground uppercase font-semibold">{t('import.inserted')}</span>
               <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">{result.inserted}</span>
             </div>
 
@@ -223,7 +223,7 @@ export default function Import({ onImportSuccess }: ImportProps) {
               <div className="mx-auto h-7 w-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
                 <RefreshCw className="h-4 w-4" />
               </div>
-              <span className="block text-[10px] text-muted-foreground uppercase font-semibold">{t('import.updated') || 'Updated'}</span>
+              <span className="block text-[10px] text-muted-foreground uppercase font-semibold">{t('import.updated')}</span>
               <span className="text-base font-bold text-amber-600 dark:text-amber-500">{result.updated}</span>
             </div>
           </div>

@@ -26,7 +26,11 @@
       "heightRange": "A altura deve ser um número entre 40 e 300 cm",
       "weightRange": "O peso ideal deve ser um número entre 10 e 500 kg",
       "langFormat": "O idioma preferido deve estar no formato ISO (ex: en, pt-br)"
-    }
+    },
+    "close": "Fechar",
+    "closeModal": "Fechar modal",
+    "saveChanges": "Salvar Alterações",
+    "delete": "Excluir"
   },
   "login": {
     "title": "Bem-vindo de volta",
@@ -66,7 +70,10 @@
     "haveAccount": "Já tem uma conta?",
     "signInLink": "Entrar",
     "successMsg": "Conta criada com sucesso! Redirecionando...",
-    "registering": "Registrando..."
+    "registering": "Registrando...",
+    "errorSignInFailed": "Conta criada, mas o login automático falhou. Por favor, entre manualmente.",
+    "errorRegisterFailed": "Falha no cadastro. O nome de usuário ou email já pode estar em uso.",
+    "photoPreviewAlt": "Pré-visualização do perfil"
   },
   "sidebar": {
     "dashboard": "Painel",
@@ -74,7 +81,9 @@
     "import": "Importar Dados CSV",
     "editProfile": "Editar Perfil",
     "toggleTheme": "Alternar Tema",
-    "sharedReports": "Relatórios Compartilhados"
+    "sharedReports": "Relatórios Compartilhados",
+    "navigation": "Navegação",
+    "closeMenu": "Fechar menu"
   },
   "toolbar": {
     "toggleMenu": "Alternar menu de navegação",
@@ -84,7 +93,9 @@
     "editProfile": "Editar Perfil",
     "logout": "Sair",
     "switchToDark": "Alternar para Modo Escuro",
-    "switchToLight": "Alternar para Modo Claro"
+    "switchToLight": "Alternar para Modo Claro",
+    "languages": "Idiomas",
+    "userOptions": "Opções do usuário"
   },
   "version": {
     "github": "Apoie-nos no GitHub",
@@ -125,7 +136,8 @@
     "current": "Atual",
     "change": "Alteração",
     "target": "Meta",
-    "unit": "Unidade"
+    "unit": "Unidade",
+    "errorLoad": "Falha ao carregar o resumo do painel"
   },
   "history": {
     "title": "Histórico de Composição Corporal",
@@ -158,12 +170,17 @@
       "uploading": "Enviando...",
       "exceedsSize": "O tamanho do arquivo excede o limite de 5MB.",
       "pdfOnly": "Apenas arquivos PNG, JPEG e PDF são permitidos.",
-      "uploadSuccess": "Relatório enviado com sucesso",
-      "deleteSuccess": "Relatório excluído com sucesso",
+      "uploadSuccess": "Relatório enviado com sucesso.",
+      "deleteSuccess": "Relatório excluído com sucesso.",
       "modalTitle": "Enviar Relatório",
       "dragDrop": "Arraste e solte o arquivo do seu relatório aqui",
       "browseDevice": "ou clique para procurar no seu dispositivo",
-      "allowedTypes": "PNG, JPEG ou PDF até 5 MB"
+      "allowedTypes": "PNG, JPEG ou PDF até 5 MB",
+      "uploadSuccessTitle": "Envio Concluído",
+      "deleteSuccessTitle": "Exclusão Concluída",
+      "deleteFailedTitle": "Falha na Exclusão",
+      "deleteFailed": "Falha ao excluir o relatório.",
+      "deleteConfirm": "Tem certeza de que deseja excluir este relatório anexado?"
     },
     "deletePrompt": {
       "title": "Excluir Registros",
@@ -173,7 +190,10 @@
       "deleteBtn": "Excluir",
       "successSingle": "Registro excluído com sucesso",
       "successMultiple": "{{deletedCount}} registros excluídos com sucesso",
-      "failedCount": "Falha ao excluir {{failedCount}} registros"
+      "failedCount": "Falha ao excluir {{failedCount}} registros",
+      "successTitle": "Exclusão Concluída",
+      "failedTitle": "Aviso / Erro de Exclusão",
+      "errorGeneric": "Ocorreu um erro durante a exclusão."
     },
     "drawer": {
       "reportTitle": "Relatório de Composição Corporal",
@@ -208,7 +228,6 @@
       "impedanceL": "Impedância L",
       "muscleMass": "Massa Muscular",
       "segment": "Segmento",
-      "fatMass": "Massa Gorda",
       "fatPct": "% Gordura",
       "musclePct": "% Músculo",
       "bodyCompositionDetails": "Detalhes da Composição Corporal",
@@ -219,7 +238,11 @@
         "rightLeg": "Perna Direita",
         "leftLeg": "Perna Esquerda"
       }
-    }
+    },
+    "noMatch": "Nenhuma medição corresponde aos seus critérios.",
+    "deleteTooltip": "Excluir medição",
+    "errorLoad": "Falha ao carregar registros",
+    "reportUploadError": "Falha ao enviar relatório"
   },
   "import": {
     "title": "Importar Dados CSV",
@@ -266,7 +289,9 @@
       "language": "Idioma Preferido",
       "height": "Altura (cm)",
       "weight": "Peso Ideal (kg)"
-    }
+    },
+    "uploadPhotoError": "Falha ao enviar foto de perfil",
+    "updateError": "Falha ao atualizar as configurações de perfil"
   },
   "sharing": {
     "title": "Relatórios Compartilhados",
@@ -326,6 +351,28 @@
     "accessCount_one": "1 acesso",
     "accessCount_other": "{{count}} acessos",
     "lastAccessLabel": "Último: {{date}}",
-    "neverAccessed": "Nunca"
+    "neverAccessed": "Nunca",
+    "subtitle": "Gerencie links de acesso de convidados para médicos, nutricionistas ou treinadores",
+    "emptyTitle": "Nenhum relatório compartilhado ainda",
+    "emptyInstructions": "Vá para a visualização do Histórico Detalhado, selecione um ou mais exames e clique em Compartilhar.",
+    "editTooltip": "Editar detalhes do link compartilhado",
+    "revokeTooltip": "Revogar link compartilhado imediatamente",
+    "guestViewDetailsTooltip": "Ver segmentos detalhados",
+    "editModalTitle": "Editar Relatório Compartilhado",
+    "passwordSecurityTitle": "Segurança por Senha",
+    "passwordKeep": "Manter Senha Atual (se houver)",
+    "passwordRemove": "Remover Senha",
+    "passwordChange": "Alterar/Definir Senha",
+    "passwordNewPlaceholder": "Digite a nova senha",
+    "revokeModalTitle": "Revogar Link Compartilhado",
+    "errorLoad": "Falha ao carregar links compartilhados",
+    "errorUpdate": "Falha ao atualizar link compartilhado",
+    "errorRevoke": "Falha ao revogar link compartilhado",
+    "errorLinkNotFound": "Link compartilhado não encontrado ou expirado.",
+    "errorLoadGuest": "Falha ao carregar dados do relatório.",
+    "errorIncorrectPassword": "Senha incorreta.",
+    "recordCount_one": "1 registro",
+    "recordCount_other": "{{count}} registros",
+    "withFiles": " + arquivos"
   }
 }

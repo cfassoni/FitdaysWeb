@@ -114,7 +114,7 @@ export default function UserMenu({ user, onLogout, onEditProfile }: UserMenuProp
       {isOpen && (
         <div
           role="menu"
-          aria-label="User options"
+          aria-label={t('toolbar.userOptions')}
           className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl border border-border bg-card p-1.5 shadow-xl animate-in fade-in slide-in-from-top-2 duration-150 z-50 focus:outline-hidden"
         >
           {/* User Display Info (Read-Only) */}

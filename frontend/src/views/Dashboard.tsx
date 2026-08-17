@@ -64,7 +64,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
         const data = await api.getSummary();
         setSummary(data);
       } catch (err: any) {
-        setError(err.message || 'Failed to load dashboard summary');
+        setError(err.message || t('dashboard.errorLoad'));
       } finally {
         setIsLoading(false);
       }
