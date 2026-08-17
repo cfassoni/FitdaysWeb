@@ -102,12 +102,12 @@ export default function Profile({ user, onProfileUpdated }: ProfileProps) {
     if (!file) return;
 
     if (file.size > 4 * 1024 * 1024) {
-      setError('Profile picture must be less than 4MB');
+      setError(t('profile.avatarPanel.photoErrorSize'));
       return;
     }
 
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setError('Only JPEG, PNG, and WebP images are allowed');
+      setError(t('profile.avatarPanel.photoErrorType'));
       return;
     }
 
@@ -120,7 +120,7 @@ export default function Profile({ user, onProfileUpdated }: ProfileProps) {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
-      setError(err.message || 'Failed to upload profile picture');
+      setError(err.message || t('profile.uploadPhotoError'));
     } finally {
       setIsPhotoLoading(false);
     }
@@ -192,7 +192,7 @@ export default function Profile({ user, onProfileUpdated }: ProfileProps) {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
-      setError(err.message || 'Failed to update profile settings');
+      setError(err.message || t('profile.updateError'));
     } finally {
       setIsLoading(false);
     }

@@ -26,7 +26,11 @@
       "heightRange": "La altura debe ser un número entre 40 y 300 cm",
       "weightRange": "El peso objetivo debe ser un número entre 10 y 500 kg",
       "langFormat": "El idioma preferido debe tener el formato ISO (ej: en, pt-br)"
-    }
+    },
+    "close": "Cerrar",
+    "closeModal": "Cerrar modal",
+    "saveChanges": "Guardar Cambios",
+    "delete": "Eliminar"
   },
   "login": {
     "title": "Bienvenido de nuevo",
@@ -66,7 +70,10 @@
     "haveAccount": "¿Ya tiene una cuenta?",
     "signInLink": "Iniciar sesión",
     "successMsg": "¡Cuenta creada con éxito! Redireccionando...",
-    "registering": "Registrando..."
+    "registering": "Registrando...",
+    "errorSignInFailed": "Cuenta creada, pero falló el inicio de sesión automático. Por favor, inicie sesión manualmente.",
+    "errorRegisterFailed": "Error en el registro. El nombre de usuario o correo electrónico puede estar en uso.",
+    "photoPreviewAlt": "Vista previa del perfil"
   },
   "sidebar": {
     "dashboard": "Tablero",
@@ -74,7 +81,9 @@
     "import": "Importar Datos CSV",
     "editProfile": "Editar Perfil",
     "toggleTheme": "Cambiar Tema",
-    "sharedReports": "Informes Compartidos"
+    "sharedReports": "Informes Compartidos",
+    "navigation": "Navegación",
+    "closeMenu": "Cerrar menú"
   },
   "toolbar": {
     "toggleMenu": "Alternar menú de navegación",
@@ -84,7 +93,9 @@
     "editProfile": "Editar Perfil",
     "logout": "Cerrar Sesión",
     "switchToDark": "Cambiar a Modo Oscuro",
-    "switchToLight": "Cambiar a Modo Claro"
+    "switchToLight": "Cambiar a Modo Claro",
+    "languages": "Idiomas",
+    "userOptions": "Opciones de usuario"
   },
   "version": {
     "github": "Apóyanos en GitHub",
@@ -125,7 +136,8 @@
     "current": "Actual",
     "change": "Cambio",
     "target": "Meta",
-    "unit": "Unidad"
+    "unit": "Unidad",
+    "errorLoad": "Error al cargar el resumen del panel"
   },
   "history": {
     "title": "Historial de Composición Corporal",
@@ -158,12 +170,17 @@
       "uploading": "Subiendo...",
       "exceedsSize": "El tamaño del archivo supera el límite de 5MB.",
       "pdfOnly": "Solo se permiten archivos PNG, JPEG y PDF.",
-      "uploadSuccess": "Informe subido con éxito",
-      "deleteSuccess": "Informe eliminado con éxito",
+      "uploadSuccess": "Informe subido con éxito.",
+      "deleteSuccess": "Informe eliminado con éxito.",
       "modalTitle": "Subir Informe",
       "dragDrop": "Arrastre y suelte el archivo de su informe aquí",
       "browseDevice": "o haga clic para buscar en su dispositivo",
-      "allowedTypes": "PNG, JPEG o PDF hasta 5 MB"
+      "allowedTypes": "PNG, JPEG o PDF hasta 5 MB",
+      "uploadSuccessTitle": "Carga Exitosa",
+      "deleteSuccessTitle": "Eliminación Exitosa",
+      "deleteFailedTitle": "Error en la Eliminación",
+      "deleteFailed": "Error al eliminar el informe.",
+      "deleteConfirm": "¿Está seguro de que desea eliminar este informe adjunto?"
     },
     "deletePrompt": {
       "title": "Eliminar Registros",
@@ -173,7 +190,10 @@
       "deleteBtn": "Eliminar",
       "successSingle": "Registro eliminado con éxito",
       "successMultiple": "{{deletedCount}} registros eliminados con éxito",
-      "failedCount": "Error al eliminar {{failedCount}} registros"
+      "failedCount": "Error al eliminar {{failedCount}} registros",
+      "successTitle": "Eliminación Exitosa",
+      "failedTitle": "Advertencia / Error de Eliminación",
+      "errorGeneric": "Ocurrió un error durante la eliminación."
     },
     "drawer": {
       "reportTitle": "Informe de Composición Corporal",
@@ -208,7 +228,6 @@
       "impedanceL": "Impedancia L",
       "muscleMass": "Masa Muscular",
       "segment": "Segmento",
-      "fatMass": "Masa Grasa",
       "fatPct": "% Grasa",
       "musclePct": "% Músculo",
       "bodyCompositionDetails": "Detalles de Composición Corporal",
@@ -219,7 +238,11 @@
         "rightLeg": "Pierna Derecha",
         "leftLeg": "Pierna Izquierda"
       }
-    }
+    },
+    "noMatch": "Ninguna medición coincide con sus criterios.",
+    "deleteTooltip": "Eliminar medición",
+    "errorLoad": "Error al cargar registros",
+    "reportUploadError": "Error al subir informe"
   },
   "import": {
     "title": "Importar Datos CSV",
@@ -266,7 +289,9 @@
       "language": "Idioma Preferido",
       "height": "Altura (cm)",
       "weight": "Peso Objetivo (kg)"
-    }
+    },
+    "uploadPhotoError": "Error al subir la foto de perfil",
+    "updateError": "Error al actualizar la configuración del perfil"
   },
   "sharing": {
     "title": "Informes Compartidos",
@@ -326,6 +351,28 @@
     "accessCount_one": "1 acceso",
     "accessCount_other": "{{count}} accesos",
     "lastAccessLabel": "Último: {{date}}",
-    "neverAccessed": "Nunca"
+    "neverAccessed": "Nunca",
+    "subtitle": "Administre enlaces de acceso para invitados para médicos, nutricionistas o entrenadores",
+    "emptyTitle": "Aún no se han compartido informes",
+    "emptyInstructions": "Vaya a la vista Historial Detallado, seleccione uno o más exámenes y haga clic en Compartir.",
+    "editTooltip": "Editar detalles del enlace compartido",
+    "revokeTooltip": "Revocar enlace compartido de inmediato",
+    "guestViewDetailsTooltip": "Ver segmentos detallados",
+    "editModalTitle": "Editar Informe Compartido",
+    "passwordSecurityTitle": "Seguridad por Contraseña",
+    "passwordKeep": "Mantener Contraseña Actual (si existe)",
+    "passwordRemove": "Eliminar Contraseña",
+    "passwordChange": "Cambiar/Establecer Contraseña",
+    "passwordNewPlaceholder": "Introduzca la nueva contraseña",
+    "revokeModalTitle": "Revocar Enlace Compartido",
+    "errorLoad": "Error al cargar enlaces compartidos",
+    "errorUpdate": "Error al actualizar el enlace compartido",
+    "errorRevoke": "Error al revocar el enlace compartido",
+    "errorLinkNotFound": "Enlace compartido no encontrado o expirado.",
+    "errorLoadGuest": "Error al cargar los datos del informe.",
+    "errorIncorrectPassword": "Contraseña incorrecta.",
+    "recordCount_one": "1 registro",
+    "recordCount_other": "{{count}} registros",
+    "withFiles": " + archivos"
   }
 }

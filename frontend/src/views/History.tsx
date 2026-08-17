@@ -165,13 +165,17 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
       if (failCount === 0) {
         setDeleteFeedback({
           success: true,
-          message: `${successCount} record${successCount > 1 ? 's' : ''} deleted successfully.`
+          title: t('history.deletePrompt.successTitle'),
+          message: successCount === 1
+            ? t('history.deletePrompt.successSingle')
+            : t('history.deletePrompt.successMultiple', { deletedCount: successCount })
         });
       } else {
         const failReasons = res.failed.map(f => `ID ${f.id}: ${f.reason}`).join('\n');
         setDeleteFeedback({
           success: false,
-          message: `${successCount} deleted, ${failCount} failed.\nFailures:\n${failReasons}`
+          title: t('history.deletePrompt.failedTitle'),
+          message: `${t('history.deletePrompt.successMultiple', { deletedCount: successCount })}, ${t('history.deletePrompt.failedCount', { failedCount: failCount })}.\n${failReasons}`
         });
       }
       
@@ -180,7 +184,8 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
     } catch (err: any) {
       setDeleteFeedback({
         success: false,
-        message: err.message || 'An error occurred during deletion.'
+        title: t('history.deletePrompt.failedTitle'),
+        message: err.message || t('history.deletePrompt.errorGeneric')
       });
       setIsDeleteConfirmOpen(false);
       setIdsToDelete([]);
@@ -253,21 +258,21 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
       
       setDeleteFeedback({
         success: true,
-        title: "Upload Successful",
-        message: "Report uploaded successfully."
+        title: t('history.report.uploadSuccessTitle'),
+        message: t('history.report.uploadSuccess')
       });
       
       setUploadRecordId(null);
       setSelectedFile(null);
       setUploadProgress(null);
     } catch (err: any) {
-      setUploadError(err.message || "Failed to upload report.");
+      setUploadError(err.message || t('history.reportUploadError'));
       setUploadProgress(null);
     }
   };
 
   const handleDeleteReport = async (recordId: number) => {
-    if (!confirm("Are you sure you want to delete this attached report?")) return;
+    if (!confirm(t('history.report.deleteConfirm'))) return;
     try {
       await api.deleteReport(recordId);
       setRecords(prev => prev.map(r => {
@@ -278,14 +283,14 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
       }));
       setDeleteFeedback({
         success: true,
-        title: "Deletion Successful",
-        message: "Report deleted successfully."
+        title: t('history.report.deleteSuccessTitle'),
+        message: t('history.report.deleteSuccess')
       });
     } catch (err: any) {
       setDeleteFeedback({
         success: false,
-        title: "Deletion Failed",
-        message: err.message || "Failed to delete report."
+        title: t('history.report.deleteFailedTitle'),
+        message: err.message || t('history.report.deleteFailed')
       });
     }
   };
@@ -295,10 +300,11 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
     const fetchRecords = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         const data = await api.getRecords();
         setRecords(data);
       } catch (err: any) {
-        setError(err.message || 'Failed to load records');
+        setError(err.message || t('history.errorLoad'));
       } finally {
         setIsLoading(false);
       }
@@ -401,11 +407,12 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
         }`}>
           <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
           <div className="flex-1">
-            <p className="text-sm font-semibold">{deleteFeedback.title || (deleteFeedback.success ? 'Deletion Successful' : 'Deletion Warning / Error')}</p>
+            <p className="text-sm font-semibold">{deleteFeedback.title || (deleteFeedback.success ? t('history.deletePrompt.successTitle') : t('history.deletePrompt.failedTitle'))}</p>
             <p className="text-xs opacity-90 mt-0.5 whitespace-pre-line">{deleteFeedback.message}</p>
           </div>
           <button 
             onClick={() => setDeleteFeedback(null)}
+            aria-label={t('common.close')}
             className="p-1 rounded-md hover:bg-muted/50 transition-colors"
           >
             <X className="h-4 w-4" />
@@ -459,7 +466,7 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
       <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
         {sortedRecords.length === 0 ? (
           <div className="p-12 text-center text-muted-foreground text-sm">
-            {t('history.noMatch') || 'No measurements match your criteria.'}
+            {t('history.noMatch')}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -525,7 +532,7 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
                     onClick={() => handleSort('body_score')}
                     className="px-6 py-4 cursor-pointer hover:bg-muted/80 transition-colors select-none"
                   >
-                    {t('history.table.bodyScore') || 'Body Score'} {renderSortIcon('body_score')}
+                    {t('history.table.bodyScore')} {renderSortIcon('body_score')}
                   </th>
                   <th className="px-6 py-4 text-right">{t('history.table.actions')}</th>
                 </tr>
@@ -667,7 +674,7 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
                             setIsDeleteConfirmOpen(true);
                           }}
                           className="inline-flex items-center p-1.5 rounded-lg border border-destructive/20 text-destructive hover:bg-destructive/10 hover:border-destructive/30 transition-colors cursor-pointer"
-                          title="Delete measurement"
+                          title={t('history.deleteTooltip')}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -695,9 +702,9 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
             {/* Drawer Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-border">
               <div>
-                <h3 className="text-xl font-bold text-foreground">{t('history.drawer.reportTitle') || 'Body Composition Report'}</h3>
+                <h3 className="text-xl font-bold text-foreground">{t('history.drawer.reportTitle')}</h3>
                 <p className="text-xs text-muted-foreground">
-                  {t('history.drawer.scanDate') || 'Scan date:'}{' '}
+                  {t('history.drawer.scanDate')}{' '}
                   <span className="font-semibold text-foreground">
                     {formatDateTime(selectedRecord.date, {
                       dateStyle: 'medium',
@@ -943,7 +950,7 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
               </div>
               <div>
                 <h3 className="text-lg font-bold text-foreground">{t('history.deletePrompt.title')}</h3>
-                <p className="text-xs text-muted-foreground">{t('history.deletePrompt.confirmSubtitle') || "This action cannot be undone"}</p>
+                <p className="text-xs text-muted-foreground">{t('history.deletePrompt.confirmSubtitle')}</p>
               </div>
             </div>
 
@@ -1130,7 +1137,7 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
                 disabled={isCreatingShare}
                 onClick={handleCloseShareModal}
                 className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors cursor-pointer"
-                aria-label="Close modal"
+                aria-label={t('common.closeModal')}
               >
                 <X className="h-5 w-5" />
               </button>

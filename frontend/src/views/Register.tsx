@@ -112,13 +112,13 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
 
     // Validate size (max 4MB)
     if (file.size > 4 * 1024 * 1024) {
-      setError('Profile picture must be less than 4MB');
+      setError(t('profile.avatarPanel.photoErrorSize'));
       return;
     }
 
     // Validate type
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setError('Only JPEG, PNG, and WebP images are allowed');
+      setError(t('profile.avatarPanel.photoErrorType'));
       return;
     }
 
@@ -254,12 +254,12 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
           onRegisterSuccess();
         }, 1200);
       } catch {
-        setError(t('register.errorSignInFailed') || 'Account created, but automatic sign in failed. Please log in manually.');
+        setError(t('register.errorSignInFailed'));
         setSuccess(false);
         setIsLoading(false);
       }
     } catch (err: any) {
-      setError(err.message || t('register.errorRegisterFailed') || 'Registration failed. Username or email might be taken.');
+      setError(err.message || t('register.errorRegisterFailed'));
       setIsLoading(false);
     }
   };
@@ -571,7 +571,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
                 <div className="flex items-center gap-4">
                   <div className="h-16 w-16 rounded-full border border-dashed border-border flex items-center justify-center overflow-hidden shrink-0 bg-muted">
                     {profilePicPreview ? (
-                      <img src={profilePicPreview} alt="Preview" className="h-full w-full object-cover" />
+                      <img src={profilePicPreview} alt={t('register.photoPreviewAlt')} className="h-full w-full object-cover" />
                     ) : (
                       <Upload className="h-6 w-6 text-muted-foreground" />
                     )}

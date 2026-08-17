@@ -95,7 +95,7 @@ export default function GuestSharedReport({ token }: GuestSharedReportProps) {
         }
       }
     } catch (err: any) {
-      setError(err.message || 'Shared link not found or expired.');
+      setError(err.message || t('sharing.errorLinkNotFound'));
       setIsLoading(false);
     }
   };
@@ -111,7 +111,7 @@ export default function GuestSharedReport({ token }: GuestSharedReportProps) {
         setIsUnlocked(false);
         sessionStorage.removeItem(`guest_token_${token}`);
       } else {
-        setError(err.message || 'Failed to load report data.');
+        setError(err.message || t('sharing.errorLoadGuest'));
       }
     } finally {
       setIsLoading(false);
@@ -140,7 +140,7 @@ export default function GuestSharedReport({ token }: GuestSharedReportProps) {
       
       await fetchReportData(res.guest_token);
     } catch (err: any) {
-      setVerificationError(err.message || 'Incorrect password.');
+      setVerificationError(err.message || t('sharing.errorIncorrectPassword'));
     } finally {
       setIsVerifying(false);
     }
@@ -586,7 +586,7 @@ export default function GuestSharedReport({ token }: GuestSharedReportProps) {
                       </span>
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-right">{t('history.table.actions') || 'Actions'}</th>
+                  <th className="px-6 py-4 text-right">{t('history.table.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -634,7 +634,7 @@ export default function GuestSharedReport({ token }: GuestSharedReportProps) {
                       <button
                         onClick={() => setSelectedRecord(record)}
                         className="inline-flex items-center p-1.5 rounded-lg border border-border hover:bg-muted text-foreground transition-colors cursor-pointer"
-                        title="View detailed segments"
+                        title={t('sharing.guestViewDetailsTooltip')}
                       >
                         <Eye className="h-3.5 w-3.5" />
                       </button>
@@ -658,7 +658,7 @@ export default function GuestSharedReport({ token }: GuestSharedReportProps) {
                 <h2 className="text-xl font-bold tracking-tight m-0">{t('sharing.detailsHeader', { date: formatDate(selectedRecord.date) })}</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">{formatDateTime(selectedRecord.date)}</p>
               </div>
-              <button onClick={() => setSelectedRecord(null)} className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors cursor-pointer">
+              <button onClick={() => setSelectedRecord(null)} aria-label={t('common.closeModal')} className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors cursor-pointer">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -685,7 +685,7 @@ export default function GuestSharedReport({ token }: GuestSharedReportProps) {
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-sm"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
-                    <span>{t('sharing.downloadReport') || 'Download'}</span>
+                    <span>{t('sharing.downloadReport')}</span>
                   </a>
                 </div>
               )}
@@ -707,7 +707,7 @@ export default function GuestSharedReport({ token }: GuestSharedReportProps) {
                     <p className="text-lg font-bold mt-1 text-foreground">{selectedRecord.body_fat_pct.toFixed(1)}%</p>
                   </div>
                   <div className="bg-muted/10 p-3 rounded-lg border border-border text-center">
-                    <span className="text-xs text-muted-foreground">{t('history.table.bodyScore') || 'Body Score'}</span>
+                    <span className="text-xs text-muted-foreground">{t('history.table.bodyScore')}</span>
                     <p className="text-lg font-bold mt-1 text-foreground">{selectedRecord.body_score}</p>
                   </div>
                 </div>

@@ -48,11 +48,11 @@ export default function Sidebar({ currentView, onViewChange, isMobileOpen, onMob
           {/* Drawer content */}
           <div className="relative flex flex-col w-72 max-w-xs bg-card border-r border-border h-full p-6 shadow-xl animate-in slide-in-from-left duration-200">
             <div className="flex items-center justify-between mb-8">
-              <span className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Navigation</span>
+              <span className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">{t('sidebar.navigation')}</span>
               <button
                 onClick={onMobileClose}
                 className="p-2 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted cursor-pointer"
-                aria-label="Close menu"
+                aria-label={t('sidebar.closeMenu')}
               >
                 <X className="h-5 w-5" />
               </button>

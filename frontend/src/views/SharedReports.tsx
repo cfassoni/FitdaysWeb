@@ -58,7 +58,7 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
         onLinksUpdated(activeCount);
       }
     } catch (err: any) {
-      setError(err.message || "Failed to load shared links");
+      setError(err.message || t('sharing.errorLoad'));
     } finally {
       setIsLoading(false);
     }
@@ -164,7 +164,7 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
       }
       
     } catch (err: any) {
-      setEditError(err.message || "Failed to update shared link");
+      setEditError(err.message || t('sharing.errorUpdate'));
     } finally {
       setIsSavingEdit(false);
     }
@@ -187,7 +187,7 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
         onLinksUpdated(activeCount);
       }
     } catch (err: any) {
-      setError(err.message || "Failed to revoke shared link");
+      setError(err.message || t('sharing.errorRevoke'));
     } finally {
       setIsRevoking(false);
     }
@@ -215,7 +215,7 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground m-0">{t('sharing.title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Manage shared guest access links for doctors, nutritionists, or coaches
+            {t('sharing.subtitle')}
           </p>
         </div>
         <div className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 self-start sm:self-center">
@@ -234,9 +234,9 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
       {links.length === 0 ? (
         <div className="bg-card border border-border rounded-xl p-12 text-center shadow-xs">
           <LinkIcon className="h-12 w-12 text-muted-foreground/35 mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-foreground mb-1">No reports shared yet</h3>
+          <h3 className="text-lg font-bold text-foreground mb-1">{t('sharing.emptyTitle')}</h3>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
-            {t('sharing.emptyState')} Go to the Detailed History view, select one or more scans, and click Share.
+            {t('sharing.emptyInstructions')}
           </p>
         </div>
       ) : (
@@ -281,7 +281,7 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
-                        {link.entry_count} records {link.include_attachments && ' + files'}
+                        {t('sharing.recordCount', { count: link.entry_count })}{link.include_attachments && t('sharing.withFiles')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
                         {formatDate(link.created_at)}
@@ -326,14 +326,14 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
                           <button
                             onClick={() => handleOpenEditModal(link)}
                             className="inline-flex items-center p-1.5 rounded-lg border border-border text-foreground hover:bg-muted transition-colors cursor-pointer"
-                            title="Edit share link details"
+                            title={t('sharing.editTooltip')}
                           >
                             <Edit className="h-3.5 w-3.5" />
                           </button>
                           <button
                             onClick={() => setLinkToRevoke(link)}
                             className="inline-flex items-center p-1.5 rounded-lg border border-destructive/20 text-destructive hover:bg-destructive/10 hover:border-destructive/30 transition-colors cursor-pointer"
-                            title="Revoke shared link immediately"
+                            title={t('sharing.revokeTooltip')}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -354,8 +354,8 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
           <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={handleCloseEditModal} />
           <div className="relative w-full max-w-lg bg-card border border-border rounded-xl shadow-2xl flex flex-col p-6 overflow-hidden z-10 text-foreground">
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-border">
-              <h2 className="text-xl font-bold tracking-tight m-0">Edit Shared Report</h2>
-              <button onClick={handleCloseEditModal} className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors cursor-pointer">
+              <h2 className="text-xl font-bold tracking-tight m-0">{t('sharing.editModalTitle')}</h2>
+              <button onClick={handleCloseEditModal} aria-label={t('common.closeModal')} className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors cursor-pointer">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -378,7 +378,7 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
               {/* Password Management */}
               <div>
                 <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                  Password Security
+                  {t('sharing.passwordSecurityTitle')}
                 </label>
                 <div className="flex flex-col sm:flex-row gap-3 bg-muted/20 p-3 rounded-lg border border-border mb-3">
                   <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer">
@@ -389,7 +389,7 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
                       onChange={() => setEditPasswordAction('keep')}
                       className="text-primary focus:ring-primary h-4 w-4 cursor-pointer"
                     />
-                    <span>Keep Current Password (if any)</span>
+                    <span>{t('sharing.passwordKeep')}</span>
                   </label>
                   <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer">
                     <input
@@ -399,7 +399,7 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
                       onChange={() => setEditPasswordAction('clear')}
                       className="text-primary focus:ring-primary h-4 w-4 cursor-pointer"
                     />
-                    <span>Remove Password</span>
+                    <span>{t('sharing.passwordRemove')}</span>
                   </label>
                   <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer">
                     <input
@@ -409,14 +409,14 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
                       onChange={() => setEditPasswordAction('change')}
                       className="text-primary focus:ring-primary h-4 w-4 cursor-pointer"
                     />
-                    <span>Change/Set Password</span>
+                    <span>{t('sharing.passwordChange')}</span>
                   </label>
                 </div>
 
                 {editPasswordAction === 'change' && (
                   <input
                     type="password"
-                    placeholder="Enter new password"
+                    placeholder={t('sharing.passwordNewPlaceholder')}
                     value={editPassword}
                     onChange={e => setEditPassword(e.target.value)}
                     className="w-full px-3 py-2 bg-muted/30 border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all animate-in fade-in slide-in-from-top-1"
@@ -484,7 +484,7 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
                       <span>{t('common.loading')}</span>
                     </>
                   ) : (
-                    <span>Save Changes</span>
+                    <span>{t('common.saveChanges')}</span>
                   )}
                 </button>
               </div>
@@ -503,7 +503,7 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
                 <AlertTriangle className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-foreground m-0">Revoke Shared Link</h3>
+                <h3 className="text-lg font-bold text-foreground m-0">{t('sharing.revokeModalTitle')}</h3>
                 <p className="text-sm text-muted-foreground mt-1">
                   {t('sharing.revokeConfirm')}
                 </p>

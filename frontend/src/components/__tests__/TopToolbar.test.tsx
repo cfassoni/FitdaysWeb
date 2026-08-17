@@ -19,6 +19,8 @@ vi.mock('react-i18next', () => ({
         'toolbar.logout': 'Logout',
         'toolbar.switchToDark': 'Switch to Dark Mode',
         'toolbar.switchToLight': 'Switch to Light Mode',
+        'toolbar.languages': 'Languages',
+        'toolbar.userOptions': 'User options',
       };
       if (key === 'toolbar.currentLanguage') {
         return `Language selector, current language: ${options?.lang || 'English'}`;
