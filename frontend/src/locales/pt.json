@@ -78,10 +78,6 @@
   },
   "toolbar": {
     "toggleMenu": "Alternar menu de navegação",
-    "supportUs": "apoie-nos!",
-    "openGithub": "Abrir projeto no GitHub (abre em nova guia)",
-    "reportBug": "reportar bug",
-    "openIssues": "Abrir problemas (abre em nova guia)",
     "toggleLanguage": "Alterar Idioma: {{lang}}",
     "currentLanguage": "Seletor de idioma, idioma atual: {{lang}}",
     "userMenu": "Menu de perfil do usuário",
@@ -89,6 +85,14 @@
     "logout": "Sair",
     "switchToDark": "Alternar para Modo Escuro",
     "switchToLight": "Alternar para Modo Claro"
+  },
+  "version": {
+    "github": "Apoie-nos no GitHub",
+    "githubAria": "Abrir projeto no GitHub (abre em nova guia)",
+    "bug": "Reportar um problema",
+    "bugAria": "Abrir rastreador de problemas (abre em nova guia)",
+    "release": "Lançamentos do FitdaysWeb",
+    "releaseAria": "Abrir notas da versão v{{version}} (abre em nova guia)"
   },
   "dashboard": {
     "title": "Painel de Progresso",

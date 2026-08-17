@@ -13,10 +13,6 @@ vi.mock('react-i18next', () => ({
         'sidebar.import': 'Import CSV Data',
         'common.logout': 'Logout',
         'toolbar.toggleMenu': 'Toggle navigation menu',
-        'toolbar.supportUs': 'support us!',
-        'toolbar.openGithub': 'Open GitHub project (opens in new tab)',
-        'toolbar.reportBug': 'report bug',
-        'toolbar.openIssues': 'Open issues (opens in new tab)',
         'toolbar.toggleLanguage': 'Change Language: English',
         'toolbar.userMenu': 'User profile menu',
         'toolbar.editProfile': 'Edit Profile',
@@ -83,16 +79,10 @@ describe('TopToolbar', () => {
     // Branding / Logo text should be in document
     expect(screen.getByText('FitdaysWeb')).toBeInTheDocument();
 
-    // External links
-    const githubLink = screen.getByTitle('support us!');
-    expect(githubLink).toBeInTheDocument();
-    expect(githubLink).toHaveAttribute('href', 'https://github.com/cfassoni/FitdaysWeb');
-    expect(githubLink).toHaveAttribute('target', '_blank');
-
-    const bugLink = screen.getByTitle('report bug');
-    expect(bugLink).toBeInTheDocument();
-    expect(bugLink).toHaveAttribute('href', 'https://github.com/cfassoni/FitdaysWeb/issues');
-    expect(bugLink).toHaveAttribute('target', '_blank');
+    // Controls should be present
+    expect(screen.getByLabelText('Toggle navigation menu')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Language selector/)).toBeInTheDocument();
+    expect(screen.getByLabelText('User profile menu')).toBeInTheDocument();
   });
 
   it('triggers mobile menu toggle when hamburger icon is clicked', () => {

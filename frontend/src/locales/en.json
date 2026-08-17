@@ -78,10 +78,6 @@
   },
   "toolbar": {
     "toggleMenu": "Toggle navigation menu",
-    "supportUs": "support us!",
-    "openGithub": "Open GitHub project (opens in new tab)",
-    "reportBug": "report bug",
-    "openIssues": "Open issues (opens in new tab)",
     "toggleLanguage": "Change Language: {{lang}}",
     "currentLanguage": "Language selector, current language: {{lang}}",
     "userMenu": "User profile menu",
@@ -89,6 +85,14 @@
     "logout": "Logout",
     "switchToDark": "Switch to Dark Mode",
     "switchToLight": "Switch to Light Mode"
+  },
+  "version": {
+    "github": "Support us on GitHub",
+    "githubAria": "Open GitHub project (opens in new tab)",
+    "bug": "Report an issue",
+    "bugAria": "Open issue tracker (opens in new tab)",
+    "release": "FitdaysWeb releases",
+    "releaseAria": "Open release notes for v{{version}} (opens in new tab)"
   },
   "dashboard": {
     "title": "Progress Dashboard",
