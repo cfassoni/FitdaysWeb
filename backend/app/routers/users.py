@@ -15,7 +15,10 @@ from app.auth import (
     get_current_user,
     generate_verification_code,
     get_verification_expiry,
+    generate_reset_token,
+    get_reset_token_expiry,
     MAX_VERIFICATION_ATTEMPTS,
+    MAX_RESET_PASSWORD_ATTEMPTS,
 )
 from app.schemas import (
     UserCreate,
@@ -26,8 +29,17 @@ from app.schemas import (
     ResendVerificationRequest,
     VerifyEmailResponse,
     MessageResponse,
+    ForgotPasswordRequest,
+    ValidateResetTokenRequest,
+    ValidateResetTokenResponse,
+    ResetPasswordRequest,
+    ResetPasswordResponse,
 )
-from app.email import send_verification_email
+from app.email import (
+    send_verification_email,
+    send_password_reset_email,
+    send_password_reset_confirmation_email,
+)
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
@@ -193,6 +205,142 @@ def resend_verification(data: ResendVerificationRequest, db: Session = Depends(g
     )
 
     return MessageResponse(message="Verification code sent.")
+
+@router.post("/forgot-password", response_model=MessageResponse)
+def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user:
+        # Anti-enumeration response
+        return MessageResponse(
+            message="If an account exists with this email, a password reset link and code have been sent."
+        )
+
+    token = generate_reset_token()
+    code = generate_verification_code()
+    expiry = get_reset_token_expiry()
+
+    user.reset_password_token = token
+    user.reset_password_code = code
+    user.reset_password_expires_at = expiry
+    user.reset_password_attempts = 0
+    db.commit()
+
+    send_password_reset_email(
+        to_email=user.email,
+        token=token,
+        code=code,
+        language=user.preferred_language
+    )
+
+    return MessageResponse(
+        message="If an account exists with this email, a password reset link and code have been sent."
+    )
+
+@router.post("/validate-reset-token", response_model=ValidateResetTokenResponse)
+def validate_reset_token(data: ValidateResetTokenRequest, db: Session = Depends(get_db)):
+    token_or_code = data.token_or_code.strip()
+    if data.email:
+        user = db.query(User).filter(User.email == data.email).first()
+        if not user:
+            return ValidateResetTokenResponse(valid=False)
+        is_match = (user.reset_password_token == token_or_code) or (user.reset_password_code == token_or_code)
+    else:
+        user = db.query(User).filter(
+            (User.reset_password_token == token_or_code) | (User.reset_password_code == token_or_code)
+        ).first()
+        is_match = bool(user)
+
+    if not user or not is_match:
+        return ValidateResetTokenResponse(valid=False)
+
+    if user.reset_password_attempts >= MAX_RESET_PASSWORD_ATTEMPTS:
+        return ValidateResetTokenResponse(valid=False)
+
+    if not user.reset_password_expires_at or user.reset_password_expires_at < datetime.utcnow():
+        return ValidateResetTokenResponse(valid=False)
+
+    return ValidateResetTokenResponse(valid=True, email=user.email)
+
+@router.post("/reset-password", response_model=ResetPasswordResponse)
+def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
+    token_or_code = data.token_or_code.strip()
+    if data.email:
+        user = db.query(User).filter(User.email == data.email).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired reset token/code"
+            )
+        
+        if user.reset_password_attempts >= MAX_RESET_PASSWORD_ATTEMPTS:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Too many failed attempts. Please request a new password reset link."
+            )
+
+        if not user.reset_password_expires_at or user.reset_password_expires_at < datetime.utcnow():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password reset link or code has expired. Please request a new one."
+            )
+
+        if user.reset_password_token != token_or_code and user.reset_password_code != token_or_code:
+            user.reset_password_attempts += 1
+            db.commit()
+            remaining = MAX_RESET_PASSWORD_ATTEMPTS - user.reset_password_attempts
+            if remaining <= 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Too many failed attempts. Please request a new password reset link."
+                )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid reset code or token. {remaining} attempt(s) remaining."
+            )
+    else:
+        user = db.query(User).filter(
+            (User.reset_password_token == token_or_code) | (User.reset_password_code == token_or_code)
+        ).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired reset token/code"
+            )
+
+        if user.reset_password_attempts >= MAX_RESET_PASSWORD_ATTEMPTS:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Too many failed attempts. Please request a new password reset link."
+            )
+
+        if not user.reset_password_expires_at or user.reset_password_expires_at < datetime.utcnow():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password reset link or code has expired. Please request a new one."
+            )
+
+    # Update password and clear reset fields
+    user.hashed_password = get_password_hash(data.new_password)
+    user.email_confirmed = True
+    user.reset_password_token = None
+    user.reset_password_code = None
+    user.reset_password_expires_at = None
+    user.reset_password_attempts = 0
+    db.commit()
+
+    # Send security notification email
+    send_password_reset_confirmation_email(
+        to_email=user.email,
+        language=user.preferred_language
+    )
+
+    # Issue access token for auto-login
+    access_token = create_access_token(data={"sub": user.email})
+    return ResetPasswordResponse(
+        access_token=access_token,
+        token_type="bearer",
+        message="Password reset successfully"
+    )
 
 @router.post("/cancel-email-change", response_model=MessageResponse)
 def cancel_email_change(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):

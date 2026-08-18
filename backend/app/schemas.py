@@ -94,6 +94,27 @@ class VerifyEmailResponse(BaseModel):
 class MessageResponse(BaseModel):
     message: str
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ValidateResetTokenRequest(BaseModel):
+    token_or_code: str = Field(..., min_length=1)
+    email: EmailStr | None = None
+
+class ValidateResetTokenResponse(BaseModel):
+    valid: bool
+    email: str | None = None
+
+class ResetPasswordRequest(BaseModel):
+    token_or_code: str = Field(..., min_length=1)
+    email: EmailStr | None = None
+    new_password: str = Field(..., min_length=6)
+
+class ResetPasswordResponse(BaseModel):
+    access_token: str
+    token_type: str
+    message: str
+
 # Fitdays Report Schemas
 class FitdaysReportResponse(BaseModel):
     id: int

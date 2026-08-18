@@ -15,6 +15,8 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))  # 24 hours
 VERIFICATION_CODE_EXPIRE_HOURS = int(os.getenv("VERIFICATION_CODE_EXPIRE_HOURS", "24"))
 MAX_VERIFICATION_ATTEMPTS = int(os.getenv("MAX_VERIFICATION_ATTEMPTS", "5"))
+RESET_PASSWORD_EXPIRE_HOURS = int(os.getenv("RESET_PASSWORD_EXPIRE_HOURS", "1"))
+MAX_RESET_PASSWORD_ATTEMPTS = int(os.getenv("MAX_RESET_PASSWORD_ATTEMPTS", "5"))
 
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/users/login")
@@ -37,9 +39,17 @@ def generate_verification_code() -> str:
     """Generate a cryptographically secure 6-digit verification code."""
     return "".join(secrets.choice("0123456789") for _ in range(6))
 
+def generate_reset_token() -> str:
+    """Generate a cryptographically secure URL-safe password reset token."""
+    return secrets.token_urlsafe(32)
+
 def get_verification_expiry() -> datetime:
     """Get UTC expiry datetime for a new verification code."""
     return datetime.utcnow() + timedelta(hours=VERIFICATION_CODE_EXPIRE_HOURS)
+
+def get_reset_token_expiry() -> datetime:
+    """Get UTC expiry datetime for a new password reset token/code."""
+    return datetime.utcnow() + timedelta(hours=RESET_PASSWORD_EXPIRE_HOURS)
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()

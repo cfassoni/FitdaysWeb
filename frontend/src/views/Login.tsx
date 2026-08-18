@@ -9,9 +9,10 @@ interface LoginProps {
   onLoginSuccess: () => void;
   onGoToRegister: () => void;
   onGoToVerify?: (email: string) => void;
+  onGoToForgotPassword?: (email?: string) => void;
 }
 
-export default function Login({ onLoginSuccess, onGoToRegister, onGoToVerify }: LoginProps) {
+export default function Login({ onLoginSuccess, onGoToRegister, onGoToVerify, onGoToForgotPassword }: LoginProps) {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -142,9 +143,21 @@ export default function Login({ onLoginSuccess, onGoToRegister, onGoToVerify }: 
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5" htmlFor="password">
-              {t('login.password')}
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-sm font-medium text-foreground" htmlFor="password">
+                {t('login.password')}
+              </label>
+              {onGoToForgotPassword && (
+                <button
+                  type="button"
+                  onClick={() => onGoToForgotPassword(email)}
+                  disabled={isLoading}
+                  className="text-xs text-primary hover:underline font-medium cursor-pointer disabled:opacity-50"
+                >
+                  {t('login.forgotPassword')}
+                </button>
+              )}
+            </div>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground">
                 <Lock className="h-5 w-5" />

@@ -7,6 +7,8 @@ import TopToolbar from './components/TopToolbar';
 import Login from './views/Login';
 import Register from './views/Register';
 import VerifyEmail from './views/VerifyEmail';
+import ForgotPassword from './views/ForgotPassword';
+import ResetPassword from './views/ResetPassword';
 import Dashboard from './views/Dashboard';
 import History from './views/History';
 import Import from './views/Import';
@@ -21,17 +23,25 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
 
-  // Check URL pathname or query param for verification route on initial load
-  const isVerifyEmailRoute = typeof window !== 'undefined' && (
+  // Check URL pathname or query param for routes on initial load
+  const isResetPasswordRoute = typeof window !== 'undefined' && (
+    window.location.pathname === '/reset-password' || 
+    new URLSearchParams(window.location.search).has('token')
+  );
+
+  const isVerifyEmailRoute = typeof window !== 'undefined' && !isResetPasswordRoute && (
     window.location.pathname === '/verify-email' || 
     new URLSearchParams(window.location.search).has('code')
   );
 
-  const [authView, setAuthView] = useState<'login' | 'register' | 'verify'>(() => {
+  const [authView, setAuthView] = useState<'login' | 'register' | 'verify' | 'forgot-password' | 'reset-password'>(() => {
+    if (isResetPasswordRoute) return 'reset-password';
     if (isVerifyEmailRoute) return 'verify';
     return 'login';
   });
   const [verifyEmailTarget, setVerifyEmailTarget] = useState<string>('');
+  const [resetEmailTarget, setResetEmailTarget] = useState<string>('');
+  const [resetCodeTarget, setResetCodeTarget] = useState<string>('');
   
   const [currentView, setCurrentView] = useState<'dashboard' | 'history' | 'import' | 'profile' | 'shared_links'>('dashboard');
   const [lastSyncedLang, setLastSyncedLang] = useState<string | null>(null);
@@ -92,7 +102,13 @@ export default function App() {
     const handleExpired = () => {
       setIsAuthenticated(false);
       setUser(null);
+      setAuthView('login');
+      setResetEmailTarget('');
+      setResetCodeTarget('');
       setCurrentView('dashboard');
+      if (typeof window !== 'undefined' && (window.location.pathname === '/reset-password' || window.location.pathname === '/verify-email' || window.location.search)) {
+        window.history.replaceState({}, document.title, '/');
+      }
     };
 
     window.addEventListener('auth-session-expired', handleExpired);
@@ -102,6 +118,12 @@ export default function App() {
   }, []);
 
   const handleLoginSuccess = () => {
+    setAuthView('login');
+    setResetEmailTarget('');
+    setResetCodeTarget('');
+    if (typeof window !== 'undefined' && (window.location.pathname === '/reset-password' || window.location.pathname === '/verify-email' || window.location.search)) {
+      window.history.replaceState({}, document.title, '/');
+    }
     checkAuth();
   };
 
@@ -110,7 +132,13 @@ export default function App() {
     setIsAuthenticated(false);
     setUser(null);
     setLastSyncedLang(null);
+    setAuthView('login');
+    setResetEmailTarget('');
+    setResetCodeTarget('');
     setCurrentView('dashboard');
+    if (typeof window !== 'undefined' && (window.location.pathname === '/reset-password' || window.location.pathname === '/verify-email' || window.location.search)) {
+      window.history.replaceState({}, document.title, '/');
+    }
   };
 
   // Check if current URL is a guest-facing shared link URL
@@ -143,7 +171,42 @@ export default function App() {
       );
     }
 
-    return authView === 'login' ? (
+    if (authView === 'forgot-password') {
+      return (
+        <ForgotPassword
+          initialEmail={resetEmailTarget}
+          onGoToLogin={() => setAuthView('login')}
+          onGoToReset={(email, code) => {
+            if (email) setResetEmailTarget(email);
+            if (code) setResetCodeTarget(code);
+            setAuthView('reset-password');
+          }}
+        />
+      );
+    }
+
+    if (authView === 'reset-password') {
+      return (
+        <ResetPassword
+          initialEmail={resetEmailTarget}
+          initialCode={resetCodeTarget}
+          onResetSuccess={handleLoginSuccess}
+          onGoToLogin={() => setAuthView('login')}
+          onGoToForgotPassword={() => setAuthView('forgot-password')}
+        />
+      );
+    }
+
+    if (authView === 'register') {
+      return (
+        <Register 
+          onRegisterSuccess={handleLoginSuccess}
+          onGoToLogin={() => setAuthView('login')}
+        />
+      );
+    }
+
+    return (
       <Login 
         onLoginSuccess={handleLoginSuccess}
         onGoToRegister={() => setAuthView('register')}
@@ -151,11 +214,10 @@ export default function App() {
           setVerifyEmailTarget(email);
           setAuthView('verify');
         }}
-      />
-    ) : (
-      <Register 
-        onRegisterSuccess={handleLoginSuccess}
-        onGoToLogin={() => setAuthView('login')}
+        onGoToForgotPassword={(email) => {
+          if (email) setResetEmailTarget(email);
+          setAuthView('forgot-password');
+        }}
       />
     );
   }

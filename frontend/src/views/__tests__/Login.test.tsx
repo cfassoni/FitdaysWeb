@@ -15,6 +15,7 @@ vi.mock('react-i18next', () => ({
         'login.signingIn': 'Signing in...',
         'login.noAccount': "Don't have an account?",
         'login.signUp': 'Sign up',
+        'login.forgotPassword': 'Forgot password?',
         'login.errorDefault': 'Incorrect email or password',
         'login.emailNotConfirmed': 'Your email address has not been verified yet.',
         'login.verifyNow': 'Verify Now',
@@ -41,23 +42,44 @@ describe('Login View', () => {
   const mockOnLoginSuccess = vi.fn();
   const mockOnGoToRegister = vi.fn();
   const mockOnGoToVerify = vi.fn();
+  const mockOnGoToForgotPassword = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders login form with email and password inputs', () => {
+  it('renders login form with email and password inputs and forgot password link', () => {
     render(
       <Login
         onLoginSuccess={mockOnLoginSuccess}
         onGoToRegister={mockOnGoToRegister}
         onGoToVerify={mockOnGoToVerify}
+        onGoToForgotPassword={mockOnGoToForgotPassword}
       />
     );
 
     expect(screen.getByLabelText('Email Address')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Forgot password?' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument();
+  });
+
+  it('triggers onGoToForgotPassword with current email when forgot password button is clicked', () => {
+    render(
+      <Login
+        onLoginSuccess={mockOnLoginSuccess}
+        onGoToRegister={mockOnGoToRegister}
+        onGoToVerify={mockOnGoToVerify}
+        onGoToForgotPassword={mockOnGoToForgotPassword}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText('Email Address'), {
+      target: { value: 'forgotme@example.com' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Forgot password?' }));
+
+    expect(mockOnGoToForgotPassword).toHaveBeenCalledWith('forgotme@example.com');
   });
 
   it('shows unconfirmed email banner with Verify Now and Resend buttons when email is not confirmed', async () => {
@@ -69,6 +91,7 @@ describe('Login View', () => {
         onLoginSuccess={mockOnLoginSuccess}
         onGoToRegister={mockOnGoToRegister}
         onGoToVerify={mockOnGoToVerify}
+        onGoToForgotPassword={mockOnGoToForgotPassword}
       />
     );
 

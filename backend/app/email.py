@@ -36,6 +36,16 @@ EMAIL_CONTENT = {
         "or_click": "Or click the button below to automatically verify your email:",
         "button_text": "Verify Email Address",
         "expiry_notice": "This verification code will expire in 24 hours. If you did not request this, please ignore this email.",
+        "reset_subject": "Reset your FitdaysWeb password",
+        "reset_title": "Reset your password",
+        "reset_msg": "You requested to reset your password. Enter the 6-digit code below or click the button to set a new password:",
+        "reset_button": "Reset Password",
+        "reset_or_click": "Or click the button below to directly reset your password:",
+        "reset_expiry_notice": "This password reset code and link will expire in 1 hour. If you did not request a password reset, you can safely ignore this email.",
+        "changed_subject": "Your FitdaysWeb password was changed",
+        "changed_title": "Password Changed Successfully",
+        "changed_msg": "The password for your FitdaysWeb account was recently changed. If you made this change, no further action is required.",
+        "changed_warning": "If you did NOT make this change, please reset your password immediately or contact support.",
         "team": "The FitdaysWeb Team"
     },
     "pt": {
@@ -48,6 +58,16 @@ EMAIL_CONTENT = {
         "or_click": "Ou clique no botão abaixo para verificar seu e-mail automaticamente:",
         "button_text": "Verificar E-mail",
         "expiry_notice": "Este código de verificação expira em 24 horas. Se você não solicitou este cadastro, desconsidere esta mensagem.",
+        "reset_subject": "Redefinir sua senha do FitdaysWeb",
+        "reset_title": "Redefinição de senha",
+        "reset_msg": "Você solicitou a redefinição da sua senha. Insira o código de 6 dígitos abaixo ou clique no botão para cadastrar uma nova senha:",
+        "reset_button": "Redefinir Senha",
+        "reset_or_click": "Ou clique no botão abaixo para redefinir sua senha diretamente:",
+        "reset_expiry_notice": "Este código e link de redefinição expiram em 1 hora. Se você não solicitou a redefinição de senha, desconsidere esta mensagem.",
+        "changed_subject": "Sua senha do FitdaysWeb foi alterada",
+        "changed_title": "Senha alterada com sucesso",
+        "changed_msg": "A senha da sua conta FitdaysWeb foi alterada recentemente. Se você realizou esta alteração, nenhuma ação é necessária.",
+        "changed_warning": "Se você NÃO realizou essa alteração, redefina sua senha imediatamente ou entre em contato com o suporte.",
         "team": "Equipe FitdaysWeb"
     },
     "es": {
@@ -60,6 +80,16 @@ EMAIL_CONTENT = {
         "or_click": "O haz clic en el botón de abajo para verificar tu correo automáticamente:",
         "button_text": "Verificar Correo",
         "expiry_notice": "Este código de verificación expirará en 24 horas. Si no solicitaste esto, puedes ignorar este mensaje.",
+        "reset_subject": "Restablecer tu contraseña de FitdaysWeb",
+        "reset_title": "Restablece tu contraseña",
+        "reset_msg": "Has solicitado restablecer tu contraseña. Ingresa el siguiente código de 6 dígitos o haz clic en el botón para establecer una nueva contraseña:",
+        "reset_button": "Restablecer Contraseña",
+        "reset_or_click": "O haz clic en el botón de abajo para restablecer tu contraseña directamente:",
+        "reset_expiry_notice": "Este código y enlace de restablecimiento expirarán en 1 hora. Si no solicitaste restablecer tu contraseña, puedes ignorar este mensaje.",
+        "changed_subject": "Tu contraseña de FitdaysWeb ha sido cambiada",
+        "changed_title": "Contraseña cambiada con éxito",
+        "changed_msg": "La contraseña de tu cuenta FitdaysWeb ha sido modificada recientemente. Si realizaste este cambio, no es necesario hacer nada más.",
+        "changed_warning": "Si NO realizaste este cambio, restablece tu contraseña de inmediato o ponte en contacto con el soporte.",
         "team": "El Equipo de FitdaysWeb"
     }
 }
@@ -202,4 +232,241 @@ Or verify directly by opening this link in your browser:
     except Exception as exc:
         logging.getLogger("uvicorn.error").error(f"[MAILGUN ERROR] Failed to send email to {to_email}: {exc}")
         logger.error(f"Failed to send email via Mailgun to {to_email}: {exc}")
+        return False
+
+def send_password_reset_email(
+    to_email: str,
+    token: str,
+    code: str,
+    language: str | None = "en"
+) -> bool:
+    """
+    Send password reset email containing a direct magic link and 6-digit OTP code.
+    If Mailgun is not configured, logs to console (dev/test fallback).
+    """
+    api_key = os.getenv("MAILGUN_API_KEY", "").strip()
+    domain = os.getenv("MAILGUN_DOMAIN", "").strip().strip("/")
+    raw_base = os.getenv("MAILGUN_API_BASE_URL", "https://api.mailgun.net/v3").strip().rstrip("/")
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").strip().rstrip("/")
+
+    if api_key.startswith("api:"):
+        api_key = api_key[4:].strip()
+
+    lang = get_email_lang(language)
+    strings = EMAIL_CONTENT[lang]
+
+    subject = strings["reset_subject"]
+    title = strings["reset_title"]
+    msg = strings["reset_msg"]
+
+    encoded_email = urllib.parse.quote(to_email)
+    encoded_token = urllib.parse.quote(token)
+    reset_url = f"{frontend_url}/reset-password?token={encoded_token}&email={encoded_email}"
+
+    html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f8; margin: 0; padding: 24px; color: #1e293b; }}
+    .container {{ max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 32px; border: 1px solid #e2e8f0; }}
+    .header {{ text-align: center; margin-bottom: 24px; }}
+    .logo {{ font-size: 22px; font-weight: bold; color: #0284c7; letter-spacing: -0.5px; }}
+    .code-box {{ background-color: #f1f5f9; border-radius: 8px; padding: 18px; text-align: center; font-size: 32px; font-weight: 700; letter-spacing: 8px; font-family: monospace; color: #0f172a; margin: 24px 0; }}
+    .btn {{ display: inline-block; background-color: #0284c7; color: #ffffff !important; padding: 12px 24px; border-radius: 6px; font-weight: 600; text-decoration: none; margin: 12px 0; }}
+    .footer {{ margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; text-align: center; }}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">FitdaysWeb</div>
+      <h2 style="color: #0f172a; margin-top: 12px;">{title}</h2>
+    </div>
+    <p>{msg}</p>
+    <div class="code-box">{code}</div>
+    <p style="text-align: center; margin: 24px 0 12px 0;">{strings["reset_or_click"]}</p>
+    <div style="text-align: center;">
+      <a href="{reset_url}" class="btn" target="_blank">{strings["reset_button"]}</a>
+    </div>
+    <p style="font-size: 13px; color: #64748b; margin-top: 24px;">{strings["reset_expiry_notice"]}</p>
+    <div class="footer">
+      &copy; FitdaysWeb &bull; {strings["team"]}
+    </div>
+  </div>
+</body>
+</html>"""
+
+    text_content = f"""{title}
+
+{msg}
+
+Reset Code: {code}
+
+Or reset your password directly by opening this link in your browser:
+{reset_url}
+
+{strings["reset_expiry_notice"]}
+"""
+
+    if not api_key or not domain:
+        msg_banner = (
+            f"\n" + "=" * 70 + "\n"
+            f" [PASSWORD RESET SERVICE - DEV FALLBACK]\n"
+            f" To: {to_email}\n"
+            f" Subject: {subject}\n"
+            f" 6-Digit Code: [ {code} ]\n"
+            f" Reset Token: {token}\n"
+            f" Reset Link: {reset_url}\n"
+            + "=" * 70 + "\n"
+        )
+        print(msg_banner, flush=True)
+        logging.getLogger("uvicorn.error").warning(
+            f"[PASSWORD RESET DEV FALLBACK] Code: {code} | Token: {token} | Link: {reset_url}"
+        )
+        return True
+
+    try:
+        if not raw_base.endswith("/v3"):
+            base_url = f"{raw_base}/v3"
+        else:
+            base_url = raw_base
+
+        url = f"{base_url}/{domain}/messages"
+        auth = ("api", api_key)
+
+        from_addr = os.getenv("MAIL_FROM_ADDRESS", "").strip()
+        if not from_addr:
+            if "sandbox" in domain:
+                from_addr = f"Mailgun Sandbox <postmaster@{domain}>"
+            else:
+                from_addr = f"FitdaysWeb <noreply@{domain}>"
+
+        data = {
+            "from": from_addr,
+            "to": to_email,
+            "subject": subject,
+            "text": text_content,
+            "html": html_content,
+        }
+
+        with httpx.Client(timeout=10.0) as client:
+            response = client.post(url, auth=auth, data=data)
+            response.raise_for_status()
+            logging.getLogger("uvicorn.error").info(f"[MAILGUN] Password reset email successfully sent to {to_email}")
+            return True
+    except httpx.HTTPStatusError as exc:
+        err_msg = exc.response.text
+        logging.getLogger("uvicorn.error").error(
+            f"[MAILGUN ERROR] HTTP {exc.response.status_code} sending reset email to {to_email} via {url}: {err_msg}"
+        )
+        logger.error(f"Mailgun HTTP {exc.response.status_code} error: {err_msg}")
+        return False
+    except Exception as exc:
+        logging.getLogger("uvicorn.error").error(f"[MAILGUN ERROR] Failed to send reset email to {to_email}: {exc}")
+        logger.error(f"Failed to send reset email via Mailgun to {to_email}: {exc}")
+        return False
+
+def send_password_reset_confirmation_email(
+    to_email: str,
+    language: str | None = "en"
+) -> bool:
+    """
+    Send security notification email confirming password has been changed.
+    """
+    api_key = os.getenv("MAILGUN_API_KEY", "").strip()
+    domain = os.getenv("MAILGUN_DOMAIN", "").strip().strip("/")
+    raw_base = os.getenv("MAILGUN_API_BASE_URL", "https://api.mailgun.net/v3").strip().rstrip("/")
+
+    if api_key.startswith("api:"):
+        api_key = api_key[4:].strip()
+
+    lang = get_email_lang(language)
+    strings = EMAIL_CONTENT[lang]
+
+    subject = strings["changed_subject"]
+    title = strings["changed_title"]
+    msg = strings["changed_msg"]
+    warning = strings["changed_warning"]
+
+    html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f8; margin: 0; padding: 24px; color: #1e293b; }}
+    .container {{ max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 32px; border: 1px solid #e2e8f0; }}
+    .header {{ text-align: center; margin-bottom: 24px; }}
+    .logo {{ font-size: 22px; font-weight: bold; color: #0284c7; letter-spacing: -0.5px; }}
+    .alert-box {{ background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 14px; margin: 20px 0; border-radius: 4px; color: #991b1b; font-size: 13px; }}
+    .footer {{ margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; text-align: center; }}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">FitdaysWeb</div>
+      <h2 style="color: #0f172a; margin-top: 12px;">{title}</h2>
+    </div>
+    <p>{msg}</p>
+    <div class="alert-box">{warning}</div>
+    <div class="footer">
+      &copy; FitdaysWeb &bull; {strings["team"]}
+    </div>
+  </div>
+</body>
+</html>"""
+
+    text_content = f"""{title}
+
+{msg}
+
+{warning}
+"""
+
+    if not api_key or not domain:
+        msg_banner = (
+            f"\n" + "=" * 70 + "\n"
+            f" [PASSWORD CHANGED CONFIRMATION - DEV FALLBACK]\n"
+            f" To: {to_email}\n"
+            f" Subject: {subject}\n"
+            f" Body: {msg}\n"
+            f" Security Warning: {warning}\n"
+            + "=" * 70 + "\n"
+        )
+        print(msg_banner, flush=True)
+        logging.getLogger("uvicorn.error").info(f"[SECURITY EMAIL DEV FALLBACK] Password changed notification sent to {to_email}")
+        return True
+
+    try:
+        if not raw_base.endswith("/v3"):
+            base_url = f"{raw_base}/v3"
+        else:
+            base_url = raw_base
+
+        url = f"{base_url}/{domain}/messages"
+        auth = ("api", api_key)
+
+        from_addr = os.getenv("MAIL_FROM_ADDRESS", "").strip()
+        if not from_addr:
+            if "sandbox" in domain:
+                from_addr = f"Mailgun Sandbox <postmaster@{domain}>"
+            else:
+                from_addr = f"FitdaysWeb <noreply@{domain}>"
+
+        data = {
+            "from": from_addr,
+            "to": to_email,
+            "subject": subject,
+            "text": text_content,
+            "html": html_content,
+        }
+
+        with httpx.Client(timeout=10.0) as client:
+            response = client.post(url, auth=auth, data=data)
+            response.raise_for_status()
+            logging.getLogger("uvicorn.error").info(f"[MAILGUN] Password changed confirmation email sent to {to_email}")
+            return True
+    except Exception as exc:
+        logging.getLogger("uvicorn.error").error(f"[MAILGUN ERROR] Failed to send password changed confirmation to {to_email}: {exc}")
         return False
