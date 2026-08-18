@@ -322,19 +322,42 @@
       "photoErrorSize": "A foto de perfil deve ter menos de 4MB",
       "photoErrorType": "Apenas imagens JPEG, PNG e WebP são permitidas"
     },
+    "tabs": {
+      "account": "Informações da Conta",
+      "personal": "Dados Pessoais",
+      "security": "Segurança",
+      "privacy": "Privacidade"
+    },
     "sections": {
       "credentials": "Informações da Conta",
-      "personal": "Dados pessoais",
+      "personal": "Dados Pessoais",
       "physical": "Especificações físicas"
     },
     "fields": {
       "email": "Endereço de E-mail",
       "displayName": "Nome de Exibição",
       "birthday": "Data de Nascimento",
+      "age": "Idade",
+      "ageUnit": "{{count}} anos",
+      "ageUnset": "—",
       "gender": "Gênero",
       "language": "Idioma Preferido",
       "height": "Altura (cm)",
       "weight": "Peso Ideal (kg)"
+    },
+    "security": {
+      "title": "Senha e Segurança",
+      "subtitle": "Gerencie a senha da sua conta para manter seus dados seguros",
+      "currentPassword": "Senha Atual",
+      "currentPasswordPlaceholder": "Digite a senha atual",
+      "newPassword": "Nova Senha",
+      "newPasswordPlaceholder": "Digite a nova senha (mín. 6 caracteres)",
+      "confirmPassword": "Confirmar Nova Senha",
+      "confirmPasswordPlaceholder": "Digite novamente a nova senha",
+      "changePasswordBtn": "Atualizar Senha",
+      "passwordChangedSuccess": "Sua senha foi alterada com sucesso!",
+      "passwordsDoNotMatch": "A nova senha e a confirmação não coincidem",
+      "passwordTooShort": "A senha deve ter pelo menos 6 caracteres"
     },
     "editEmail": "Editar e-mail",
     "pendingEmailNotice": "Alteração de e-mail pendente de verificação para {{email}}",

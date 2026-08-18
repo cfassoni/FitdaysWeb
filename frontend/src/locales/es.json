@@ -322,19 +322,42 @@
       "photoErrorSize": "La foto de perfil debe pesar menos de 4MB",
       "photoErrorType": "Solo se permiten imágenes JPEG, PNG y WebP"
     },
+    "tabs": {
+      "account": "Información de la Cuenta",
+      "personal": "Datos Personales",
+      "security": "Seguridad",
+      "privacy": "Privacidad"
+    },
     "sections": {
       "credentials": "Información de la Cuenta",
-      "personal": "Datos personales",
+      "personal": "Datos Personales",
       "physical": "Especificaciones físicas"
     },
     "fields": {
       "email": "Dirección de Correo Electrónico",
       "displayName": "Nombre de Mostrar",
       "birthday": "Fecha de Nacimiento",
+      "age": "Edad",
+      "ageUnit": "{{count}} años",
+      "ageUnset": "—",
       "gender": "Género",
       "language": "Idioma Preferido",
       "height": "Altura (cm)",
       "weight": "Peso Objetivo (kg)"
+    },
+    "security": {
+      "title": "Contraseña y Seguridad",
+      "subtitle": "Administra la contraseña de tu cuenta para mantener tus datos seguros",
+      "currentPassword": "Contraseña Actual",
+      "currentPasswordPlaceholder": "Ingresa tu contraseña actual",
+      "newPassword": "Nueva Contraseña",
+      "newPasswordPlaceholder": "Ingresa tu nueva contraseña (mín. 6 caracteres)",
+      "confirmPassword": "Confirmar Nueva Contraseña",
+      "confirmPasswordPlaceholder": "Vuelve a ingresar la nueva contraseña",
+      "changePasswordBtn": "Actualizar Contraseña",
+      "passwordChangedSuccess": "¡Tu contraseña ha sido cambiada con éxito!",
+      "passwordsDoNotMatch": "La nueva contraseña y la confirmación no coinciden",
+      "passwordTooShort": "La contraseña debe tener al menos 6 caracteres"
     },
     "editEmail": "Editar correo",
     "pendingEmailNotice": "Cambio de correo pendiente de verificación para {{email}}",

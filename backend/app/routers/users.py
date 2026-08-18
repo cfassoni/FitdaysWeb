@@ -35,6 +35,7 @@ from app.schemas import (
     ValidateResetTokenResponse,
     ResetPasswordRequest,
     ResetPasswordResponse,
+    ChangePasswordRequest,
     DeleteDataRequest,
     DeleteAccountRequest,
     DeleteDataResponse,
@@ -349,6 +350,34 @@ def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
         token_type="bearer",
         message="Password reset successfully"
     )
+
+@router.post("/change-password", response_model=MessageResponse)
+def change_password(
+    data: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not verify_password(data.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+
+    current_user.hashed_password = get_password_hash(data.new_password)
+    current_user.reset_password_token = None
+    current_user.reset_password_code = None
+    current_user.reset_password_expires_at = None
+    current_user.reset_password_attempts = 0
+    db.commit()
+
+    logger.info(f"[SECURITY] User password changed: user_id={current_user.id}, email={current_user.email}")
+
+    send_password_reset_confirmation_email(
+        to_email=current_user.email,
+        language=current_user.preferred_language
+    )
+
+    return MessageResponse(message="Password changed successfully")
 
 @router.post("/cancel-email-change", response_model=MessageResponse)
 def cancel_email_change(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):

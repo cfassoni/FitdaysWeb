@@ -322,19 +322,42 @@
       "photoErrorSize": "Profile picture must be less than 4MB",
       "photoErrorType": "Only JPEG, PNG, and WebP images are allowed"
     },
+    "tabs": {
+      "account": "Account Information",
+      "personal": "Personal Details",
+      "security": "Security",
+      "privacy": "Privacy"
+    },
     "sections": {
       "credentials": "Account Information",
-      "personal": "Personal details",
+      "personal": "Personal Details",
       "physical": "Physical specifications"
     },
     "fields": {
       "email": "Email Address",
       "displayName": "Display Name",
       "birthday": "Birthday",
+      "age": "Age",
+      "ageUnit": "{{count}} years",
+      "ageUnset": "—",
       "gender": "Gender",
       "language": "Preferred Language",
       "height": "Height (cm)",
       "weight": "Target Weight (kg)"
+    },
+    "security": {
+      "title": "Password & Security",
+      "subtitle": "Manage your account password to keep your data secure",
+      "currentPassword": "Current Password",
+      "currentPasswordPlaceholder": "Enter current password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Enter new password (min. 6 characters)",
+      "confirmPassword": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Re-enter new password",
+      "changePasswordBtn": "Update Password",
+      "passwordChangedSuccess": "Your password has been changed successfully!",
+      "passwordsDoNotMatch": "New password and confirmation do not match",
+      "passwordTooShort": "Password must be at least 6 characters long"
     },
     "editEmail": "Edit email",
     "pendingEmailNotice": "Email change pending verification for {{email}}",
