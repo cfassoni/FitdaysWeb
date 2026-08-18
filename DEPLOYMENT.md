@@ -40,6 +40,11 @@ services:
       - REPORTS_DIR=/app/data/uploads/reports
       - SECRET_KEY=${SECRET_KEY}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
+      - MAILGUN_API_KEY=${MAILGUN_API_KEY:-}
+      - MAILGUN_DOMAIN=${MAILGUN_DOMAIN:-}
+      - MAILGUN_API_BASE_URL=${MAILGUN_API_BASE_URL:-https://api.mailgun.net/v3}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-FitdaysWeb <noreply@fitdays.local>}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
     volumes:
       - fitdays-db-data:/app/data
     restart: unless-stopped
@@ -112,6 +117,44 @@ Regardless of the method chosen, you must configure the environment variables un
 | `DATABASE_URL` | `sqlite:////app/data/fitdays.db` | The connection string. By default, it points to the SQLite database file inside the persistent volume. |
 | `UPLOAD_DIR` | `/app/data/uploads/profile_pics` | The directory where uploaded profile pictures are stored. Point this inside the persistent volume. |
 | `REPORTS_DIR` | `/app/data/uploads/reports` | The directory where uploaded mobile app reports are stored. Point this inside the persistent volume to prevent data loss on reload. |
+| `MAILGUN_API_KEY` | *(None)* | **[OPTIONAL]** Mailgun API key (e.g. `key-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` or `api:key-...`). If omitted, emails are logged to the container console in development mode. |
+| `MAILGUN_DOMAIN` | *(None)* | **[OPTIONAL]** Mailgun sending domain (e.g. `mg.yourdomain.com` or `sandboxXXXXXXXX.mailgun.org`). |
+| `MAILGUN_API_BASE_URL` | `https://api.mailgun.net/v3` | Mailgun API base URL. Use `https://api.mailgun.net/v3` for US region or `https://api.eu.mailgun.net/v3` for EU region. |
+| `MAIL_FROM_ADDRESS` | `FitdaysWeb <noreply@fitdays.app>` | The `From` header address for outgoing verification emails. |
+| `FRONTEND_URL` | `http://localhost` | **[CRITICAL IN PRODUCTION]** The public URL of the frontend (e.g. `https://fitdays.yourdomain.com`). Used to construct 1-click email confirmation links. |
+
+---
+
+## 📧 Email Service (Mailgun) Production Configuration
+
+FitdaysWeb sends account activation emails and profile email change confirmations using **Mailgun**.
+
+### Production Setup Steps
+
+1. **Add & Verify Domain in Mailgun**:
+   - In your [Mailgun Dashboard](https://app.mailgun.com/), navigate to **Sending > Domains > Add New Domain**.
+   - Use a dedicated subdomain (e.g., `mg.yourdomain.com` or `mail.yourdomain.com`).
+   - Configure the required DNS records (TXT for SPF and DKIM, CNAME for tracking, MX if receiving bounces) with your DNS registrar.
+2. **Obtain API Key**:
+   - Navigate to **Settings > API Keys** (or **Domain Settings > Sending API keys**) and copy your sending API key.
+3. **Configure Stack Environment Variables**:
+   In your Portainer stack or `.env` file, set:
+   ```env
+   MAILGUN_API_KEY=your-mailgun-api-key
+   MAILGUN_DOMAIN=mg.yourdomain.com
+   MAILGUN_API_BASE_URL=https://api.mailgun.net/v3
+   MAIL_FROM_ADDRESS=FitdaysWeb <noreply@yourdomain.com>
+   FRONTEND_URL=https://fitdays.yourdomain.com
+   ```
+4. **Test Delivery**:
+   Trigger a test email directly from inside the backend container:
+   ```bash
+   docker exec -it fitdays-backend python -c "
+   from app.email import send_verification_email
+   success = send_verification_email('your-email@yourdomain.com', '123456', language='en')
+   print('Delivered!' if success else 'Delivery failed')
+   "
+   ```
 
 ---
 
@@ -145,3 +188,4 @@ If your internal production environment scales and requires a robust relational 
    DATABASE_URL=postgresql://db_user:db_password@postgres-service:5432/fitdays_db
    ```
 3. Restart the backend service. SQLAlchemy will automatically connect to PostgreSQL and initialize all database tables.
+

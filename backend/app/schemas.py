@@ -5,7 +5,6 @@ from typing import List, Dict, Any, Literal
 
 # User Schemas
 class UserCreate(BaseModel):
-    login: str = Field(..., pattern=r"^[a-z][a-z0-9]*$", min_length=3, max_length=50)
     email: EmailStr
     password: str = Field(..., min_length=6)
     display_name: str = Field(..., min_length=1, max_length=100)
@@ -27,7 +26,6 @@ class UserCreate(BaseModel):
         return v
 
 class UserUpdate(BaseModel):
-    login: str | None = Field(None, pattern=r"^[a-z][a-z0-9]*$", min_length=3, max_length=50)
     email: EmailStr | None = None
     display_name: str | None = Field(None, min_length=1, max_length=100)
     gender: Literal["male", "female"] | None = None
@@ -51,7 +49,6 @@ class UserUpdate(BaseModel):
 
 class UserResponse(BaseModel):
     id: int
-    login: str
     email: str
     display_name: str | None = None
     gender: str | None = None
@@ -60,6 +57,8 @@ class UserResponse(BaseModel):
     target_weight_kg: float | None = None
     profile_image_path: str | None = None
     preferred_language: str | None = None
+    email_confirmed: bool = False
+    pending_email: str | None = None
     created_at: datetime
 
     @computed_field
@@ -67,7 +66,6 @@ class UserResponse(BaseModel):
     def profile_image_url(self) -> str | None:
         if self.profile_image_path:
             return f"/uploads/profile_pics/{os.path.basename(self.profile_image_path)}"
-            # Wait, let's strip backslashes or other characters if needed, basename handles it.
         return None
 
     model_config = {
@@ -79,7 +77,22 @@ class Token(BaseModel):
     token_type: str
 
 class TokenData(BaseModel):
-    login: str | None = None
+    email: str | None = None
+
+class VerifyCodeRequest(BaseModel):
+    email: EmailStr
+    code: str = Field(..., min_length=6, max_length=6, pattern=r"^[0-9]{6}$")
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+class VerifyEmailResponse(BaseModel):
+    message: str
+    email: str
+    email_confirmed: bool
+
+class MessageResponse(BaseModel):
+    message: str
 
 # Fitdays Report Schemas
 class FitdaysReportResponse(BaseModel):

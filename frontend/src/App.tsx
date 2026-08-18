@@ -6,6 +6,7 @@ import Sidebar from './components/Sidebar';
 import TopToolbar from './components/TopToolbar';
 import Login from './views/Login';
 import Register from './views/Register';
+import VerifyEmail from './views/VerifyEmail';
 import Dashboard from './views/Dashboard';
 import History from './views/History';
 import Import from './views/Import';
@@ -19,7 +20,18 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
-  const [authView, setAuthView] = useState<'login' | 'register'>('login');
+
+  // Check URL pathname or query param for verification route on initial load
+  const isVerifyEmailRoute = typeof window !== 'undefined' && (
+    window.location.pathname === '/verify-email' || 
+    new URLSearchParams(window.location.search).has('code')
+  );
+
+  const [authView, setAuthView] = useState<'login' | 'register' | 'verify'>(() => {
+    if (isVerifyEmailRoute) return 'verify';
+    return 'login';
+  });
+  const [verifyEmailTarget, setVerifyEmailTarget] = useState<string>('');
   
   const [currentView, setCurrentView] = useState<'dashboard' | 'history' | 'import' | 'profile' | 'shared_links'>('dashboard');
   const [lastSyncedLang, setLastSyncedLang] = useState<string | null>(null);
@@ -122,10 +134,23 @@ export default function App() {
 
   // Unauthenticated Views
   if (!isAuthenticated) {
+    if (authView === 'verify') {
+      return (
+        <VerifyEmail 
+          initialEmail={verifyEmailTarget}
+          onGoToLogin={() => setAuthView('login')}
+        />
+      );
+    }
+
     return authView === 'login' ? (
       <Login 
         onLoginSuccess={handleLoginSuccess}
         onGoToRegister={() => setAuthView('register')}
+        onGoToVerify={(email) => {
+          setVerifyEmailTarget(email);
+          setAuthView('verify');
+        }}
       />
     ) : (
       <Register 

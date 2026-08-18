@@ -39,10 +39,11 @@ vi.mock('../../lib/api', () => ({
   api: {
     updateProfile: vi.fn().mockResolvedValue({
       id: 1,
-      login: 'testuser',
       email: 'test@example.com',
       display_name: 'Test User',
       preferred_language: 'es',
+      email_confirmed: true,
+      pending_email: null,
     }),
   },
 }));
@@ -50,7 +51,6 @@ vi.mock('../../lib/api', () => ({
 describe('TopToolbar', () => {
   const mockUser: User = {
     id: 1,
-    login: 'testuser',
     email: 'test@example.com',
     display_name: 'Test User',
     gender: 'M',
@@ -60,6 +60,8 @@ describe('TopToolbar', () => {
     profile_image_path: null,
     profile_image_url: null,
     preferred_language: 'en',
+    email_confirmed: true,
+    pending_email: null,
     created_at: '2026-06-20T10:00:00Z',
   };
 

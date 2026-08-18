@@ -2,38 +2,62 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { FormEvent } from 'react';
 import { api } from '../lib/api';
-import { TrendingUp, Lock, User as UserIcon, Loader2, AlertCircle } from 'lucide-react';
+import { TrendingUp, Lock, Mail, Loader2, AlertCircle, CheckCircle2, ShieldAlert } from 'lucide-react';
 import LanguageSelector from '../components/LanguageSelector';
 
 interface LoginProps {
   onLoginSuccess: () => void;
   onGoToRegister: () => void;
+  onGoToVerify?: (email: string) => void;
 }
 
-export default function Login({ onLoginSuccess, onGoToRegister }: LoginProps) {
+export default function Login({ onLoginSuccess, onGoToRegister, onGoToVerify }: LoginProps) {
   const { t } = useTranslation();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isUnconfirmed, setIsUnconfirmed] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!username || !password) {
+    if (!email || !password) {
       setError(t('common.required'));
       return;
     }
 
     setError(null);
+    setIsUnconfirmed(false);
+    setResendSuccess(null);
     setIsLoading(true);
 
     try {
-      await api.login(username, password);
+      await api.login(email, password);
       onLoginSuccess();
     } catch (err: any) {
-      setError(err.message || t('login.errorDefault'));
+      if (err.message && err.message.includes('EMAIL_NOT_CONFIRMED')) {
+        setIsUnconfirmed(true);
+      } else {
+        setError(err.message || t('login.errorDefault'));
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (!email || isResending) return;
+    setIsResending(true);
+    setError(null);
+    try {
+      await api.resendVerification(email);
+      setResendSuccess(t('login.codeResent', { email }));
+    } catch (err: any) {
+      setError(err.message || t('common.error'));
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -52,6 +76,42 @@ export default function Login({ onLoginSuccess, onGoToRegister }: LoginProps) {
           <p className="text-sm text-muted-foreground">{t('login.subtitle')}</p>
         </div>
 
+        {isUnconfirmed && (
+          <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/25 rounded-xl space-y-3">
+            <div className="flex items-start gap-2.5 text-amber-700 dark:text-amber-400 text-sm font-medium">
+              <ShieldAlert className="h-5 w-5 shrink-0 mt-0.5" />
+              <span>{t('login.emailNotConfirmed')}</span>
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              {onGoToVerify && (
+                <button
+                  type="button"
+                  onClick={() => onGoToVerify(email)}
+                  className="px-3 py-1.5 bg-primary text-primary-foreground text-xs font-semibold rounded-lg hover:bg-primary/90 transition-colors cursor-pointer"
+                >
+                  {t('login.verifyNow')}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleResendCode}
+                disabled={isResending}
+                className="px-3 py-1.5 bg-background border border-border text-foreground text-xs font-medium rounded-lg hover:bg-muted transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {isResending && <Loader2 className="h-3 w-3 animate-spin" />}
+                <span>{t('login.resendCode')}</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {resendSuccess && (
+          <div className="mb-6 flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 rounded-lg text-sm">
+            <CheckCircle2 className="h-5 w-5 shrink-0" />
+            <span>{resendSuccess}</span>
+          </div>
+        )}
+
         {error && (
           <div className="mb-6 flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/25 text-destructive rounded-lg text-sm">
             <AlertCircle className="h-5 w-5 shrink-0" />
@@ -61,19 +121,19 @@ export default function Login({ onLoginSuccess, onGoToRegister }: LoginProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5" htmlFor="username">
+            <label className="block text-sm font-medium text-foreground mb-1.5" htmlFor="email">
               {t('login.username')}
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground">
-                <UserIcon className="h-5 w-5" />
+                <Mail className="h-5 w-5" />
               </span>
               <input
-                id="username"
-                type="text"
-                autoComplete="username"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
                 disabled={isLoading}
                 placeholder={t('login.usernamePlaceholder')}
                 className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-50"
@@ -134,3 +194,4 @@ export default function Login({ onLoginSuccess, onGoToRegister }: LoginProps) {
     </div>
   );
 }
+

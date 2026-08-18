@@ -35,23 +35,26 @@
   "login": {
     "title": "Bienvenido de nuevo",
     "subtitle": "Inicie sesión para realizar el seguimiento del progreso de su composición corporal",
-    "username": "Nombre de Usuario",
-    "usernamePlaceholder": "Ingrese su nombre de usuario",
+    "username": "Dirección de Correo Electrónico",
+    "usernamePlaceholder": "Ingrese su correo electrónico",
     "password": "Contraseña",
     "signIn": "Iniciar Sesión",
     "signingIn": "Iniciando sesión...",
     "noAccount": "¿No tiene una cuenta?",
     "signUp": "Registrarse",
-    "errorDefault": "Nombre de usuario o contraseña incorrectos"
+    "errorDefault": "Correo electrónico o contraseña incorrectos",
+    "emailNotConfirmed": "Su dirección de correo electrónico aún no ha sido verificada.",
+    "verifyNow": "Verificar Ahora",
+    "resendCode": "Reenviar Código",
+    "codeResent": "Se ha enviado un código de verificación a {{email}}"
   },
   "register": {
     "title": "Cree su perfil",
     "stepText": "Paso {{step}} de 3",
-    "step1Title": "Credenciales",
+    "step1Title": "Datos de la Cuenta",
     "step2Title": "Datos Personales",
     "step3Title": "Configuración Física",
     "progressText": "Paso {{step}} de 3 • {{title}}",
-    "usernamePlaceholder": "ej: alice, bob2 (solo minúsculas)",
     "emailLabel": "Dirección de Correo Electrónico",
     "emailPlaceholder": "correo@ejemplo.com",
     "passwordPlaceholder": "Mín. 6 caracteres",
@@ -69,10 +72,20 @@
     "selectImage": "Seleccionar Imagen",
     "haveAccount": "¿Ya tiene una cuenta?",
     "signInLink": "Iniciar sesión",
+    "verificationTitle": "Verifique su correo",
+    "verificationSubtitle": "Hemos enviado un código de verificación de 6 dígitos a {{email}}",
+    "enterCode": "Ingrese el Código de 6 Dígitos",
+    "verifyAndSignIn": "Verificar y Continuar",
+    "verifying": "Verificando...",
+    "didntReceiveCode": "¿No recibió el código?",
+    "resendCode": "Reenviar Código",
+    "codeResent": "¡Se ha enviado un nuevo código a su correo electrónico!",
+    "changeEmail": "Volver al registro",
+    "verificationSuccess": "¡Correo electrónico verificado con éxito!",
     "successMsg": "¡Cuenta creada con éxito! Redireccionando...",
     "registering": "Registrando...",
     "errorSignInFailed": "Cuenta creada, pero falló el inicio de sesión automático. Por favor, inicie sesión manualmente.",
-    "errorRegisterFailed": "Error en el registro. El nombre de usuario o correo electrónico puede estar en uso.",
+    "errorRegisterFailed": "Error en el registro. El correo electrónico puede estar en uso.",
     "photoPreviewAlt": "Vista previa del perfil"
   },
   "sidebar": {
@@ -267,8 +280,8 @@
     "uploadError": "Error al subir y analizar el archivo"
   },
   "profile": {
-    "title": "Configuración del Perfil de Usuario",
-    "subtitle": "Administre su información personal, detalles físicos y foto de perfil",
+    "title": "Configuración del Perfil",
+    "subtitle": "Administre su información personal, datos físicos y foto de perfil",
     "successMsg": "¡Configuración de perfil actualizada con éxito!",
     "avatarPanel": {
       "changePhoto": "Cambiar Foto",
@@ -276,12 +289,11 @@
       "photoErrorType": "Solo se permiten imágenes JPEG, PNG y WebP"
     },
     "sections": {
-      "credentials": "Credenciales de la Cuenta",
+      "credentials": "Información de la Cuenta",
       "personal": "Datos personales",
       "physical": "Especificaciones físicas"
     },
     "fields": {
-      "username": "Nombre de Usuario",
       "email": "Dirección de Correo Electrónico",
       "displayName": "Nombre de Mostrar",
       "birthday": "Fecha de Nacimiento",
@@ -290,8 +302,34 @@
       "height": "Altura (cm)",
       "weight": "Peso Objetivo (kg)"
     },
+    "editEmail": "Editar correo",
+    "pendingEmailNotice": "Cambio de correo pendiente de verificación para {{email}}",
+    "enterVerificationCode": "Ingresar Código",
+    "resendVerificationCode": "Reenviar Código",
+    "cancelEmailChange": "Cancelar Cambio",
+    "emailChangeCancelled": "Cambio de correo cancelado",
+    "codeSent": "Código de verificación enviado a {{email}}",
+    "verifyModalTitle": "Confirmar Cambio de Correo",
+    "verifyModalSubtitle": "Ingrese el código de verificación de 6 dígitos enviado a {{email}} para completar el cambio.",
     "uploadPhotoError": "Error al subir la foto de perfil",
     "updateError": "Error al actualizar la configuración del perfil"
+  },
+  "verifyEmail": {
+    "title": "Verificación de Correo",
+    "subtitle": "Active su cuenta en FitdaysWeb",
+    "verifying": "Verificando su dirección de correo...",
+    "successTitle": "¡Correo Verificado con Éxito!",
+    "successMessage": "Su correo ha sido confirmado. Ahora puede iniciar sesión en su cuenta FitdaysWeb.",
+    "errorTitle": "Error en la Verificación",
+    "enterCodePrompt": "Ingrese el código de verificación de 6 dígitos enviado a su correo.",
+    "emailLabel": "Dirección de Correo Electrónico",
+    "emailPlaceholder": "correo@ejemplo.com",
+    "codeLabel": "Código de 6 Dígitos",
+    "verifyButton": "Verificar Código",
+    "proceedToLogin": "Ir a Iniciar Sesión",
+    "resendCode": "Reenviar Código",
+    "codeResent": "Código de verificación enviado a {{email}}",
+    "backToLogin": "Volver a Iniciar Sesión"
   },
   "sharing": {
     "title": "Informes Compartidos",

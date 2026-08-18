@@ -1,14 +1,14 @@
 import os
+from datetime import datetime, timedelta
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
 from app.main import app
 from app.models import User, FitdaysRecord
-
-from sqlalchemy.pool import StaticPool
 
 # Use an in-memory SQLite database for testing with StaticPool to keep the connection alive
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -32,21 +32,64 @@ app.dependency_overrides[get_db] = override_get_db
 
 @pytest.fixture(name="client")
 def client_fixture():
-    # Create tables
     Base.metadata.create_all(bind=engine)
     yield TestClient(app)
-    # Drop tables after test runs
     Base.metadata.drop_all(bind=engine)
 
-def test_user_flow(client: TestClient):
+def register_and_verify_user(
+    client: TestClient,
+    email: str = "testuser@example.com",
+    password: str = "testpassword123",
+    display_name: str = "Test User",
+    gender: str = "male",
+    birthday: str = "1990-01-01",
+    height_cm: float = 175.0,
+    target_weight_kg: float = 70.0,
+    preferred_language: str = "en"
+) -> str:
+    """Helper to register, verify, and return auth token."""
+    reg_response = client.post(
+        "/api/users/register",
+        json={
+            "email": email,
+            "password": password,
+            "display_name": display_name,
+            "gender": gender,
+            "birthday": birthday,
+            "height_cm": height_cm,
+            "target_weight_kg": target_weight_kg,
+            "preferred_language": preferred_language
+        }
+    )
+    assert reg_response.status_code == 201
+
+    db = TestingSessionLocal()
+    user = db.query(User).filter(User.email == email).first()
+    code = user.verification_code
+    db.close()
+
+    verify_res = client.post(
+        "/api/users/verify-code",
+        json={"email": email, "code": code}
+    )
+    assert verify_res.status_code == 200
+
+    login_res = client.post(
+        "/api/users/login",
+        data={"username": email, "password": password}
+    )
+    assert login_res.status_code == 200
+    return login_res.json()["access_token"]
+
+
+def test_user_registration_and_email_verification_flow(client: TestClient):
     # 1. Register user
     reg_response = client.post(
         "/api/users/register",
         json={
-            "login": "testuser",
-            "email": "testuser@example.com",
-            "password": "testpassword123",
-            "display_name": "Test User",
+            "email": "verifytest@example.com",
+            "password": "password123",
+            "display_name": "Verify User",
             "gender": "male",
             "birthday": "1990-01-01",
             "height_cm": 175.0,
@@ -55,17 +98,18 @@ def test_user_flow(client: TestClient):
         }
     )
     assert reg_response.status_code == 201
-    assert reg_response.json()["login"] == "testuser"
-    assert "id" in reg_response.json()
+    data = reg_response.json()
+    assert data["email"] == "verifytest@example.com"
+    assert data["email_confirmed"] is False
+    assert "id" in data
 
-    # 2. Duplicate registration should fail
+    # 2. Duplicate registration with same email should fail
     dup_response = client.post(
         "/api/users/register",
         json={
-            "login": "testuser",
-            "email": "testuser2@example.com",
-            "password": "testpassword123",
-            "display_name": "Test User 2",
+            "email": "verifytest@example.com",
+            "password": "password123",
+            "display_name": "Another User",
             "gender": "female",
             "birthday": "1992-02-02",
             "height_cm": 165.0,
@@ -74,44 +118,231 @@ def test_user_flow(client: TestClient):
         }
     )
     assert dup_response.status_code == 400
+    assert "already registered" in dup_response.json()["detail"]
 
-    # 3. Login
+    # 3. Login before confirmation should return 403 EMAIL_NOT_CONFIRMED
+    unconfirmed_login = client.post(
+        "/api/users/login",
+        data={"username": "verifytest@example.com", "password": "password123"}
+    )
+    assert unconfirmed_login.status_code == 403
+    assert unconfirmed_login.json()["detail"] == "EMAIL_NOT_CONFIRMED"
+
+    # 4. Attempt verification with invalid code
+    bad_verify = client.post(
+        "/api/users/verify-code",
+        json={"email": "verifytest@example.com", "code": "999999"}
+    )
+    assert bad_verify.status_code == 400
+    assert "Invalid verification code" in bad_verify.json()["detail"]
+
+    # 5. Fetch actual code from DB
+    db = TestingSessionLocal()
+    user = db.query(User).filter(User.email == "verifytest@example.com").first()
+    assert user is not None
+    assert user.verification_code is not None
+    assert len(user.verification_code) == 6
+    actual_code = user.verification_code
+    db.close()
+
+    # 6. Verify code with valid code
+    verify_response = client.post(
+        "/api/users/verify-code",
+        json={"email": "verifytest@example.com", "code": actual_code}
+    )
+    assert verify_response.status_code == 200
+    assert verify_response.json()["email_confirmed"] is True
+
+    # 7. Login now succeeds
     login_response = client.post(
         "/api/users/login",
-        data={
-            "username": "testuser",
-            "password": "testpassword123"
-        }
+        data={"username": "verifytest@example.com", "password": "password123"}
     )
     assert login_response.status_code == 200
     token_data = login_response.json()
     assert "access_token" in token_data
-    assert token_data["token_type"] == "bearer"
     token = token_data["access_token"]
 
-    # 4. Get current user profile
-    profile_response = client.get(
-        "/api/users/me",
-        headers={"Authorization": f"Bearer {token}"}
+    # 8. Profile query
+    me_response = client.get("/api/users/me", headers={"Authorization": f"Bearer {token}"})
+    assert me_response.status_code == 200
+    assert me_response.json()["email"] == "verifytest@example.com"
+    assert me_response.json()["email_confirmed"] is True
+
+
+def test_get_verify_email_endpoint(client: TestClient):
+    """Test 1-click verification link endpoint GET /api/users/verify-email"""
+    client.post(
+        "/api/users/register",
+        json={
+            "email": "linkverify@example.com",
+            "password": "password123",
+            "display_name": "Link User",
+            "gender": "female",
+            "birthday": "1995-05-05",
+            "height_cm": 165.0,
+            "target_weight_kg": 55.0,
+            "preferred_language": "es"
+        }
     )
+    db = TestingSessionLocal()
+    user = db.query(User).filter(User.email == "linkverify@example.com").first()
+    code = user.verification_code
+    db.close()
+
+    # Verify via GET query parameters
+    get_res = client.get(f"/api/users/verify-email?email=linkverify@example.com&code={code}")
+    assert get_res.status_code == 200
+    assert get_res.json()["email_confirmed"] is True
+
+    # Login works
+    login_res = client.post(
+        "/api/users/login",
+        data={"username": "linkverify@example.com", "password": "password123"}
+    )
+    assert login_res.status_code == 200
+
+
+def test_resend_verification_and_code_expiration(client: TestClient):
+    client.post(
+        "/api/users/register",
+        json={
+            "email": "resendtest@example.com",
+            "password": "password123",
+            "display_name": "Resend User",
+            "gender": "male",
+            "birthday": "1990-01-01",
+            "height_cm": 175.0,
+            "target_weight_kg": 70.0,
+            "preferred_language": "en"
+        }
+    )
+    db = TestingSessionLocal()
+    user = db.query(User).filter(User.email == "resendtest@example.com").first()
+    old_code = user.verification_code
+    # Expire old code manually
+    user.verification_code_expires_at = datetime.utcnow() - timedelta(hours=1)
+    db.commit()
+    db.close()
+
+    # Attempting to verify expired code should fail
+    exp_verify = client.post(
+        "/api/users/verify-code",
+        json={"email": "resendtest@example.com", "code": old_code}
+    )
+    assert exp_verify.status_code == 400
+    assert "expired" in exp_verify.json()["detail"]
+
+    # Resend verification
+    resend_res = client.post(
+        "/api/users/resend-verification",
+        json={"email": "resendtest@example.com"}
+    )
+    assert resend_res.status_code == 200
+
+    db = TestingSessionLocal()
+    user = db.query(User).filter(User.email == "resendtest@example.com").first()
+    new_code = user.verification_code
+    assert new_code is not None
+    db.close()
+
+    # Verifying with new code succeeds
+    verify_res = client.post(
+        "/api/users/verify-code",
+        json={"email": "resendtest@example.com", "code": new_code}
+    )
+    assert verify_res.status_code == 200
+    assert verify_res.json()["email_confirmed"] is True
+
+
+def test_profile_email_update_and_verification_flow(client: TestClient):
+    token = register_and_verify_user(client, email="original@example.com", password="password123")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 1. Update display name without changing email
+    update_res = client.put(
+        "/api/users/profile",
+        json={"display_name": "Updated Original"},
+        headers=headers
+    )
+    assert update_res.status_code == 200
+    assert update_res.json()["display_name"] == "Updated Original"
+    assert update_res.json()["email"] == "original@example.com"
+    assert update_res.json()["pending_email"] is None
+
+    # 2. Request email change to newemail@example.com
+    change_res = client.put(
+        "/api/users/profile",
+        json={"email": "newemail@example.com"},
+        headers=headers
+    )
+    assert change_res.status_code == 200
+    # Active email is still original, pending_email is set
+    assert change_res.json()["email"] == "original@example.com"
+    assert change_res.json()["pending_email"] == "newemail@example.com"
+
+    # User can still make authenticated requests with their existing session
+    me_res = client.get("/api/users/me", headers=headers)
+    assert me_res.status_code == 200
+    assert me_res.json()["pending_email"] == "newemail@example.com"
+
+    # 3. Cancel email change
+    cancel_res = client.post("/api/users/cancel-email-change", headers=headers)
+    assert cancel_res.status_code == 200
+    me_after_cancel = client.get("/api/users/me", headers=headers).json()
+    assert me_after_cancel["pending_email"] is None
+
+    # 4. Request email change again and verify
+    client.put(
+        "/api/users/profile",
+        json={"email": "newemail@example.com"},
+        headers=headers
+    )
+    db = TestingSessionLocal()
+    user = db.query(User).filter(User.email == "original@example.com").first()
+    code = user.verification_code
+    db.close()
+
+    # Verify code for pending email
+    verify_res = client.post(
+        "/api/users/verify-code",
+        json={"email": "newemail@example.com", "code": code}
+    )
+    assert verify_res.status_code == 200
+    assert verify_res.json()["email"] == "newemail@example.com"
+
+    # 5. Login now works with new email
+    new_login = client.post(
+        "/api/users/login",
+        data={"username": "newemail@example.com", "password": "password123"}
+    )
+    assert new_login.status_code == 200
+
+
+def test_user_flow(client: TestClient):
+    token = register_and_verify_user(client, email="testflow@example.com", password="testpassword123")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Get current user profile
+    profile_response = client.get("/api/users/me", headers=headers)
     assert profile_response.status_code == 200
-    assert profile_response.json()["login"] == "testuser"
+    assert profile_response.json()["email"] == "testflow@example.com"
     assert profile_response.json()["display_name"] == "Test User"
 
-    # 5. Update profile
+    # Update profile
     update_response = client.put(
         "/api/users/profile",
         json={
             "display_name": "Updated Name",
             "height_cm": 180.0
         },
-        headers={"Authorization": f"Bearer {token}"}
+        headers=headers
     )
     assert update_response.status_code == 200
     assert update_response.json()["display_name"] == "Updated Name"
     assert update_response.json()["height_cm"] == 180.0
 
-    # 6. Upload profile picture
+    # Upload profile picture
     from PIL import Image
     import io
     img = Image.new("RGB", (100, 100), color="red")
@@ -122,7 +353,7 @@ def test_user_flow(client: TestClient):
     upload_response = client.post(
         "/api/users/profile-picture",
         files={"file": ("test.png", img_byte_arr, "image/png")},
-        headers={"Authorization": f"Bearer {token}"}
+        headers=headers
     )
     assert upload_response.status_code == 200
     assert upload_response.json()["profile_image_url"] is not None
@@ -130,26 +361,16 @@ def test_user_flow(client: TestClient):
 
 
 def test_records_upload_and_summary(client: TestClient):
-    # Register and login first
-    client.post(
-        "/api/users/register",
-        json={
-            "login": "celso",
-            "email": "celso@example.com",
-            "password": "celsopassword",
-            "display_name": "Celso Fassoni",
-            "gender": "male",
-            "birthday": "1985-05-15",
-            "height_cm": 180.0,
-            "target_weight_kg": 85.0,
-            "preferred_language": "pt-br"
-        }
+    token = register_and_verify_user(
+        client,
+        email="celso@example.com",
+        password="celsopassword",
+        display_name="Celso Fassoni",
+        birthday="1985-05-15",
+        height_cm=180.0,
+        target_weight_kg=85.0,
+        preferred_language="pt-br"
     )
-    login_response = client.post(
-        "/api/users/login",
-        data={"username": "celso", "password": "celsopassword"}
-    )
-    token = login_response.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
     # Verify upload is rejected if file is not provided
@@ -266,51 +487,12 @@ def test_records_upload_and_summary(client: TestClient):
 
 
 def test_records_deletion(client: TestClient):
-    # 1. Register and login User A
-    client.post(
-        "/api/users/register",
-        json={
-            "login": "usera",
-            "email": "usera@example.com",
-            "password": "password123",
-            "display_name": "User A",
-            "gender": "male",
-            "birthday": "1990-01-01",
-            "height_cm": 175.0,
-            "target_weight_kg": 70.0,
-            "preferred_language": "en"
-        }
-    )
-    login_a = client.post(
-        "/api/users/login",
-        data={"username": "usera", "password": "password123"}
-    )
-    token_a = login_a.json()["access_token"]
+    token_a = register_and_verify_user(client, email="usera@example.com", password="password123", display_name="User A")
     headers_a = {"Authorization": f"Bearer {token_a}"}
 
-    # 2. Register and login User B
-    client.post(
-        "/api/users/register",
-        json={
-            "login": "userb",
-            "email": "userb@example.com",
-            "password": "password123",
-            "display_name": "User B",
-            "gender": "female",
-            "birthday": "1992-02-02",
-            "height_cm": 165.0,
-            "target_weight_kg": 60.0,
-            "preferred_language": "en"
-        }
-    )
-    login_b = client.post(
-        "/api/users/login",
-        data={"username": "userb", "password": "password123"}
-    )
-    token_b = login_b.json()["access_token"]
+    token_b = register_and_verify_user(client, email="userb@example.com", password="password123", display_name="User B")
     headers_b = {"Authorization": f"Bearer {token_b}"}
 
-    # 3. Upload data for User A
     test_dir = os.path.dirname(os.path.abspath(__file__))
     csv_path = os.path.abspath(os.path.join(test_dir, "..", "..", "test-data", "Fitdays-test-data.csv"))
     with open(csv_path, "rb") as f:
@@ -320,7 +502,6 @@ def test_records_deletion(client: TestClient):
             files={"file": ("Fitdays-test-data.csv", f, "application/octet-stream")}
         )
 
-    # 4. Upload data for User B
     with open(csv_path, "rb") as f:
         client.post(
             "/api/records/upload",
@@ -328,7 +509,6 @@ def test_records_deletion(client: TestClient):
             files={"file": ("Fitdays-test-data.csv", f, "application/octet-stream")}
         )
 
-    # Get records of User A and User B to find their IDs
     records_a = client.get("/api/records", headers=headers_a).json()
     records_b = client.get("/api/records", headers=headers_b).json()
 
@@ -336,7 +516,6 @@ def test_records_deletion(client: TestClient):
     id_a2 = records_a[1]["id"]
     id_b = records_b[0]["id"]
 
-    # 5. Delete a single record of User A successfully
     del_response = client.post(
         "/api/records/delete",
         headers=headers_a,
@@ -347,12 +526,10 @@ def test_records_deletion(client: TestClient):
     assert id_a1 in res["deleted"]
     assert len(res["failed"]) == 0
 
-    # Verify record was deleted for User A
     records_a_after = client.get("/api/records", headers=headers_a).json()
     assert len(records_a_after) == len(records_a) - 1
     assert all(r["id"] != id_a1 for r in records_a_after)
 
-    # 6. Attempt deleting User B's record using User A's token (unauthorized)
     del_unauth = client.post(
         "/api/records/delete",
         headers=headers_a,
@@ -365,7 +542,6 @@ def test_records_deletion(client: TestClient):
     assert res_unauth["failed"][0]["id"] == id_b
     assert res_unauth["failed"][0]["reason"] == "unauthorized"
 
-    # 7. Batch delete with mix of valid, unauthorized, and non-existent IDs
     non_existent_id = 99999
     mix_response = client.post(
         "/api/records/delete",
@@ -375,10 +551,7 @@ def test_records_deletion(client: TestClient):
     assert mix_response.status_code == 200
     res_mix = mix_response.json()
     
-    # id_a2 should be deleted successfully
     assert id_a2 in res_mix["deleted"]
-    
-    # id_b and non_existent_id should be failed
     failed_ids = {f["id"]: f["reason"] for f in res_mix["failed"]}
     assert failed_ids[id_b] == "unauthorized"
     assert failed_ids[non_existent_id] == "not_found"
@@ -387,29 +560,9 @@ def test_records_deletion(client: TestClient):
 
 
 def test_reports_flow(client: TestClient):
-    # 1. Register and login User A
-    client.post(
-        "/api/users/register",
-        json={
-            "login": "usera",
-            "email": "usera@example.com",
-            "password": "password123",
-            "display_name": "User A",
-            "gender": "male",
-            "birthday": "1990-01-01",
-            "height_cm": 180.0,
-            "target_weight_kg": 75.0,
-            "preferred_language": "en"
-        }
-    )
-    login_a = client.post(
-        "/api/users/login",
-        data={"username": "usera", "password": "password123"}
-    )
-    token_a = login_a.json()["access_token"]
+    token_a = register_and_verify_user(client, email="reportuser@example.com", password="password123", display_name="Report User")
     headers_a = {"Authorization": f"Bearer {token_a}"}
 
-    # 2. Upload records to create an entry
     test_dir = os.path.dirname(os.path.abspath(__file__))
     csv_path = os.path.abspath(os.path.join(test_dir, "..", "..", "test-data", "Fitdays-test-data.csv"))
     with open(csv_path, "rb") as f:
@@ -423,11 +576,9 @@ def test_reports_flow(client: TestClient):
     assert len(records) > 0
     record_id = records[0]["id"]
 
-    # 3. Check that GET /api/records/{record_id}/report returns 204 when no report exists
     get_rep_none = client.get(f"/api/records/{record_id}/report", headers=headers_a)
     assert get_rep_none.status_code == 204
 
-    # 4. Upload a report (PDF) successfully
     pdf_content = b"%PDF-1.4 dummy pdf content"
     upload_res = client.post(
         f"/api/records/{record_id}/report",
@@ -441,18 +592,15 @@ def test_reports_flow(client: TestClient):
     assert "url" in rep_data
     assert rep_data["url"].startswith("/uploads/reports/")
 
-    # 5. Check GET report returns report info now
     get_rep = client.get(f"/api/records/{record_id}/report", headers=headers_a)
     assert get_rep.status_code == 200
     assert get_rep.json()["filename"] == "report.pdf"
 
-    # 6. Verify that the report is included in the records list
     records_with_report = client.get("/api/records", headers=headers_a).json()
     matching_record = next(r for r in records_with_report if r["id"] == record_id)
     assert matching_record["report"] is not None
     assert matching_record["report"]["filename"] == "report.pdf"
 
-    # 7. Uploading file size > 5 MB should fail
     large_content = b"a" * (5 * 1024 * 1024 + 1)
     upload_large = client.post(
         f"/api/records/{record_id}/report",
@@ -462,7 +610,6 @@ def test_reports_flow(client: TestClient):
     assert upload_large.status_code == 400
     assert "exceeds" in upload_large.json()["detail"]
 
-    # 8. Uploading invalid mime type should fail
     txt_content = b"some text content"
     upload_invalid = client.post(
         f"/api/records/{record_id}/report",
@@ -472,15 +619,12 @@ def test_reports_flow(client: TestClient):
     assert upload_invalid.status_code == 400
     assert "file type" in upload_invalid.json()["detail"]
 
-    # 9. Verify deleting the report works
     del_res = client.delete(f"/api/records/{record_id}/report", headers=headers_a)
     assert del_res.status_code == 204
 
-    # 10. Check GET report returns 204 again
     get_rep_none2 = client.get(f"/api/records/{record_id}/report", headers=headers_a)
     assert get_rep_none2.status_code == 204
 
-    # 11. Upload a report, get its filename/filepath, delete the record, check file is gone
     upload_res2 = client.post(
         f"/api/records/{record_id}/report",
         headers=headers_a,
@@ -490,20 +634,15 @@ def test_reports_flow(client: TestClient):
     file_url = upload_res2.json()["url"]
     file_name = file_url.split("/")[-1]
     
-    # Verify file exists on server disk
     backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     reports_dir = os.path.join(backend_dir, "uploads", "reports")
     file_path = os.path.join(reports_dir, file_name)
     assert os.path.exists(file_path)
 
-    # Delete record
     del_rec_res = client.post(
         "/api/records/delete",
         headers=headers_a,
         json={"ids": [record_id]}
     )
     assert del_rec_res.status_code == 200
-    
-    # Check that the report file was deleted from disk
     assert not os.path.exists(file_path)
-
