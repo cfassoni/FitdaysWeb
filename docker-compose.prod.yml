@@ -3,6 +3,7 @@ services:
     image: ghcr.io/cfassoni/fitdaysweb/backend:latest
     container_name: fitdays-backend
     environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
       - DATABASE_URL=sqlite:////app/data/fitdays.db
       - UPLOAD_DIR=/app/data/uploads/profile_pics
       - REPORTS_DIR=/app/data/uploads/reports

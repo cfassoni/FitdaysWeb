@@ -2,7 +2,7 @@
 .DS_Store
 Thumbs.db
 *.local
-.env
+*.env
 
 # Database files
 *.db
