@@ -79,8 +79,8 @@ export default function UserMenu({ user, onLogout, onEditProfile }: UserMenuProp
     if (user?.display_name) {
       return user.display_name.slice(0, 2).toUpperCase();
     }
-    if (user?.login) {
-      return user.login.slice(0, 2).toUpperCase();
+    if (user?.email) {
+      return user.email.slice(0, 2).toUpperCase();
     }
     return 'US';
   };
@@ -100,7 +100,7 @@ export default function UserMenu({ user, onLogout, onEditProfile }: UserMenuProp
         {user?.profile_image_url ? (
           <img
             src={user.profile_image_url}
-            alt={user.display_name || user.login}
+            alt={user.display_name || user.email}
             className="h-full w-full object-cover"
           />
         ) : (
@@ -120,7 +120,7 @@ export default function UserMenu({ user, onLogout, onEditProfile }: UserMenuProp
           {/* User Display Info (Read-Only) */}
           <div className="px-3 py-2 text-left">
             <p className="text-sm font-semibold truncate text-foreground leading-none mb-1">
-              {user?.display_name || user?.login || 'User'}
+              {user?.display_name || user?.email || 'User'}
             </p>
             <p className="text-xs text-muted-foreground truncate">
               {user?.email || 'email@example.com'}

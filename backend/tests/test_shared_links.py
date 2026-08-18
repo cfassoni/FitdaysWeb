@@ -40,11 +40,10 @@ def client_fixture():
 
 
 def test_shared_links_flow(client: TestClient):
-    # 1. Register and login owner
+    # 1. Register, verify, and login owner
     reg_res = client.post(
         "/api/users/register",
         json={
-            "login": "owner",
             "email": "owner@example.com",
             "password": "password123",
             "display_name": "Owner User",
@@ -57,9 +56,20 @@ def test_shared_links_flow(client: TestClient):
     )
     assert reg_res.status_code == 201
     
+    db = TestingSessionLocal()
+    user = db.query(User).filter(User.email == "owner@example.com").first()
+    code = user.verification_code
+    db.close()
+
+    verify_res = client.post(
+        "/api/users/verify-code",
+        json={"email": "owner@example.com", "code": code}
+    )
+    assert verify_res.status_code == 200
+
     login_res = client.post(
         "/api/users/login",
-        data={"username": "owner", "password": "password123"}
+        data={"username": "owner@example.com", "password": "password123"}
     )
     assert login_res.status_code == 200
     token = login_res.json()["access_token"]
@@ -238,10 +248,9 @@ def test_shared_links_flow(client: TestClient):
 
 def test_shared_links_limit(client: TestClient):
     # Register and login
-    client.post(
+    reg_res = client.post(
         "/api/users/register",
         json={
-            "login": "limituser",
             "email": "limit@example.com",
             "password": "password123",
             "display_name": "Limit User",
@@ -252,10 +261,24 @@ def test_shared_links_limit(client: TestClient):
             "preferred_language": "en"
         }
     )
+    assert reg_res.status_code == 201
+    
+    db = TestingSessionLocal()
+    user = db.query(User).filter(User.email == "limit@example.com").first()
+    code = user.verification_code
+    db.close()
+
+    verify_res = client.post(
+        "/api/users/verify-code",
+        json={"email": "limit@example.com", "code": code}
+    )
+    assert verify_res.status_code == 200
+
     login_res = client.post(
         "/api/users/login",
-        data={"username": "limituser", "password": "password123"}
+        data={"username": "limit@example.com", "password": "password123"}
     )
+    assert login_res.status_code == 200
     headers = {"Authorization": f"Bearer {login_res.json()['access_token']}"}
 
     # Upload records using actual test data

@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta
 import os
+import secrets
+from datetime import datetime, timedelta, timezone
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -12,6 +13,8 @@ from app.models import User
 SECRET_KEY = os.getenv("SECRET_KEY", "fitdays_super_secret_key_12345_change_in_production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))  # 24 hours
+VERIFICATION_CODE_EXPIRE_HOURS = int(os.getenv("VERIFICATION_CODE_EXPIRE_HOURS", "24"))
+MAX_VERIFICATION_ATTEMPTS = int(os.getenv("MAX_VERIFICATION_ATTEMPTS", "5"))
 
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/users/login")
@@ -29,6 +32,14 @@ def get_password_hash(password: str) -> str:
     salt = bcrypt.gensalt()
     hashed = bcrypt.hashpw(pwd_bytes, salt)
     return hashed.decode('utf-8')
+
+def generate_verification_code() -> str:
+    """Generate a cryptographically secure 6-digit verification code."""
+    return "".join(secrets.choice("0123456789") for _ in range(6))
+
+def get_verification_expiry() -> datetime:
+    """Get UTC expiry datetime for a new verification code."""
+    return datetime.utcnow() + timedelta(hours=VERIFICATION_CODE_EXPIRE_HOURS)
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
@@ -48,13 +59,13 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        login: str = payload.get("sub")
-        if login is None:
+        email: str = payload.get("sub")
+        if email is None:
             raise credentials_exception
     except jwt.InvalidTokenError:
         raise credentials_exception
         
-    user = db.query(User).filter(User.login == login).first()
-    if user is None:
+    user = db.query(User).filter(User.email == email).first()
+    if user is None or not user.email_confirmed:
         raise credentials_exception
     return user

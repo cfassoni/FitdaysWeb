@@ -10,6 +10,12 @@ services:
       - REPORTS_DIR=/app/data/uploads/reports
       - SECRET_KEY=${SECRET_KEY:-fitdays_super_secret_key_12345_change_in_production}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
+      - PYTHONUNBUFFERED=1
+      - MAILGUN_API_KEY=${MAILGUN_API_KEY:-}
+      - MAILGUN_DOMAIN=${MAILGUN_DOMAIN:-}
+      - MAILGUN_API_BASE_URL=${MAILGUN_API_BASE_URL:-https://api.mailgun.net/v3}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-FitdaysWeb <noreply@fitdays.local>}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
     volumes:
       # Persistent SQLite database named volume
       - fitdays-db-data:/app/data

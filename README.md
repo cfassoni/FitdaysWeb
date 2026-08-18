@@ -60,6 +60,41 @@ A modern, full-stack application designed to import, parse, store, and visualize
 
 ---
 
+### 📧 Email Verification & Mailgun Testing
+
+FitdaysWeb includes email-based account activation and profile verification.
+
+#### Development / Testing Fallback (No Setup Required)
+If no Mailgun credentials are provided, FitdaysWeb automatically logs the **6-digit verification code** and **1-click direct link** to the backend console logs. You can view them with:
+```bash
+docker compose logs -f backend
+```
+
+#### Sending Live Emails via Mailgun
+To send real emails to your inbox during local testing:
+1. Create a `.env` file in the project root:
+   ```env
+   MAILGUN_API_KEY=your-mailgun-api-key
+   MAILGUN_DOMAIN=sandboxXXXXXXXX.mailgun.org  # or your custom domain
+   MAILGUN_API_BASE_URL=https://api.mailgun.net/v3
+   MAIL_FROM_ADDRESS=FitdaysWeb <noreply@yourdomain.com>
+   FRONTEND_URL=http://localhost
+   ```
+   *(Note: If using a Mailgun Sandbox domain, remember to add your personal email to **Authorized Recipients** in the Mailgun Dashboard).*
+2. Restart the containers:
+   ```bash
+   docker compose up -d --build
+   ```
+3. Test delivery directly via CLI:
+   ```bash
+   docker compose exec backend python -c "
+   from app.email import send_verification_email
+   send_verification_email('your-email@example.com', '123456', language='en')
+   "
+   ```
+
+---
+
 ### Option B: Production Deployment (Portainer.io)
 
 For deploying this application in a production environment via Portainer.io stacks, check out the step-by-step **[Portainer.io Production Deployment Guide](DEPLOYMENT.md)**.

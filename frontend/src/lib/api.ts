@@ -12,7 +12,6 @@ export interface FitdaysReport {
 
 export interface User {
   id: number;
-  login: string;
   email: string;
   display_name: string | null;
   gender: string | null;
@@ -22,6 +21,8 @@ export interface User {
   profile_image_path: string | null;
   profile_image_url: string | null;
   preferred_language: string | null;
+  email_confirmed: boolean;
+  pending_email: string | null;
   created_at: string;
 }
 
@@ -220,7 +221,6 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
 
 export const api = {
   async register(
-    login: string,
     email: string,
     password: string,
     display_name: string,
@@ -233,7 +233,6 @@ export const api = {
     return apiFetch<User>('/api/users/register', {
       method: 'POST',
       json: {
-        login,
         email,
         password,
         display_name,
@@ -246,10 +245,10 @@ export const api = {
     });
   },
 
-  async login(login: string, password: string): Promise<{ access_token: string; token_type: string }> {
-    // OAuth2PasswordRequestForm expects application/x-www-form-urlencoded
+  async login(email: string, password: string): Promise<{ access_token: string; token_type: string }> {
+    // OAuth2PasswordRequestForm expects application/x-www-form-urlencoded with username param
     const params = new URLSearchParams();
-    params.append('username', login);
+    params.append('username', email);
     params.append('password', password);
 
     const response = await fetch('/api/users/login', {
@@ -261,7 +260,7 @@ export const api = {
     });
 
     if (!response.ok) {
-      let errorMessage = 'Incorrect login or password';
+      let errorMessage = 'Incorrect email or password';
       try {
         const err = await response.json();
         errorMessage = err.detail || errorMessage;
@@ -274,6 +273,35 @@ export const api = {
     const data = await response.json();
     setAuthToken(data.access_token);
     return data;
+  },
+
+  async verifyCode(email: string, code: string): Promise<{ message: string; email: string; email_confirmed: boolean }> {
+    return apiFetch<{ message: string; email: string; email_confirmed: boolean }>('/api/users/verify-code', {
+      method: 'POST',
+      json: { email, code },
+    });
+  },
+
+  async verifyEmailLink(email: string, code: string): Promise<{ message: string; email: string; email_confirmed: boolean }> {
+    return apiFetch<{ message: string; email: string; email_confirmed: boolean }>(
+      `/api/users/verify-email?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`,
+      {
+        method: 'GET',
+      }
+    );
+  },
+
+  async resendVerification(email: string): Promise<{ message: string }> {
+    return apiFetch<{ message: string }>('/api/users/resend-verification', {
+      method: 'POST',
+      json: { email },
+    });
+  },
+
+  async cancelEmailChange(): Promise<{ message: string }> {
+    return apiFetch<{ message: string }>('/api/users/cancel-email-change', {
+      method: 'POST',
+    });
   },
 
   async getMe(): Promise<User> {

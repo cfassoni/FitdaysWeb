@@ -7,7 +7,6 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    login = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     display_name = Column(String, nullable=True)
@@ -17,6 +16,11 @@ class User(Base):
     target_weight_kg = Column(Float, nullable=True)
     profile_image_path = Column(String, nullable=True)
     preferred_language = Column(String, nullable=True)
+    email_confirmed = Column(Boolean, default=False, nullable=False)
+    pending_email = Column(String, nullable=True)
+    verification_code = Column(String, nullable=True, index=True)
+    verification_code_expires_at = Column(DateTime, nullable=True)
+    verification_attempts = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships

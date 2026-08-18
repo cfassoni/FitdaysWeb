@@ -2,6 +2,8 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+ENV PYTHONUNBUFFERED=1
+
 # Install dependencies directly from the pyproject.toml requirements
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir \
@@ -16,7 +18,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
     "python-multipart>=0.0.9" \
     "email-validator>=2.0.0" \
     "pillow>=10.0.0" \
-    "alembic>=1.11.0"
+    "alembic>=1.11.0" \
+    "httpx>=0.27.0"
 
 # Copy source code and migration files
 COPY alembic.ini ./
