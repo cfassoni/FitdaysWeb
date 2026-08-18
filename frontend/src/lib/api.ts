@@ -304,6 +304,35 @@ export const api = {
     });
   },
 
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    return apiFetch<{ message: string }>('/api/users/forgot-password', {
+      method: 'POST',
+      json: { email },
+    });
+  },
+
+  async validateResetToken(tokenOrCode: string, email?: string): Promise<{ valid: boolean; email?: string }> {
+    return apiFetch<{ valid: boolean; email?: string }>('/api/users/validate-reset-token', {
+      method: 'POST',
+      json: { token_or_code: tokenOrCode, email },
+    });
+  },
+
+  async resetPassword(data: { tokenOrCode: string; email?: string; newPassword: string }): Promise<{ access_token: string; token_type: string; message: string }> {
+    const res = await apiFetch<{ access_token: string; token_type: string; message: string }>('/api/users/reset-password', {
+      method: 'POST',
+      json: {
+        token_or_code: data.tokenOrCode,
+        email: data.email,
+        new_password: data.newPassword,
+      },
+    });
+    if (res.access_token) {
+      setAuthToken(res.access_token);
+    }
+    return res;
+  },
+
   async getMe(): Promise<User> {
     return apiFetch<User>('/api/users/me', {
       method: 'GET',

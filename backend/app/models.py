@@ -21,6 +21,10 @@ class User(Base):
     verification_code = Column(String, nullable=True, index=True)
     verification_code_expires_at = Column(DateTime, nullable=True)
     verification_attempts = Column(Integer, default=0, nullable=False)
+    reset_password_token = Column(String, nullable=True, index=True)
+    reset_password_code = Column(String, nullable=True, index=True)
+    reset_password_expires_at = Column(DateTime, nullable=True)
+    reset_password_attempts = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
