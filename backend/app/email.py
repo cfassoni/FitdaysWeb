@@ -46,6 +46,14 @@ EMAIL_CONTENT = {
         "changed_title": "Password Changed Successfully",
         "changed_msg": "The password for your FitdaysWeb account was recently changed. If you made this change, no further action is required.",
         "changed_warning": "If you did NOT make this change, please reset your password immediately or contact support.",
+        "data_del_subject": "Your FitdaysWeb measurement data has been deleted",
+        "data_del_title": "Data Deletion Confirmation",
+        "data_del_msg": "As requested, all your workout records, health measurements, uploaded reports, and shared links have been permanently deleted from FitdaysWeb.",
+        "data_del_note": "Your user account and profile settings remain active. If you did not make this request, please change your password immediately and contact support.",
+        "account_del_subject": "Your FitdaysWeb account has been deleted",
+        "account_del_title": "Account Deleted",
+        "account_del_msg": "Your FitdaysWeb account and all associated personal data have been permanently removed in accordance with your request.",
+        "account_del_notice": "In compliance with GDPR / LGPD regulations, all records, reports, files, and profile details have been permanently erased. Thank you for using FitdaysWeb.",
         "team": "The FitdaysWeb Team"
     },
     "pt": {
@@ -68,6 +76,14 @@ EMAIL_CONTENT = {
         "changed_title": "Senha alterada com sucesso",
         "changed_msg": "A senha da sua conta FitdaysWeb foi alterada recentemente. Se você realizou esta alteração, nenhuma ação é necessária.",
         "changed_warning": "Se você NÃO realizou essa alteração, redefina sua senha imediatamente ou entre em contato com o suporte.",
+        "data_del_subject": "Seus dados de medição do FitdaysWeb foram excluídos",
+        "data_del_title": "Confirmação de exclusão de dados",
+        "data_del_msg": "Conforme solicitado, todos os seus registros de treino, medições corporais, relatórios enviados e links compartilhados foram excluídos permanentemente do FitdaysWeb.",
+        "data_del_note": "Sua conta e configurações de perfil continuam ativas. Se você não solicitou esta exclusão, altere sua senha imediatamente e contate o suporte.",
+        "account_del_subject": "Sua conta do FitdaysWeb foi excluída",
+        "account_del_title": "Conta excluída",
+        "account_del_msg": "Sua conta FitdaysWeb e todos os dados pessoais associados foram removidos permanentemente conforme solicitado.",
+        "account_del_notice": "Em conformidade com a LGPD e GDPR, todos os registros, relatórios, arquivos e dados do perfil foram apagados definitivamente. Obrigado por utilizar o FitdaysWeb.",
         "team": "Equipe FitdaysWeb"
     },
     "es": {
@@ -90,6 +106,14 @@ EMAIL_CONTENT = {
         "changed_title": "Contraseña cambiada con éxito",
         "changed_msg": "La contraseña de tu cuenta FitdaysWeb ha sido modificada recientemente. Si realizaste este cambio, no es necesario hacer nada más.",
         "changed_warning": "Si NO realizaste este cambio, restablece tu contraseña de inmediato o ponte en contacto con el soporte.",
+        "data_del_subject": "Tus datos de mediciones de FitdaysWeb han sido eliminados",
+        "data_del_title": "Confirmación de eliminación de datos",
+        "data_del_msg": "Según lo solicitado, todos tus registros de entrenamiento, mediciones corporales, reportes subidos y enlaces compartidos han sido eliminados permanentemente de FitdaysWeb.",
+        "data_del_note": "Tu cuenta y configuración de perfil permanecen activas. Si no realizaste esta solicitud, cambia tu contraseña de inmediato y contacta a soporte.",
+        "account_del_subject": "Tu cuenta de FitdaysWeb ha sido eliminada",
+        "account_del_title": "Cuenta eliminada",
+        "account_del_msg": "Tu cuenta de FitdaysWeb y todos los datos personales asociados han sido eliminados permanentemente de acuerdo con tu solicitud.",
+        "account_del_notice": "En cumplimiento de las normativas GDPR y LGPD, todos los registros, reportes, archivos y detalles de perfil han sido borrados de forma permanente. Gracias por usar FitdaysWeb.",
         "team": "El Equipo de FitdaysWeb"
     }
 }
@@ -470,3 +494,196 @@ def send_password_reset_confirmation_email(
     except Exception as exc:
         logging.getLogger("uvicorn.error").error(f"[MAILGUN ERROR] Failed to send password changed confirmation to {to_email}: {exc}")
         return False
+
+
+def send_data_deletion_confirmation_email(to_email: str, language: str | None = "en") -> bool:
+    lang = get_email_lang(language)
+    strings = EMAIL_CONTENT[lang]
+
+    subject = strings["data_del_subject"]
+    title = strings["data_del_title"]
+    msg = strings["data_del_msg"]
+    note = strings["data_del_note"]
+
+    api_key = MAILGUN_API_KEY
+    domain = MAILGUN_DOMAIN
+    raw_base = MAILGUN_API_BASE_URL
+
+    html_content = f"""<!DOCTYPE html>
+<html lang="{lang}">
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #334155; margin: 0; padding: 24px; line-height: 1.6; }}
+    .container {{ max-width: 540px; margin: 0 auto; background: #ffffff; border-radius: 8px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }}
+    .header {{ margin-bottom: 24px; text-align: center; }}
+    .logo {{ font-size: 22px; font-weight: bold; color: #0284c7; letter-spacing: -0.5px; }}
+    .info-box {{ background-color: #f1f5f9; border-left: 4px solid #64748b; padding: 14px; margin: 20px 0; border-radius: 4px; color: #334155; font-size: 13px; }}
+    .footer {{ margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; text-align: center; }}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">FitdaysWeb</div>
+      <h2 style="color: #0f172a; margin-top: 12px;">{title}</h2>
+    </div>
+    <p>{msg}</p>
+    <div class="info-box">{note}</div>
+    <div class="footer">
+      &copy; FitdaysWeb &bull; {strings["team"]}
+    </div>
+  </div>
+</body>
+</html>"""
+
+    text_content = f"""{title}
+
+{msg}
+
+{note}
+"""
+
+    if not api_key or not domain:
+        msg_banner = (
+            f"\n" + "=" * 70 + "\n"
+            f" [DATA DELETION CONFIRMATION - DEV FALLBACK]\n"
+            f" To: {to_email}\n"
+            f" Subject: {subject}\n"
+            f" Body: {msg}\n"
+            f" Note: {note}\n"
+            + "=" * 70 + "\n"
+        )
+        print(msg_banner, flush=True)
+        logging.getLogger("uvicorn.error").info(f"[SECURITY EMAIL DEV FALLBACK] Data deletion notification sent to {to_email}")
+        return True
+
+    try:
+        if not raw_base.endswith("/v3"):
+            base_url = f"{raw_base}/v3"
+        else:
+            base_url = raw_base
+
+        url = f"{base_url}/{domain}/messages"
+        auth = ("api", api_key)
+
+        from_addr = os.getenv("MAIL_FROM_ADDRESS", "").strip()
+        if not from_addr:
+            if "sandbox" in domain:
+                from_addr = f"Mailgun Sandbox <postmaster@{domain}>"
+            else:
+                from_addr = f"FitdaysWeb <noreply@{domain}>"
+
+        data = {
+            "from": from_addr,
+            "to": to_email,
+            "subject": subject,
+            "text": text_content,
+            "html": html_content,
+        }
+
+        with httpx.Client(timeout=10.0) as client:
+            response = client.post(url, auth=auth, data=data)
+            response.raise_for_status()
+            logging.getLogger("uvicorn.error").info(f"[MAILGUN] Data deletion confirmation email sent to {to_email}")
+            return True
+    except Exception as exc:
+        logging.getLogger("uvicorn.error").error(f"[MAILGUN ERROR] Failed to send data deletion confirmation to {to_email}: {exc}")
+        return False
+
+
+def send_account_deletion_confirmation_email(to_email: str, language: str | None = "en") -> bool:
+    lang = get_email_lang(language)
+    strings = EMAIL_CONTENT[lang]
+
+    subject = strings["account_del_subject"]
+    title = strings["account_del_title"]
+    msg = strings["account_del_msg"]
+    notice = strings["account_del_notice"]
+
+    api_key = MAILGUN_API_KEY
+    domain = MAILGUN_DOMAIN
+    raw_base = MAILGUN_API_BASE_URL
+
+    html_content = f"""<!DOCTYPE html>
+<html lang="{lang}">
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #334155; margin: 0; padding: 24px; line-height: 1.6; }}
+    .container {{ max-width: 540px; margin: 0 auto; background: #ffffff; border-radius: 8px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }}
+    .header {{ margin-bottom: 24px; text-align: center; }}
+    .logo {{ font-size: 22px; font-weight: bold; color: #0284c7; letter-spacing: -0.5px; }}
+    .info-box {{ background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 14px; margin: 20px 0; border-radius: 4px; color: #991b1b; font-size: 13px; }}
+    .footer {{ margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; text-align: center; }}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">FitdaysWeb</div>
+      <h2 style="color: #0f172a; margin-top: 12px;">{title}</h2>
+    </div>
+    <p>{msg}</p>
+    <div class="info-box">{notice}</div>
+    <div class="footer">
+      &copy; FitdaysWeb &bull; {strings["team"]}
+    </div>
+  </div>
+</body>
+</html>"""
+
+    text_content = f"""{title}
+
+{msg}
+
+{notice}
+"""
+
+    if not api_key or not domain:
+        msg_banner = (
+            f"\n" + "=" * 70 + "\n"
+            f" [ACCOUNT DELETION CONFIRMATION - DEV FALLBACK]\n"
+            f" To: {to_email}\n"
+            f" Subject: {subject}\n"
+            f" Body: {msg}\n"
+            f" Notice: {notice}\n"
+            + "=" * 70 + "\n"
+        )
+        print(msg_banner, flush=True)
+        logging.getLogger("uvicorn.error").info(f"[SECURITY EMAIL DEV FALLBACK] Account deletion notification sent to {to_email}")
+        return True
+
+    try:
+        if not raw_base.endswith("/v3"):
+            base_url = f"{raw_base}/v3"
+        else:
+            base_url = raw_base
+
+        url = f"{base_url}/{domain}/messages"
+        auth = ("api", api_key)
+
+        from_addr = os.getenv("MAIL_FROM_ADDRESS", "").strip()
+        if not from_addr:
+            if "sandbox" in domain:
+                from_addr = f"Mailgun Sandbox <postmaster@{domain}>"
+            else:
+                from_addr = f"FitdaysWeb <noreply@{domain}>"
+
+        data = {
+            "from": from_addr,
+            "to": to_email,
+            "subject": subject,
+            "text": text_content,
+            "html": html_content,
+        }
+
+        with httpx.Client(timeout=10.0) as client:
+            response = client.post(url, auth=auth, data=data)
+            response.raise_for_status()
+            logging.getLogger("uvicorn.error").info(f"[MAILGUN] Account deletion confirmation email sent to {to_email}")
+            return True
+    except Exception as exc:
+        logging.getLogger("uvicorn.error").error(f"[MAILGUN ERROR] Failed to send account deletion confirmation to {to_email}: {exc}")
+        return False
+

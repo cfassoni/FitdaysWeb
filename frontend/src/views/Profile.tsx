@@ -17,7 +17,12 @@ import {
   Pencil, 
   X, 
   ShieldAlert, 
-  RefreshCw 
+  RefreshCw,
+  Trash2,
+  Eye,
+  EyeOff,
+  AlertTriangle,
+  Shield
 } from 'lucide-react';
 import OtpInput from '../components/OtpInput';
 
@@ -263,6 +268,66 @@ export default function Profile({ user, onProfileUpdated }: ProfileProps) {
       setVerifyModalError(err.message || t('verifyEmail.errorTitle'));
     } finally {
       setIsVerifyingCode(false);
+    }
+  };
+
+  // Data Deletion Modal state
+  const [showDeleteDataModal, setShowDeleteDataModal] = useState(false);
+  const [deleteDataPassword, setDeleteDataPassword] = useState('');
+  const [showDeleteDataPassword, setShowDeleteDataPassword] = useState(false);
+  const [isDeletingData, setIsDeletingData] = useState(false);
+  const [deleteDataError, setDeleteDataError] = useState<string | null>(null);
+  const [deleteDataSuccess, setDeleteDataSuccess] = useState<string | null>(null);
+
+  // Account Deletion Modal state
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const [deleteAccountPassword, setDeleteAccountPassword] = useState('');
+  const [showDeleteAccountPassword, setShowDeleteAccountPassword] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteAccountError, setDeleteAccountError] = useState<string | null>(null);
+
+  const handleDeleteUserData = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deleteDataPassword) return;
+    setIsDeletingData(true);
+    setDeleteDataError(null);
+    try {
+      await api.deleteUserData(deleteDataPassword);
+      setShowDeleteDataModal(false);
+      setDeleteDataPassword('');
+      setDeleteDataSuccess(t('profile.dataManagement.dataDeleteSuccess'));
+      setTimeout(() => setDeleteDataSuccess(null), 5000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : t('profile.dataManagement.genericError');
+      if (msg.toLowerCase().includes('password')) {
+        setDeleteDataError(t('profile.dataManagement.invalidPassword'));
+      } else {
+        setDeleteDataError(msg);
+      }
+    } finally {
+      setIsDeletingData(false);
+    }
+  };
+
+  const handleDeleteAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deleteAccountPassword) return;
+    setIsDeletingAccount(true);
+    setDeleteAccountError(null);
+    try {
+      await api.deleteAccount(deleteAccountPassword);
+      setShowDeleteAccountModal(false);
+      setDeleteAccountPassword('');
+      window.dispatchEvent(new CustomEvent('auth-session-expired'));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : t('profile.dataManagement.genericError');
+      if (msg.toLowerCase().includes('password')) {
+        setDeleteAccountError(t('profile.dataManagement.invalidPassword'));
+      } else {
+        setDeleteAccountError(msg);
+      }
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -638,6 +703,234 @@ export default function Profile({ user, onProfileUpdated }: ProfileProps) {
             </form>
           </div>
         </div>
+
+        {/* Data Management & Privacy Section (GDPR / LGPD Compliance) */}
+        <div className="bg-card border border-border rounded-xl p-6 shadow-xs">
+          <div className="flex items-center gap-3 mb-4 pb-3 border-b border-border">
+            <div className="p-2 rounded-lg bg-destructive/10 text-destructive">
+              <Shield className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-foreground">{t('profile.dataManagement.title')}</h2>
+              <p className="text-xs text-muted-foreground">{t('profile.dataManagement.subtitle')}</p>
+            </div>
+          </div>
+
+          {deleteDataSuccess && (
+            <div className="mb-6 flex items-start gap-2 p-3 bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs animate-in fade-in duration-200">
+              <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>{deleteDataSuccess}</span>
+            </div>
+          )}
+
+          <div className="space-y-6">
+            {/* Option A: Delete Health Data */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg border border-border bg-background/50 hover:bg-muted/20 transition-colors">
+              <div className="space-y-1 max-w-xl">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Trash2 className="h-4 w-4 text-amber-500" />
+                  {t('profile.dataManagement.deleteDataTitle')}
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {t('profile.dataManagement.deleteDataDesc')}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteDataPassword('');
+                  setDeleteDataError(null);
+                  setShowDeleteDataModal(true);
+                }}
+                className="px-4 py-2 rounded-lg border border-amber-500/40 hover:border-amber-500 hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-semibold whitespace-nowrap transition-all cursor-pointer shadow-xs self-start sm:self-center"
+              >
+                {t('profile.dataManagement.deleteDataBtn')}
+              </button>
+            </div>
+
+            {/* Option B: Delete Account */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg border border-destructive/25 bg-destructive/5 hover:bg-destructive/10 transition-colors">
+              <div className="space-y-1 max-w-xl">
+                <h3 className="text-sm font-semibold text-destructive flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                  {t('profile.dataManagement.deleteAccountTitle')}
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {t('profile.dataManagement.deleteAccountDesc')}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteAccountPassword('');
+                  setDeleteAccountError(null);
+                  setShowDeleteAccountModal(true);
+                }}
+                className="px-4 py-2 rounded-lg bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs font-semibold whitespace-nowrap transition-all cursor-pointer shadow-xs self-start sm:self-center"
+              >
+                {t('profile.dataManagement.deleteAccountBtn')}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Modal for Option A: Delete User Data */}
+        {showDeleteDataModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+            <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+              <button
+                type="button"
+                onClick={() => setShowDeleteDataModal(false)}
+                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              <div className="text-center mb-5">
+                <div className="h-12 w-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto mb-3">
+                  <Trash2 className="h-6 w-6" />
+                </div>
+                <h3 className="text-lg font-bold text-foreground mb-1">
+                  {t('profile.dataManagement.deleteDataModalTitle')}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {t('profile.dataManagement.deleteDataModalDesc')}
+                </p>
+              </div>
+
+              <div className="mb-4 p-3 bg-muted/50 border border-border rounded-lg text-xs text-muted-foreground">
+                ℹ️ {t('profile.dataManagement.deleteDataKeepNote')}
+              </div>
+
+              {deleteDataError && (
+                <div className="mb-4 flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/25 text-destructive rounded-lg text-xs">
+                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>{deleteDataError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleDeleteUserData} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-foreground mb-1">
+                    {t('profile.dataManagement.passwordPrompt')}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showDeleteDataPassword ? 'text' : 'password'}
+                      value={deleteDataPassword}
+                      onChange={e => setDeleteDataPassword(e.target.value)}
+                      placeholder={t('profile.dataManagement.passwordPlaceholder')}
+                      required
+                      className="w-full px-3 py-2 text-sm rounded-lg border border-input bg-background text-foreground pr-10 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteDataPassword(!showDeleteDataPassword)}
+                      className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                      tabIndex={-1}
+                    >
+                      {showDeleteDataPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteDataModal(false)}
+                    className="flex-1 py-2.5 rounded-lg border border-input bg-background hover:bg-muted text-foreground text-sm font-medium cursor-pointer"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isDeletingData || !deleteDataPassword}
+                    className="flex-1 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isDeletingData ? <Loader2 className="h-4 w-4 animate-spin" /> : t('profile.dataManagement.confirmDeleteDataBtn')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal for Option B: Delete Account */}
+        {showDeleteAccountModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+            <div className="bg-card border border-destructive/30 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+              <button
+                type="button"
+                onClick={() => setShowDeleteAccountModal(false)}
+                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              <div className="text-center mb-5">
+                <div className="h-12 w-12 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center mx-auto mb-3">
+                  <AlertTriangle className="h-6 w-6" />
+                </div>
+                <h3 className="text-lg font-bold text-destructive mb-1">
+                  {t('profile.dataManagement.deleteAccountModalTitle')}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {t('profile.dataManagement.deleteAccountModalDesc')}
+                </p>
+              </div>
+
+              {deleteAccountError && (
+                <div className="mb-4 flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/25 text-destructive rounded-lg text-xs">
+                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>{deleteAccountError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleDeleteAccount} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-foreground mb-1">
+                    {t('profile.dataManagement.passwordPrompt')}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showDeleteAccountPassword ? 'text' : 'password'}
+                      value={deleteAccountPassword}
+                      onChange={e => setDeleteAccountPassword(e.target.value)}
+                      placeholder={t('profile.dataManagement.passwordPlaceholder')}
+                      required
+                      className="w-full px-3 py-2 text-sm rounded-lg border border-input bg-background text-foreground pr-10 focus:outline-hidden focus:ring-2 focus:ring-destructive"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteAccountPassword(!showDeleteAccountPassword)}
+                      className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                      tabIndex={-1}
+                    >
+                      {showDeleteAccountPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteAccountModal(false)}
+                    className="flex-1 py-2.5 rounded-lg border border-input bg-background hover:bg-muted text-foreground text-sm font-medium cursor-pointer"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isDeletingAccount || !deleteAccountPassword}
+                    className="flex-1 py-2.5 rounded-lg bg-destructive hover:bg-destructive/90 text-destructive-foreground text-sm font-semibold cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isDeletingAccount ? <Loader2 className="h-4 w-4 animate-spin" /> : t('profile.dataManagement.confirmDeleteAccountBtn')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Modal for Verifying Pending Email */}
         {showVerifyModal && user?.pending_email && (

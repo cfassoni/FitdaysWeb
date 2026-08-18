@@ -346,7 +346,30 @@
     "verifyModalTitle": "Confirmar Alteração de E-mail",
     "verifyModalSubtitle": "Digite o código de verificação de 6 dígitos enviado para {{email}} para concluir a alteração.",
     "uploadPhotoError": "Falha ao enviar foto de perfil",
-    "updateError": "Falha ao atualizar as configurações de perfil"
+    "updateError": "Falha ao atualizar as configurações de perfil",
+    "dataManagement": {
+      "title": "Gerenciamento de Dados e Privacidade",
+      "subtitle": "Controle seus dados pessoais em conformidade com a LGPD e GDPR",
+      "deleteDataTitle": "Excluir Dados de Saúde e Treino",
+      "deleteDataDesc": "Apaga definitivamente todas as medições corporais, relatórios enviados e links compartilhados, mantendo sua conta de usuário, credenciais de acesso e configurações de perfil.",
+      "deleteDataBtn": "Excluir Meus Dados",
+      "deleteDataModalTitle": "Excluir Todas as Medições e Dados de Saúde",
+      "deleteDataModalDesc": "Tem certeza de que deseja excluir todas as medições e relatórios? Esta ação é definitiva e não pode ser desfeita.",
+      "deleteDataKeepNote": "Suas informações de perfil e conta de login permanecerão ativas.",
+      "deleteAccountTitle": "Excluir Conta",
+      "deleteAccountDesc": "Apaga permanentemente toda a sua conta do FitdaysWeb e todos os dados associados. Você será desconectado imediatamente.",
+      "deleteAccountBtn": "Excluir Conta",
+      "deleteAccountModalTitle": "Excluir Conta Permanentemente",
+      "deleteAccountModalDesc": "Esta ação é irreversível. Todas as suas informações de perfil, histórico de treinos, relatórios anexados e links compartilhados serão apagados definitivamente.",
+      "passwordPrompt": "Digite sua senha para confirmar:",
+      "passwordPlaceholder": "Digite sua senha",
+      "confirmDeleteDataBtn": "Sim, Excluir Dados",
+      "confirmDeleteAccountBtn": "Excluir Conta Permanentemente",
+      "dataDeleteSuccess": "Todos os seus dados de saúde e links compartilhados foram excluídos com sucesso.",
+      "accountDeleteSuccess": "Sua conta e todos os dados associados foram excluídos permanentemente.",
+      "invalidPassword": "Senha incorreta. Tente novamente.",
+      "genericError": "Ocorreu um erro ao processar sua solicitação. Tente novamente."
+    }
   },
   "verifyEmail": {
     "title": "Verificação de E-mail",
