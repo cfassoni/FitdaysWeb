@@ -6,13 +6,19 @@
 
 - **Link and Close GitHub Issues**: When creating a Pull Request, always include closing keywords (e.g., `Closes #<issue_number>` or `Fixes #<issue_number>`) in the Pull Request description so that the associated issue is automatically closed when the PR is merged.
 
+- **Pre-PR Verification Checklist**: Before requesting user approval for commits/PRs or pushing branches, always execute and pass the complete local verification suite:
+  - **Backend**: `uv run python -m pytest`
+  - **Frontend**: `npm run lint`, `npm run test:run`, and `npm run build`
+
+- **Dependency & Dockerfile Synchronization**: Whenever adding or modifying Python dependencies in `backend/pyproject.toml`, always update the dependency list in `backend/Dockerfile` and any related environment variables in `docker-compose.yml` / `docker-compose.prod.yml`.
+
 - **Database Migrations Required**: Any changes to the database schema must include corresponding Alembic migration scripts. The application must run these migrations automatically on startup. Direct/manual changes to production databases are strictly forbidden.
 
 - **Python Management via UV**: This project uses `uv` for Python environment and dependency management. Always run Python/pip related commands, tests, database migrations, and scripts using `uv` (e.g., `uv run`, `uv pip`, etc.).
 
 - **Contribution Guidelines**: Always read and follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md) when developing features, tracking versions, or preparing releases (e.g., using `python scripts/bump_version.py` for version bumps).
 
-- **Frontend Internationalization (i18n)**: All user-facing text, tooltips (`title`), screen reader descriptions (`aria-label`), and menu/button labels in the React frontend must be fully internationalized using `useTranslation` from `react-i18next`. Avoid hardcoded strings in components. Ensure new translation keys are updated in all locale JSON files (`en.json`, `pt.json`, `es.json`) and appropriate test mocks are updated.
+- **Frontend Internationalization (i18n)**: All user-facing text, tooltips (`title`), screen reader descriptions (`aria-label`), and menu/button labels in the React frontend must be fully internationalized using `useTranslation` from `react-i18next`. Avoid hardcoded strings in components. Ensure exact key parity across all locale JSON files (`en.json`, `pt.json`, `es.json`) and update test mocks accordingly.
 
 ## Git Commits and Push Policy
 
