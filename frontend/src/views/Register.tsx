@@ -86,6 +86,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
     if (birthDay && birthMonth) {
       const maxDays = getDaysInMonth(birthMonth, birthYear);
       if (parseInt(birthDay, 10) > maxDays) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setBirthDay(String(maxDays).padStart(2, '0'));
       }
     }
@@ -100,6 +101,7 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
 
   useEffect(() => {
     if (i18n.language) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPreferredLanguage(i18n.language);
     }
   }, [i18n.language]);

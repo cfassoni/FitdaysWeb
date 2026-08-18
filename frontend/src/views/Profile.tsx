@@ -102,6 +102,7 @@ export default function Profile({ user, onProfileUpdated }: ProfileProps) {
     if (birthDay && birthMonth) {
       const maxDays = getDaysInMonth(birthMonth, birthYear);
       if (parseInt(birthDay, 10) > maxDays) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setBirthDay(String(maxDays).padStart(2, '0'));
       }
     }

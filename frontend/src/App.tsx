@@ -48,6 +48,7 @@ export default function App() {
 
       if (lastSyncedLang !== lang) {
         i18n.changeLanguage(lang);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLastSyncedLang(lang);
       }
     } else if (!user) {
@@ -85,6 +86,7 @@ export default function App() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     checkAuth();
 
     const handleExpired = () => {

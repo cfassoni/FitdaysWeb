@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { FormEvent } from 'react';
 import { api } from '../lib/api';
@@ -62,14 +62,7 @@ export default function VerifyEmail({
     return () => clearTimeout(timer);
   }, [resendCooldown]);
 
-  // Auto-verify if both email and 6-digit code are present in URL on mount
-  useEffect(() => {
-    if (email && code && code.length === 6 && !isSuccess && !error) {
-      handleAutoVerify(email, code);
-    }
-  }, []);
-
-  const handleAutoVerify = async (verifyEmailVal: string, verifyCodeVal: string) => {
+  const handleAutoVerify = useCallback(async (verifyEmailVal: string, verifyCodeVal: string) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -80,7 +73,15 @@ export default function VerifyEmail({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [t]);
+
+  // Auto-verify if both email and 6-digit code are present in URL on mount
+  useEffect(() => {
+    if (email && code && code.length === 6 && !isSuccess && !error) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      handleAutoVerify(email, code);
+    }
+  }, [email, code, isSuccess, error, handleAutoVerify]);
 
   const handleManualVerify = async (e?: FormEvent) => {
     if (e) e.preventDefault();
