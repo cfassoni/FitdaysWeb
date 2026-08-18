@@ -375,6 +375,16 @@ export const api = {
     });
   },
 
+  async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+    return apiFetch<{ message: string }>('/api/users/change-password', {
+      method: 'POST',
+      json: {
+        current_password: currentPassword,
+        new_password: newPassword,
+      },
+    });
+  },
+
   async getSummary(): Promise<DashboardSummary> {
     return apiFetch<DashboardSummary>('/api/records/summary', {
       method: 'GET',

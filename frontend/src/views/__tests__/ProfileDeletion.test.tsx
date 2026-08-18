@@ -67,6 +67,10 @@ describe('Profile Data Deletion and Account Removal', () => {
   it('renders the Data Management & Privacy section with both deletion options', () => {
     render(<Profile user={mockUser} onProfileUpdated={mockOnProfileUpdated} />);
 
+    // Switch to Privacy tab
+    const privacyTab = screen.getAllByRole('tab', { name: /Privacy/i })[0];
+    fireEvent.click(privacyTab);
+
     expect(screen.getByText('Data Management & Privacy')).toBeInTheDocument();
     expect(screen.getByText('Delete Health & Workout Data')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Delete My Data' })).toBeInTheDocument();
@@ -81,6 +85,10 @@ describe('Profile Data Deletion and Account Removal', () => {
     });
 
     render(<Profile user={mockUser} onProfileUpdated={mockOnProfileUpdated} />);
+
+    // Switch to Privacy tab
+    const privacyTab = screen.getAllByRole('tab', { name: /Privacy/i })[0];
+    fireEvent.click(privacyTab);
 
     // Open Delete Data Modal
     fireEvent.click(screen.getByRole('button', { name: 'Delete My Data' }));
@@ -106,6 +114,10 @@ describe('Profile Data Deletion and Account Removal', () => {
 
     render(<Profile user={mockUser} onProfileUpdated={mockOnProfileUpdated} />);
 
+    // Switch to Privacy tab
+    const privacyTab = screen.getAllByRole('tab', { name: /Privacy/i })[0];
+    fireEvent.click(privacyTab);
+
     // Open Delete Data Modal
     fireEvent.click(screen.getByRole('button', { name: 'Delete My Data' }));
 
@@ -125,6 +137,10 @@ describe('Profile Data Deletion and Account Removal', () => {
     const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
 
     render(<Profile user={mockUser} onProfileUpdated={mockOnProfileUpdated} />);
+
+    // Switch to Privacy tab
+    const privacyTab = screen.getAllByRole('tab', { name: /Privacy/i })[0];
+    fireEvent.click(privacyTab);
 
     // Open Delete Account Modal
     fireEvent.click(screen.getByRole('button', { name: 'Delete Account' }));
