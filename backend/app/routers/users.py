@@ -1,13 +1,14 @@
 import os
 import uuid
 import io
+import logging
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Query
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from PIL import Image
 from app.database import get_db
-from app.models import User
+from app.models import User, FitdaysRecord, SharedLink
 from app.auth import (
     get_password_hash,
     verify_password,
@@ -34,12 +35,19 @@ from app.schemas import (
     ValidateResetTokenResponse,
     ResetPasswordRequest,
     ResetPasswordResponse,
+    DeleteDataRequest,
+    DeleteAccountRequest,
+    DeleteDataResponse,
 )
 from app.email import (
     send_verification_email,
     send_password_reset_email,
     send_password_reset_confirmation_email,
+    send_data_deletion_confirmation_email,
+    send_account_deletion_confirmation_email,
 )
+
+logger = logging.getLogger("fitdaysweb.users")
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
@@ -464,3 +472,84 @@ def upload_profile_picture(file: UploadFile = File(...), current_user: User = De
     db.commit()
     db.refresh(current_user)
     return current_user
+
+
+@router.post("/me/delete-data", response_model=DeleteDataResponse)
+def delete_user_data(
+    payload: DeleteDataRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not verify_password(payload.password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect password"
+        )
+
+    records = db.query(FitdaysRecord).filter(FitdaysRecord.user_id == current_user.id).all()
+    records_count = len(records)
+    for r in records:
+        db.delete(r)
+
+    shared_links = db.query(SharedLink).filter(SharedLink.owner_id == current_user.id).all()
+    shared_links_count = len(shared_links)
+    for sl in shared_links:
+        db.delete(sl)
+
+    db.commit()
+
+    logger.info(
+        f"[AUDIT] User data deleted: user_id={current_user.id}, email={current_user.email}, "
+        f"records_deleted={records_count}, links_deleted={shared_links_count}"
+    )
+
+    send_data_deletion_confirmation_email(
+        to_email=current_user.email,
+        language=current_user.preferred_language
+    )
+
+    return DeleteDataResponse(
+        message="All workout records and shared links have been deleted successfully",
+        deleted_records_count=records_count,
+        deleted_shared_links_count=shared_links_count
+    )
+
+
+@router.delete("/me", response_model=MessageResponse)
+@router.post("/me/delete-account", response_model=MessageResponse)
+def delete_user_account(
+    payload: DeleteAccountRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not verify_password(payload.password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect password"
+        )
+
+    user_email = current_user.email
+    user_lang = current_user.preferred_language
+    user_id = current_user.id
+    profile_pic = current_user.profile_image_path
+
+    # Delete profile avatar from disk if exists
+    if profile_pic and os.path.exists(profile_pic):
+        try:
+            os.remove(profile_pic)
+        except Exception as e:
+            logger.warning(f"Failed to remove avatar file {profile_pic}: {e}")
+
+    # Delete user from DB (cascades to all records, reports, shared links, audit logs)
+    db.delete(current_user)
+    db.commit()
+
+    logger.info(f"[AUDIT] User account permanently deleted: user_id={user_id}, email={user_email}")
+
+    send_account_deletion_confirmation_email(
+        to_email=user_email,
+        language=user_lang
+    )
+
+    return MessageResponse(message="Account and all associated data have been permanently deleted.")
+

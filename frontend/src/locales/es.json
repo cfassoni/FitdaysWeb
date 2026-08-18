@@ -346,7 +346,30 @@
     "verifyModalTitle": "Confirmar Cambio de Correo",
     "verifyModalSubtitle": "Ingrese el código de verificación de 6 dígitos enviado a {{email}} para completar el cambio.",
     "uploadPhotoError": "Error al subir la foto de perfil",
-    "updateError": "Error al actualizar la configuración del perfil"
+    "updateError": "Error al actualizar la configuración del perfil",
+    "dataManagement": {
+      "title": "Gestión de Datos y Privacidad",
+      "subtitle": "Controla tus datos personales de acuerdo con las normativas GDPR y LGPD",
+      "deleteDataTitle": "Eliminar Datos de Salud y Entrenamiento",
+      "deleteDataDesc": "Borra de forma permanente todas las mediciones corporales, reportes subidos y enlaces compartidos, conservando tu cuenta de usuario, credenciales de inicio de sesión y configuración de perfil.",
+      "deleteDataBtn": "Eliminar Mis Datos",
+      "deleteDataModalTitle": "Eliminar Todas las Mediciones y Datos de Salud",
+      "deleteDataModalDesc": "¿Estás seguro de que deseas eliminar todas las mediciones y reportes? Esta acción es definitiva y no se puede deshacer.",
+      "deleteDataKeepNote": "Tu información de perfil y cuenta de acceso permanecerán activas.",
+      "deleteAccountTitle": "Eliminar Cuenta",
+      "deleteAccountDesc": "Borra permanentemente toda tu cuenta de FitdaysWeb y todos los datos asociados. Se cerrará tu sesión de inmediato.",
+      "deleteAccountBtn": "Eliminar Cuenta",
+      "deleteAccountModalTitle": "Eliminar Cuenta Permanentemente",
+      "deleteAccountModalDesc": "Esta acción es irreversible. Toda tu información de perfil, historial de entrenamientos, reportes adjuntos y enlaces compartidos se borrarán de forma definitiva.",
+      "passwordPrompt": "Ingresa tu contraseña para confirmar:",
+      "passwordPlaceholder": "Ingresa tu contraseña",
+      "confirmDeleteDataBtn": "Sí, Eliminar Datos",
+      "confirmDeleteAccountBtn": "Eliminar Cuenta Permanentemente",
+      "dataDeleteSuccess": "Todos tus datos de salud y enlaces compartidos han sido eliminados con éxito.",
+      "accountDeleteSuccess": "Tu cuenta y todos los datos asociados han sido eliminados permanentemente.",
+      "invalidPassword": "La contraseña es incorrecta. Inténtalo de nuevo.",
+      "genericError": "Ocurrió un error al procesar tu solicitud. Inténtalo de nuevo."
+    }
   },
   "verifyEmail": {
     "title": "Verificación de Correo",

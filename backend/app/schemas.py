@@ -115,6 +115,17 @@ class ResetPasswordResponse(BaseModel):
     token_type: str
     message: str
 
+class DeleteDataRequest(BaseModel):
+    password: str = Field(..., min_length=1)
+
+class DeleteAccountRequest(BaseModel):
+    password: str = Field(..., min_length=1)
+
+class DeleteDataResponse(BaseModel):
+    message: str
+    deleted_records_count: int
+    deleted_shared_links_count: int
+
 # Fitdays Report Schemas
 class FitdaysReportResponse(BaseModel):
     id: int

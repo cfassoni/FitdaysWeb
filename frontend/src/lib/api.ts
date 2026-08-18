@@ -159,6 +159,12 @@ export interface DeleteRecordsResponse {
 }
 
 
+export interface DeleteDataResponse {
+  message: string;
+  deleted_records_count: number;
+  deleted_shared_links_count: number;
+}
+
 const TOKEN_KEY = 'fitdays_token';
 
 export const getAuthToken = (): string | null => localStorage.getItem(TOKEN_KEY);
@@ -352,6 +358,20 @@ export const api = {
     return apiFetch<User>('/api/users/profile-picture', {
       method: 'POST',
       formData,
+    });
+  },
+
+  async deleteUserData(password: string): Promise<DeleteDataResponse> {
+    return apiFetch<DeleteDataResponse>('/api/users/me/delete-data', {
+      method: 'POST',
+      json: { password },
+    });
+  },
+
+  async deleteAccount(password: string): Promise<{ message: string }> {
+    return apiFetch<{ message: string }>('/api/users/me', {
+      method: 'DELETE',
+      json: { password },
     });
   },
 

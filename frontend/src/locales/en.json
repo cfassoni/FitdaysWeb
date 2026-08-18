@@ -346,7 +346,30 @@
     "verifyModalTitle": "Confirm Email Change",
     "verifyModalSubtitle": "Enter the 6-digit verification code sent to {{email}} to complete your email update.",
     "uploadPhotoError": "Failed to upload profile picture",
-    "updateError": "Failed to update profile settings"
+    "updateError": "Failed to update profile settings",
+    "dataManagement": {
+      "title": "Data Management & Privacy",
+      "subtitle": "Control your personal data in accordance with GDPR and LGPD regulations",
+      "deleteDataTitle": "Delete Health & Workout Data",
+      "deleteDataDesc": "Permanently erase all body composition scans, uploaded reports, and shared links while preserving your user account, login credentials, and profile settings.",
+      "deleteDataBtn": "Delete My Data",
+      "deleteDataModalTitle": "Delete All Health & Measurement Data",
+      "deleteDataModalDesc": "Are you sure you want to delete all body scans and reports? This action is permanent and cannot be undone.",
+      "deleteDataKeepNote": "Your profile information and login account will remain intact.",
+      "deleteAccountTitle": "Delete Account",
+      "deleteAccountDesc": "Permanently erase your entire FitdaysWeb user account and all associated data. You will be logged out immediately.",
+      "deleteAccountBtn": "Delete Account",
+      "deleteAccountModalTitle": "Permanently Delete Account",
+      "deleteAccountModalDesc": "This action is irreversible. All your profile information, workout history, attached reports, and shared links will be permanently erased.",
+      "passwordPrompt": "Please enter your password to confirm:",
+      "passwordPlaceholder": "Enter your password",
+      "confirmDeleteDataBtn": "Yes, Delete Data",
+      "confirmDeleteAccountBtn": "Permanently Delete Account",
+      "dataDeleteSuccess": "All your health data and shared links have been permanently deleted.",
+      "accountDeleteSuccess": "Your account and all associated data have been permanently deleted.",
+      "invalidPassword": "Password is incorrect. Please try again.",
+      "genericError": "An error occurred while processing your request. Please try again."
+    }
   },
   "verifyEmail": {
     "title": "Email Verification",
