@@ -25,10 +25,16 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 REPORTS_DIR = os.getenv("REPORTS_DIR", os.path.join(backend_dir, "uploads", "reports"))
 os.makedirs(REPORTS_DIR, exist_ok=True)
 
+ENVIRONMENT = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower()
+IS_PRODUCTION = ENVIRONMENT in ("production", "prod")
+
 app = FastAPI(
     title="FitdaysWeb API",
     description="Backend service for importing, analyzing, and serving Fitdays body composition data",
-    version="0.1.0"
+    version="0.1.0",
+    docs_url=None if IS_PRODUCTION else "/docs",
+    redoc_url=None if IS_PRODUCTION else "/redoc",
+    openapi_url=None if IS_PRODUCTION else "/openapi.json",
 )
 
 # Configure CORS for decoupled React frontend
@@ -51,4 +57,6 @@ app.include_router(shared_links.router)
 
 @app.get("/")
 def read_root():
+    if IS_PRODUCTION:
+        return {"message": "Welcome to FitdaysWeb API."}
     return {"message": "Welcome to FitdaysWeb API. Visit /docs for Swagger documentation."}

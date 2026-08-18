@@ -121,6 +121,7 @@ Regardless of the method chosen, you must configure the environment variables un
 | `MAILGUN_DOMAIN` | *(None)* | **[OPTIONAL]** Mailgun sending domain (e.g. `mg.yourdomain.com` or `sandboxXXXXXXXX.mailgun.org`). |
 | `MAILGUN_API_BASE_URL` | `https://api.mailgun.net/v3` | Mailgun API base URL. Use `https://api.mailgun.net/v3` for US region or `https://api.eu.mailgun.net/v3` for EU region. |
 | `MAIL_FROM_ADDRESS` | `FitdaysWeb <noreply@fitdays.app>` | The `From` header address for outgoing verification emails. |
+| `ENVIRONMENT` | `production` | Application runtime environment (`development` or `production`). Setting to `production` disables Swagger/OpenAPI interactive documentation endpoints (`/docs`, `/redoc`, `/openapi.json`) for enhanced security. |
 | `FRONTEND_URL` | `http://localhost` | **[CRITICAL IN PRODUCTION]** The public URL of the frontend (e.g. `https://fitdays.yourdomain.com`). Used to construct 1-click email confirmation links. |
 
 ---
