@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: #fafafa;
+    --foreground: #0f172a;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+    --border: #e2e8f0;
+    --primary: #6366f1;
+    --primary-foreground: #ffffff;
+    --secondary: #f1f5f9;
+    --secondary-foreground: #1e293b;
+    --muted: #f8fafc;
+    --muted-foreground: #64748b;
+    --accent: #e0e7ff;
+    --accent-foreground: #3730a3;
+    --success: #10b981;
+    --danger: #f43f5e;
+  }
+
+  .dark {
+    --background: #090d16;
+    --foreground: #f8fafc;
+    --card: #0f172a;
+    --card-foreground: #f8fafc;
+    --border: #1e293b;
+    --primary: #6366f1;
+    --primary-foreground: #ffffff;
+    --secondary: #1e293b;
+    --secondary-foreground: #f8fafc;
+    --muted: #0b1120;
+    --muted-foreground: #94a3b8;
+    --accent: #312e81;
+    --accent-foreground: #c7d2fe;
+    --success: #10b981;
+    --danger: #f43f5e;
+  }
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Kinetic Indigo Hybrid UI Utilities */
+.shadow-diffused {
+  box-shadow: 0px 4px 20px rgba(15, 23, 42, 0.05);
+}
+
+.dark .shadow-diffused {
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+.display-metrics {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.label-caps {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.data-mono {
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
