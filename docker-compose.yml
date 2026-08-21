@@ -1,0 +1,12 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: recomp-core
+    ports:
+      - "3000:3000"
+    environment:
+      - DOCKER_MODE=true
+      - NODE_ENV=production
+    restart: unless-stopped
