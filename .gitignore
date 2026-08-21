@@ -44,3 +44,4 @@ pnpm-debug.log*
 
 # User Profile Picture Uploads
 backend/uploads/
+specs/
