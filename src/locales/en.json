@@ -1,0 +1,88 @@
+{
+  "common": {
+    "language": "Language",
+    "languages": {
+      "pt": "Português",
+      "en": "English",
+      "es": "Español"
+    }
+  },
+  "auth": {
+    "loginTitle": "Sign in to Recomp",
+    "loginSubtitle": "Welcome back to your dashboard",
+    "registerTitle": "Create Account",
+    "registerSubtitle": "Join Recomp Core",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "nameLabel": "Display Name (Optional)",
+    "loginButton": "Sign In",
+    "loggingIn": "Signing in...",
+    "registerButton": "Create Account",
+    "registering": "Creating account...",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "registerLink": "Sign up",
+    "loginLink": "Sign in"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "bodyComposition": "Body Comp",
+    "nutrition": "Nutrition",
+    "activities": "Activities",
+    "profile": "Profile & Goals",
+    "importData": "Import Data",
+    "importDesc": "Fitdays CSV/XLS",
+    "logout": "Log Out"
+  },
+  "dashboard": {
+    "title": "Progress Dashboard",
+    "subtitle": "Real-time body composition tracking and metrics.",
+    "lastMeasurement": "Last measurement",
+    "currentWeight": "Current Weight",
+    "bodyFat": "Body Fat %",
+    "muscleMass": "Muscle Mass",
+    "bodyScore": "Body Score",
+    "targetsAndControl": "Targets & Control",
+    "targetWeight": "Target Weight",
+    "weightProgress": "Weight Progress",
+    "fatControl": "Fat Control",
+    "muscleControl": "Muscle Control",
+    "remaining": "remaining",
+    "goal": "goal",
+    "overview": "Overview",
+    "consistentRhythm": "Consistent Recomp Rhythm",
+    "overviewDesc": "You maintained lean mass gains while reducing visceral fat in recent cycles.",
+    "bmr": "Basal Metabolic Rate"
+  },
+  "bodyComposition": {
+    "title": "Body Composition & History",
+    "subtitle": "Detailed segmental analysis (limbs and trunk) and temporal evolution.",
+    "importMeasurement": "Import New Measurement",
+    "segmentalAnalysis": "Segmental Analysis",
+    "rightArm": "Right Arm",
+    "leftArm": "Left Arm",
+    "trunk": "Trunk",
+    "rightLeg": "Right Leg",
+    "leftLeg": "Left Leg",
+    "fat": "Fat",
+    "muscle": "Muscle",
+    "history": "Measurement History",
+    "date": "Date",
+    "weight": "Weight (kg)",
+    "bmi": "BMI",
+    "bodyFatPct": "Fat (%)",
+    "leanMass": "Lean Mass (kg)",
+    "visceralFat": "Visceral Fat"
+  },
+  "profile": {
+    "title": "Settings & Profile",
+    "subtitle": "Manage your body data, recomp goals, and security.",
+    "personalData": "Personal Data & Goals",
+    "displayName": "Display Name",
+    "email": "Email",
+    "height": "Height (cm)",
+    "targetWeight": "Target Weight (kg)",
+    "saveChanges": "Save Changes",
+    "language": "Language"
+  }
+}

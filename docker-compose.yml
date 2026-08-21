@@ -10,3 +10,8 @@ services:
       - DOCKER_MODE=true
       - NODE_ENV=production
     restart: unless-stopped
+    volumes:
+      - recomp_data:/app/data
+
+volumes:
+  recomp_data:

@@ -8,6 +8,6 @@ export default {
   out: "./src/db/migrations",
   dialect: "sqlite",
   dbCredentials: {
-    url: process.env.DOCKER_MODE === "true" ? "file:./recomp_core.db" : process.env.DATABASE_URL || "file:./recomp_core.db",
+    url: process.env.DOCKER_MODE === "true" ? "file:./data/recomp_core.db" : process.env.DATABASE_URL || "file:./recomp_core.db",
   },
 } satisfies Config;

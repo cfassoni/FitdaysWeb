@@ -1,0 +1,88 @@
+{
+  "common": {
+    "language": "Idioma",
+    "languages": {
+      "pt": "Português",
+      "en": "English",
+      "es": "Español"
+    }
+  },
+  "auth": {
+    "loginTitle": "Entrar no Recomp",
+    "loginSubtitle": "Bem-vindo de volta ao seu painel",
+    "registerTitle": "Criar Conta",
+    "registerSubtitle": "Junte-se ao Recomp Core",
+    "emailLabel": "E-mail",
+    "passwordLabel": "Senha",
+    "nameLabel": "Nome de Exibição (Opcional)",
+    "loginButton": "Entrar",
+    "loggingIn": "Entrando...",
+    "registerButton": "Criar Conta",
+    "registering": "Criando...",
+    "noAccount": "Não tem uma conta?",
+    "haveAccount": "Já tem uma conta?",
+    "registerLink": "Registre-se",
+    "loginLink": "Faça login"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "bodyComposition": "Bioimpedância",
+    "nutrition": "Nutrição",
+    "activities": "Atividades",
+    "profile": "Perfil & Metas",
+    "importData": "Importar Dados",
+    "importDesc": "CSV / XLS Fitdays",
+    "logout": "Sair"
+  },
+  "dashboard": {
+    "title": "Dashboard de Progresso",
+    "subtitle": "Acompanhamento de composição corporal e métricas em tempo real.",
+    "lastMeasurement": "Última medição",
+    "currentWeight": "Peso Atual",
+    "bodyFat": "% Gordura",
+    "muscleMass": "Massa Muscular",
+    "bodyScore": "Score Corporal",
+    "targetsAndControl": "Metas & Controle",
+    "targetWeight": "Peso Alvo",
+    "weightProgress": "Progresso do Peso",
+    "fatControl": "Controle de Gordura",
+    "muscleControl": "Controle Muscular",
+    "remaining": "restantes",
+    "goal": "meta",
+    "overview": "Visão Geral",
+    "consistentRhythm": "Recomposição em Ritmo Consistente",
+    "overviewDesc": "Você manteve o ganho de massa magra enquanto reduziu a gordura visceral nos últimos ciclos.",
+    "bmr": "Taxa Metabólica Basal"
+  },
+  "bodyComposition": {
+    "title": "Bioimpedância & Histórico",
+    "subtitle": "Análise segmentar detalhada (membros e tronco) e evolução temporal.",
+    "importMeasurement": "Importar Nova Medição",
+    "segmentalAnalysis": "Análise Segmentar",
+    "rightArm": "Braço Direito",
+    "leftArm": "Braço Esquerdo",
+    "trunk": "Tronco",
+    "rightLeg": "Perna Direita",
+    "leftLeg": "Perna Esquerda",
+    "fat": "Gordura",
+    "muscle": "Músculo",
+    "history": "Histórico de Medições",
+    "date": "Data",
+    "weight": "Peso (kg)",
+    "bmi": "IMC",
+    "bodyFatPct": "Gordura (%)",
+    "leanMass": "Massa Magra (kg)",
+    "visceralFat": "Gordura Visceral"
+  },
+  "profile": {
+    "title": "Configurações & Perfil",
+    "subtitle": "Gerencie seus dados corporais, metas de recomposição e segurança.",
+    "personalData": "Dados Pessoais & Metas",
+    "displayName": "Nome de Exibição",
+    "email": "E-mail",
+    "height": "Altura (cm)",
+    "targetWeight": "Peso Alvo (kg)",
+    "saveChanges": "Salvar Alterações",
+    "language": "Idioma"
+  }
+}
