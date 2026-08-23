@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { NextRequest } from "next/server";
 import * as XLSX from "xlsx";
+import { ensureTablesExist } from "@/db/initDb";
 import { POST as registerHandler } from "../../app/api/users/register/route";
 import { POST as loginHandler } from "../../app/api/users/login/route";
 import { GET as meHandler, DELETE as deleteAccountHandler } from "../../app/api/users/me/route";
@@ -33,6 +34,10 @@ describe("API Route Handlers Integration", () => {
   let authToken = "";
   let recordId = 0;
   let sharedLinkToken = "";
+
+  beforeAll(async () => {
+    await ensureTablesExist();
+  });
 
   it("POST /api/users/register should create a user and return 201", async () => {
     const req = new NextRequest("http://localhost:3000/api/users/register", {
