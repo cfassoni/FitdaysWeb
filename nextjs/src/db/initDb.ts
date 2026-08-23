@@ -107,11 +107,10 @@ export async function ensureTablesExist(): Promise<void> {
     CREATE TABLE IF NOT EXISTS fitdays_reports (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       record_id INTEGER NOT NULL UNIQUE REFERENCES fitdays_records(id) ON DELETE CASCADE,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      file_path TEXT NOT NULL,
       filename TEXT NOT NULL,
       mime_type TEXT NOT NULL,
       file_size INTEGER NOT NULL,
-      file_path TEXT NOT NULL,
       uploaded_at INTEGER NOT NULL
     );
   `);
@@ -119,28 +118,25 @@ export async function ensureTablesExist(): Promise<void> {
   await db.run(sql`
     CREATE TABLE IF NOT EXISTS shared_links (
       id TEXT PRIMARY KEY,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       token TEXT NOT NULL UNIQUE,
       description TEXT NOT NULL,
-      snapshot_data TEXT NOT NULL,
       password_hash TEXT,
       include_attachments INTEGER NOT NULL DEFAULT 1,
       expires_at INTEGER,
-      created_at INTEGER NOT NULL,
-      access_count INTEGER NOT NULL DEFAULT 0,
-      last_accessed_at INTEGER
+      snapshot_data TEXT NOT NULL,
+      created_at INTEGER NOT NULL
     );
   `);
 
   await db.run(sql`
-    CREATE TABLE IF NOT EXISTS audit_logs (
+    CREATE TABLE IF NOT EXISTS shared_link_audit_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      shared_link_id TEXT REFERENCES shared_links(id) ON DELETE SET NULL,
-      user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-      action TEXT NOT NULL,
+      shared_link_id TEXT NOT NULL REFERENCES shared_links(id) ON DELETE CASCADE,
+      accessed_at INTEGER NOT NULL,
       ip_address TEXT,
       user_agent TEXT,
-      created_at INTEGER NOT NULL
+      status TEXT NOT NULL
     );
   `);
 }

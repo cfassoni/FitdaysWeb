@@ -122,7 +122,6 @@ export const POST = withAuth(async (req, { user, params }) => {
       .insert(fitdaysReports)
       .values({
         recordId: recordId,
-        userId: user.id,
         filePath: filepath,
         filename: file.name || filename,
         mimeType: file.type,
