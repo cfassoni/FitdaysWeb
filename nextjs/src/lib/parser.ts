@@ -68,9 +68,14 @@ export function parseDate(val: unknown): Date | null {
   }
 
   // Match "yyyy-MM-dd HH:mm:ss" or ISO strings
-  const parsed = new Date(str);
+  const parsed = new Date(str.replace(" ", "T"));
   if (!isNaN(parsed.getTime())) {
     return parsed;
+  }
+
+  const rawParsed = new Date(str);
+  if (!isNaN(rawParsed.getTime())) {
+    return rawParsed;
   }
 
   return null;
@@ -180,23 +185,28 @@ export function parseFitdaysFile(buffer: Buffer | Uint8Array | ArrayBuffer): Par
 
     // Check segmentals
     let segment: string | null = null;
-    for (const s of ["right arm", "left arm", "trunk", "right leg", "left leg"]) {
-      if (colClean.includes(s)) {
-        segment = s.replace(/\s+/g, "_");
-        break;
-      }
+    if (colClean.includes("right arm") || colClean.includes("braco direito") || colClean.includes("right upper extremity")) {
+      segment = "right_arm";
+    } else if (colClean.includes("left arm") || colClean.includes("braco esquerdo") || colClean.includes("left upper extremity")) {
+      segment = "left_arm";
+    } else if (colClean.includes("trunk") || colClean.includes("tronco")) {
+      segment = "trunk";
+    } else if (colClean.includes("right leg") || colClean.includes("perna direita") || colClean.includes("right lower extremity")) {
+      segment = "right_leg";
+    } else if (colClean.includes("left leg") || colClean.includes("perna esquerda") || colClean.includes("left lower extremity")) {
+      segment = "left_leg";
     }
 
     if (segment) {
-      if (colClean.includes("gordura") || colClean.includes("fat")) {
+      if (colClean.includes("gordura") || colClean.includes("fat rate") || colClean.includes("fat")) {
         colMap[col] = `${segment}_fat`;
       } else if (colClean.includes("equil") || colClean.includes("musc")) {
         colMap[col] = `${segment}_muscle`;
-      } else if (colClean.includes("imped")) {
+      } else if (colClean.includes("imped") || colClean.includes("resistance")) {
         colMap[col] = `${segment}_impedance`;
       }
     } else {
-      if (colClean.includes("data") || colClean.includes("date") || colClean.includes("time")) {
+      if (colClean.includes("data") || colClean.includes("date") || colClean.includes("time of measurement") || colClean.includes("hora")) {
         colMap[col] = "date";
       } else if (colClean.includes("peso-alvo") || colClean.includes("target weight")) {
         colMap[col] = "targetWeight";
@@ -206,52 +216,52 @@ export function parseFitdaysFile(buffer: Buffer | Uint8Array | ArrayBuffer): Par
         colMap[col] = "fatControl";
       } else if (colClean.includes("controle muscular") || colClean.includes("muscle control")) {
         colMap[col] = "muscleControl";
-      } else if (colClean.includes("peso") || colClean.includes("weight")) {
-        colMap[col] = "weight";
-      } else if (colClean.includes("imc") || colClean.includes("bmi")) {
-        colMap[col] = "bmi";
+      } else if (colClean.includes("massa livre de gordura") || colClean.includes("fat-free") || colClean.includes("fat free")) {
+        colMap[col] = "fatFreeMass";
+      } else if (colClean.includes("massa gorda") || colClean.includes("fat mass")) {
+        colMap[col] = "fatMass";
       } else if (colClean.includes("gordura corporal") || colClean.includes("body fat")) {
         colMap[col] = "bodyFatPct";
       } else if (colClean.includes("gordura subcut") || colClean.includes("subcutaneous fat")) {
         colMap[col] = "subcutaneousFatPct";
-      } else if (colClean.includes("frequ") || colClean.includes("heart rate")) {
-        colMap[col] = "heartRate";
-      } else if (colClean.includes("cora") || colClean.includes("heart index")) {
-        colMap[col] = "heartIndex";
       } else if (colClean.includes("gordura visceral") || colClean.includes("visceral fat")) {
         colMap[col] = "visceralFat";
-      } else if (colClean.includes("agua corporal") || colClean.includes("body water") || colClean.includes("agua")) {
-        colMap[col] = "bodyWaterPct";
-      } else if (colClean.includes("massa musc  esquel") || colClean.includes("massa musc esquel") || colClean.includes("musc  esquel") || colClean.includes("skeletal muscle %")) {
+      } else if (colClean.includes("skeletal muscle mass") || colClean.includes("musculo esquel")) {
+        colMap[col] = "skeletalMuscleMass";
+      } else if (colClean.includes("massa musc") || colClean.includes("skeletal muscle")) {
         colMap[col] = "skeletalMuscleMassPct";
       } else if (colClean.includes("massa muscular") || colClean.includes("muscle mass")) {
         colMap[col] = "muscleMass";
+      } else if (colClean.includes("taxa muscular") || colClean.includes("muscle rate")) {
+        colMap[col] = "muscleRatePct";
       } else if (colClean.includes("massa ossea") || colClean.includes("bone mass")) {
         colMap[col] = "boneMass";
+      } else if (colClean.includes("massa proteica") || colClean.includes("protein mass")) {
+        colMap[col] = "proteinMass";
       } else if (colClean.includes("proteina") || colClean.includes("protein")) {
         colMap[col] = "proteinPct";
+      } else if (colClean.includes("frequ") || colClean.includes("heart rate")) {
+        colMap[col] = "heartRate";
+      } else if (colClean.includes("cora") || colClean.includes("cardiac index") || colClean.includes("heart index")) {
+        colMap[col] = "heartIndex";
+      } else if (colClean.includes("agua corporal") || colClean.includes("body water")) {
+        colMap[col] = "bodyWaterPct";
+      } else if (colClean.includes("teor de umidade") || colClean.includes("water content") || colClean.includes("moisture")) {
+        colMap[col] = "moistureContent";
       } else if (colClean.includes("tmb") || colClean.includes("bmr")) {
         colMap[col] = "bmr";
       } else if (colClean.includes("idade metab") || colClean.includes("metabolic age")) {
         colMap[col] = "metabolicAge";
-      } else if (colClean.includes("massa gorda") || colClean.includes("fat mass")) {
-        colMap[col] = "fatMass";
-      } else if (colClean.includes("teor de umidade") || colClean.includes("moisture")) {
-        colMap[col] = "moistureContent";
-      } else if (colClean.includes("musculo esquel") || colClean.includes("skeletal muscle mass")) {
-        colMap[col] = "skeletalMuscleMass";
-      } else if (colClean.includes("taxa muscular") || colClean.includes("muscle rate")) {
-        colMap[col] = "muscleRatePct";
-      } else if (colClean.includes("massa proteica") || colClean.includes("protein mass")) {
-        colMap[col] = "proteinMass";
       } else if (colClean.includes("obesidade") || colClean.includes("obesity")) {
         colMap[col] = "obesityScore";
-      } else if (colClean.includes("massa livre de gordura") || colClean.includes("fat free mass")) {
-        colMap[col] = "fatFreeMass";
       } else if (colClean.includes("smi")) {
         colMap[col] = "smi";
       } else if (colClean.includes("pontuacao corporal") || colClean.includes("body score")) {
         colMap[col] = "bodyScore";
+      } else if (colClean.includes("imc") || colClean.includes("bmi")) {
+        colMap[col] = "bmi";
+      } else if (colClean.includes("peso") || colClean.includes("weight")) {
+        colMap[col] = "weight";
       }
     }
   }
