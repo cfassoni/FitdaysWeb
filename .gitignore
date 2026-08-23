@@ -44,3 +44,11 @@ pnpm-debug.log*
 
 # User Profile Picture Uploads
 backend/uploads/
+specs/
+
+# Next.js
+.next/
+next-env.d.ts
+data/
+uploads/
+test-mailgun.env
