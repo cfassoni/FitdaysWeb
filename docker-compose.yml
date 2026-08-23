@@ -32,6 +32,29 @@ services:
       - backend
     restart: unless-stopped
 
+  nextjs-dev:
+    build:
+      context: ./nextjs
+      dockerfile: Dockerfile
+    container_name: fitdays-nextjs-dev
+    ports:
+      - "3001:3000"
+    environment:
+      - DOCKER_MODE=true
+      - DATABASE_URL=file:/app/data/fitdays.db
+      - UPLOAD_DIR=/app/data/uploads/profile_pics
+      - REPORTS_DIR=/app/data/uploads/reports
+      - JWT_SECRET=${SECRET_KEY:-fitdays_super_secret_key_12345_change_in_production}
+      - MAILGUN_API_KEY=${MAILGUN_API_KEY:-}
+      - MAILGUN_DOMAIN=${MAILGUN_DOMAIN:-}
+      - MAILGUN_API_BASE_URL=${MAILGUN_API_BASE_URL:-https://api.mailgun.net/v3}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-FitdaysWeb <noreply@fitdays.local>}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3001}
+    volumes:
+      - fitdays-db-data:/app/data
+    restart: unless-stopped
+
 volumes:
   fitdays-db-data:
     driver: local
+

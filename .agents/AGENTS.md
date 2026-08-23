@@ -30,3 +30,9 @@
 - Stage files to prepare for a commit, but **do not commit** without explicit approval from the user.
 
 - **Do not push** to remote repositories without explicit approval from the user.
+
+## Lessons Learned & Step-Wise Delivery Policy
+
+- **Iterative & Incremental Delivery Only**: Never attempt massive "big bang" full-stack architectural rewrites in a single step. All major refactors or stack migrations must be broken down into small, isolated, and testable milestones with end-to-end working software at every phase.
+- **Strict Scope & Functionality Alignment**: Always confirm exact functional expectations and testing criteria with the user *before* scaffolding or replacing core architecture.
+- **Workspace & Artifact Cleanliness**: When switching branches or rolling back experimental work, always explicitly purge untracked build artifacts (`.next/`, temporary cache, database files) to prevent polluting the user's IDE file watcher and source control tree.
