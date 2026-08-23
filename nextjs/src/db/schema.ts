@@ -8,7 +8,7 @@ import {
 import { relations } from "drizzle-orm";
 
 // -----------------------------------------------------------------------------
-// Users
+// Table: Users
 // -----------------------------------------------------------------------------
 export const users = sqliteTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -33,13 +33,8 @@ export const users = sqliteTable("users", {
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 });
 
-export const usersRelations = relations(users, ({ many }) => ({
-  records: many(fitdaysRecords),
-  sharedLinks: many(sharedLinks),
-}));
-
 // -----------------------------------------------------------------------------
-// Fitdays Records (compatible with existing SQLite database)
+// Table: Fitdays Records (compatible with existing SQLite database)
 // -----------------------------------------------------------------------------
 export const fitdaysRecords = sqliteTable("fitdays_records", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -128,22 +123,8 @@ export const fitdaysRecords = sqliteTable("fitdays_records", {
   unique("_user_date_uc").on(table.userId, table.date)
 ]);
 
-// Alias for future rebranding
-export const recompRecords = fitdaysRecords;
-
-export const fitdaysRecordsRelations = relations(fitdaysRecords, ({ one }) => ({
-  user: one(users, {
-    fields: [fitdaysRecords.userId],
-    references: [users.id],
-  }),
-  report: one(fitdaysReports, {
-    fields: [fitdaysRecords.id],
-    references: [fitdaysReports.recordId],
-  }),
-}));
-
 // -----------------------------------------------------------------------------
-// Fitdays Reports (compatible with existing SQLite database)
+// Table: Fitdays Reports (compatible with existing SQLite database)
 // -----------------------------------------------------------------------------
 export const fitdaysReports = sqliteTable("fitdays_reports", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -155,18 +136,8 @@ export const fitdaysReports = sqliteTable("fitdays_reports", {
   uploadedAt: integer("uploaded_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 });
 
-// Alias for future rebranding
-export const recompReports = fitdaysReports;
-
-export const fitdaysReportsRelations = relations(fitdaysReports, ({ one }) => ({
-  record: one(fitdaysRecords, {
-    fields: [fitdaysReports.recordId],
-    references: [fitdaysRecords.id],
-  }),
-}));
-
 // -----------------------------------------------------------------------------
-// Shared Links
+// Table: Shared Links
 // -----------------------------------------------------------------------------
 export const sharedLinks = sqliteTable("shared_links", {
   id: text("id").primaryKey(), // UUID string
@@ -180,16 +151,8 @@ export const sharedLinks = sqliteTable("shared_links", {
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 });
 
-export const sharedLinksRelations = relations(sharedLinks, ({ one, many }) => ({
-  owner: one(users, {
-    fields: [sharedLinks.ownerId],
-    references: [users.id],
-  }),
-  auditLogs: many(sharedLinkAuditLogs),
-}));
-
 // -----------------------------------------------------------------------------
-// Shared Link Audit Logs
+// Table: Shared Link Audit Logs
 // -----------------------------------------------------------------------------
 export const sharedLinkAuditLogs = sqliteTable("shared_link_audit_logs", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -199,6 +162,37 @@ export const sharedLinkAuditLogs = sqliteTable("shared_link_audit_logs", {
   userAgent: text("user_agent"),
   status: text("status").notNull(),
 });
+
+// -----------------------------------------------------------------------------
+// Relations (Declared strictly after all table definitions)
+// -----------------------------------------------------------------------------
+export const usersRelations = relations(users, ({ many }) => ({
+  records: many(fitdaysRecords),
+  sharedLinks: many(sharedLinks),
+}));
+
+export const fitdaysRecordsRelations = relations(fitdaysRecords, ({ one }) => ({
+  user: one(users, {
+    fields: [fitdaysRecords.userId],
+    references: [users.id],
+  }),
+  report: one(fitdaysReports),
+}));
+
+export const fitdaysReportsRelations = relations(fitdaysReports, ({ one }) => ({
+  record: one(fitdaysRecords, {
+    fields: [fitdaysReports.recordId],
+    references: [fitdaysRecords.id],
+  }),
+}));
+
+export const sharedLinksRelations = relations(sharedLinks, ({ one, many }) => ({
+  owner: one(users, {
+    fields: [sharedLinks.ownerId],
+    references: [users.id],
+  }),
+  auditLogs: many(sharedLinkAuditLogs),
+}));
 
 export const sharedLinkAuditLogsRelations = relations(sharedLinkAuditLogs, ({ one }) => ({
   sharedLink: one(sharedLinks, {
