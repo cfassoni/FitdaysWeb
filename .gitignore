@@ -51,5 +51,6 @@ specs/
 # Next.js
 .next/
 next-env.d.ts
-data/
+/data/
+nextjs/data/
 test-mailgun.env
