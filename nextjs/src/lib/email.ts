@@ -31,94 +31,94 @@ interface EmailContentStrings {
 
 const EMAIL_CONTENT: Record<string, EmailContentStrings> = {
   en: {
-    reg_subject: "Your FitdaysWeb verification code",
-    reg_title: "Welcome to FitdaysWeb!",
+    reg_subject: "Your Recomp Pro verification code",
+    reg_title: "Welcome to Recomp Pro!",
     reg_msg: "Thank you for signing up. Please enter the following 6-digit verification code to activate your account:",
-    change_subject: "Confirm your new email address - FitdaysWeb",
+    change_subject: "Confirm your new email address - Recomp Pro",
     change_title: "Verify your new email address",
-    change_msg: "You requested to update your email address on FitdaysWeb. Please enter the following verification code:",
+    change_msg: "You requested to update your email address on Recomp Pro. Please enter the following verification code:",
     or_click: "Or click the button below to automatically verify your email:",
     button_text: "Verify Email Address",
     expiry_notice: "This verification code will expire in 24 hours. If you did not request this, please ignore this email.",
-    reset_subject: "Reset your FitdaysWeb password",
+    reset_subject: "Reset your Recomp Pro password",
     reset_title: "Reset your password",
     reset_msg: "You requested to reset your password. Enter the 6-digit code below or click the button to set a new password:",
     reset_button: "Reset Password",
     reset_or_click: "Or click the button below to directly reset your password:",
     reset_expiry_notice: "This password reset code and link will expire in 1 hour. If you did not request a password reset, you can safely ignore this email.",
-    changed_subject: "Your FitdaysWeb password was changed",
+    changed_subject: "Your Recomp Pro password was changed",
     changed_title: "Password Changed Successfully",
-    changed_msg: "The password for your FitdaysWeb account was recently changed. If you made this change, no further action is required.",
+    changed_msg: "The password for your Recomp Pro account was recently changed. If you made this change, no further action is required.",
     changed_warning: "If you did NOT make this change, please reset your password immediately or contact support.",
-    data_del_subject: "Your FitdaysWeb measurement data has been deleted",
+    data_del_subject: "Your Recomp Pro measurement data has been deleted",
     data_del_title: "Data Deletion Confirmation",
-    data_del_msg: "As requested, all your workout records, health measurements, uploaded reports, and shared links have been permanently deleted from FitdaysWeb.",
+    data_del_msg: "As requested, all your workout records, health measurements, uploaded reports, and shared links have been permanently deleted from Recomp Pro.",
     data_del_note: "Your user account and profile settings remain active. If you did not request this, please change your password immediately and contact support.",
-    account_del_subject: "Your FitdaysWeb account has been deleted",
+    account_del_subject: "Your Recomp Pro account has been deleted",
     account_del_title: "Account Deleted",
-    account_del_msg: "Your FitdaysWeb account and all associated personal data have been permanently removed in accordance with your request.",
-    account_del_notice: "In compliance with GDPR / LGPD regulations, all records, reports, files, and profile details have been permanently erased. Thank you for using FitdaysWeb.",
-    team: "The FitdaysWeb Team",
+    account_del_msg: "Your Recomp Pro account and all associated personal data have been permanently removed in accordance with your request.",
+    account_del_notice: "In compliance with GDPR / LGPD regulations, all records, reports, files, and profile details have been permanently erased. Thank you for using Recomp Pro.",
+    team: "The Recomp Pro Team",
   },
   pt: {
-    reg_subject: "Seu código de verificação do FitdaysWeb",
-    reg_title: "Bem-vindo ao FitdaysWeb!",
+    reg_subject: "Seu código de verificação do Recomp Pro",
+    reg_title: "Bem-vindo ao Recomp Pro!",
     reg_msg: "Obrigado por se cadastrar. Insira o código de verificação de 6 dígitos abaixo para ativar sua conta:",
-    change_subject: "Confirmação de alteração de e-mail - FitdaysWeb",
+    change_subject: "Confirmação de alteração de e-mail - Recomp Pro",
     change_title: "Verifique seu novo endereço de e-mail",
-    change_msg: "Você solicitou a alteração do seu e-mail no FitdaysWeb. Insira o seguinte código de verificação:",
+    change_msg: "Você solicitou a alteração do seu e-mail no Recomp Pro. Insira o seguinte código de verificação:",
     or_click: "Ou clique no botão abaixo para verificar seu e-mail automaticamente:",
     button_text: "Verificar E-mail",
     expiry_notice: "Este código de verificação expira em 24 horas. Se você não solicitou este cadastro, desconsidere esta mensagem.",
-    reset_subject: "Redefinir sua senha do FitdaysWeb",
+    reset_subject: "Redefinir sua senha do Recomp Pro",
     reset_title: "Redefinição de senha",
     reset_msg: "Você solicitou a redefinição da sua senha. Insira o código de 6 dígitos abaixo ou clique no botão para cadastrar uma nova senha:",
     reset_button: "Redefinir Senha",
     reset_or_click: "Ou clique no botão abaixo para redefinir sua senha diretamente:",
     reset_expiry_notice: "Este código e link de redefinição expiram em 1 hora. Se você não solicitou a redefinição de senha, desconsidere esta mensagem.",
-    changed_subject: "Sua senha do FitdaysWeb foi alterada",
+    changed_subject: "Sua senha do Recomp Pro foi alterada",
     changed_title: "Senha alterada com sucesso",
-    changed_msg: "A senha da sua conta FitdaysWeb foi alterada recentemente. Se você realizou esta alteração, nenhuma ação é necessária.",
+    changed_msg: "A senha da sua conta Recomp Pro foi alterada recentemente. Se você realizou esta alteração, nenhuma ação é necessária.",
     changed_warning: "Se você NÃO realizou essa alteração, redefina sua senha imediatamente ou entre em contato com o suporte.",
-    data_del_subject: "Seus dados de medição do FitdaysWeb foram excluídos",
+    data_del_subject: "Seus dados de medição do Recomp Pro foram excluídos",
     data_del_title: "Confirmação de exclusão de dados",
-    data_del_msg: "Conforme solicitado, todos os seus registros de treino, medições corporais, relatórios enviados e links compartilhados foram excluídos permanentemente do FitdaysWeb.",
+    data_del_msg: "Conforme solicitado, todos os seus registros de treino, medições corporais, relatórios enviados e links compartilhados foram excluídos permanentemente do Recomp Pro.",
     data_del_note: "Sua conta e configurações de perfil continuam ativas. Se você não solicitou esta exclusão, altere sua senha imediatamente e contate o suporte.",
-    account_del_subject: "Sua conta do FitdaysWeb foi excluída",
+    account_del_subject: "Sua conta do Recomp Pro foi excluída",
     account_del_title: "Conta excluída",
-    account_del_msg: "Sua conta FitdaysWeb e todos os dados pessoais associados foram removidos permanentemente conforme solicitado.",
-    account_del_notice: "Em conformidade com a LGPD e GDPR, todos os registros, relatórios, arquivos e dados do perfil foram apagados definitivamente. Obrigado por utilizar o FitdaysWeb.",
-    team: "Equipe FitdaysWeb",
+    account_del_msg: "Sua conta Recomp Pro e todos os dados pessoais associados foram removidos permanentemente conforme solicitado.",
+    account_del_notice: "Em conformidade com a LGPD e GDPR, todos os registros, relatórios, arquivos e dados do perfil foram apagados definitivamente. Obrigado por utilizar o Recomp Pro.",
+    team: "Equipe Recomp Pro",
   },
   es: {
-    reg_subject: "Tu código de verificación de FitdaysWeb",
-    reg_title: "¡Bienvenido a FitdaysWeb!",
+    reg_subject: "Tu código de verificación de Recomp Pro",
+    reg_title: "¡Bienvenido a Recomp Pro!",
     reg_msg: "Gracias por registrarte. Ingresa el siguiente código de verificación de 6 dígitos para activar tu cuenta:",
-    change_subject: "Confirmación de cambio de correo - FitdaysWeb",
+    change_subject: "Confirmación de cambio de correo - Recomp Pro",
     change_title: "Verifica tu nueva dirección de correo",
-    change_msg: "Has solicitado actualizar tu correo en FitdaysWeb. Ingresa el siguiente código de verificación:",
+    change_msg: "Has solicitado actualizar tu correo en Recomp Pro. Ingresa el siguiente código de verificación:",
     or_click: "O haz clic en el botón de abajo para verificar tu correo automáticamente:",
     button_text: "Verificar Correo",
     expiry_notice: "Este código de verificación expirará en 24 horas. Si no solicitaste esto, puedes ignorar este mensaje.",
-    reset_subject: "Restablecer tu contraseña de FitdaysWeb",
+    reset_subject: "Restablecer tu contraseña de Recomp Pro",
     reset_title: "Restablece tu contraseña",
     reset_msg: "Has solicitado restablecer tu contraseña. Ingresa el siguiente código de 6 dígitos o haz clic en el botón para establecer una nueva contraseña:",
     reset_button: "Restablecer Contraseña",
     reset_or_click: "O haz clic en el botón de abajo para restablecer tu contraseña directamente:",
     reset_expiry_notice: "Este código y enlace de restablecimiento expirarán en 1 hora. Si no solicitaste restablecer tu contraseña, puedes ignorar este mensaje.",
-    changed_subject: "Tu contraseña de FitdaysWeb ha sido cambiada",
+    changed_subject: "Tu contraseña de Recomp Pro ha sido cambiada",
     changed_title: "Contraseña cambiada con éxito",
-    changed_msg: "La contraseña de tu cuenta FitdaysWeb ha sido modificada recientemente. Si realizaste este cambio, no es necesario hacer nada más.",
+    changed_msg: "La contraseña de tu cuenta Recomp Pro ha sido modificada recientemente. Si realizaste este cambio, no es necesario hacer nada más.",
     changed_warning: "Si NO realizaste este cambio, restablece tu contraseña de inmediato o ponte en contacto con el soporte.",
-    data_del_subject: "Tus datos de mediciones de FitdaysWeb han sido eliminados",
+    data_del_subject: "Tus datos de mediciones de Recomp Pro han sido eliminados",
     data_del_title: "Confirmación de eliminación de datos",
-    data_del_msg: "Según lo solicitado, todos tus registros de entrenamiento, mediciones corporales, reportes subidos y enlaces compartidos han sido eliminados permanentemente de FitdaysWeb.",
+    data_del_msg: "Según lo solicitado, todos tus registros de entrenamiento, mediciones corporales, reportes subidos y enlaces compartidos han sido eliminados permanentemente de Recomp Pro.",
     data_del_note: "Tu cuenta y configuración de perfil permanecen activas. Si no realizaste esta solicitud, cambia tu contraseña de inmediato y contacta a soporte.",
-    account_del_subject: "Tu cuenta de FitdaysWeb ha sido eliminada",
+    account_del_subject: "Tu cuenta de Recomp Pro ha sido eliminada",
     account_del_title: "Cuenta eliminada",
-    account_del_msg: "Tu cuenta de FitdaysWeb y todos los datos personales asociados han sido eliminados permanentemente de acuerdo con tu solicitud.",
-    account_del_notice: "En cumplimiento de las normativas GDPR y LGPD, todos los registros, reportes, archivos y detalles de perfil han sido borrados de forma permanente. Gracias por usar FitdaysWeb.",
-    team: "El Equipo de FitdaysWeb",
+    account_del_msg: "Tu cuenta de Recomp Pro y todos los datos personales asociados han sido eliminados permanentemente de acuerdo con tu solicitud.",
+    account_del_notice: "En cumplimiento de las normativas GDPR y LGPD, todos los registros, reportes, archivos y detalles de perfil han sido borrados de forma permanente. Gracias por usar Recomp Pro.",
+    team: "El Equipo de Recomp Pro",
   },
 };
 
@@ -147,7 +147,7 @@ async function dispatchMailgun(to: string, subject: string, text: string, html: 
 
   const base = apiBaseUrl.endsWith("/v3") ? apiBaseUrl : `${apiBaseUrl}/v3`;
   const url = `${base}/${domain}/messages`;
-  const from = mailFrom || (domain.includes("sandbox") ? `Mailgun Sandbox <postmaster@${domain}>` : `FitdaysWeb <noreply@${domain}>`);
+  const from = mailFrom || (domain.includes("sandbox") ? `Mailgun Sandbox <postmaster@${domain}>` : `Recomp Pro <noreply@${domain}>`);
 
   const formData = new URLSearchParams();
   formData.append("from", from);
@@ -214,7 +214,7 @@ export async function sendVerificationEmail(
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">FitdaysWeb</div>
+      <div class="logo">Recomp Pro</div>
       <h2 style="color: #0f172a; margin-top: 12px;">${title}</h2>
     </div>
     <p>${msg}</p>
@@ -225,7 +225,7 @@ export async function sendVerificationEmail(
     </div>
     <p style="font-size: 13px; color: #64748b; margin-top: 24px;">${strings.expiry_notice}</p>
     <div class="footer">
-      &copy; FitdaysWeb &bull; ${strings.team}
+      &copy; Recomp Pro &bull; ${strings.team}
     </div>
   </div>
 </body>
@@ -264,7 +264,7 @@ export async function sendPasswordResetEmail(
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">FitdaysWeb</div>
+      <div class="logo">Recomp Pro</div>
       <h2 style="color: #0f172a; margin-top: 12px;">${strings.reset_title}</h2>
     </div>
     <p>${strings.reset_msg}</p>
@@ -275,7 +275,7 @@ export async function sendPasswordResetEmail(
     </div>
     <p style="font-size: 13px; color: #64748b; margin-top: 24px;">${strings.reset_expiry_notice}</p>
     <div class="footer">
-      &copy; FitdaysWeb &bull; ${strings.team}
+      &copy; Recomp Pro &bull; ${strings.team}
     </div>
   </div>
 </body>
@@ -299,7 +299,7 @@ export async function sendPasswordChangedEmail(toEmail: string, language: string
     <p>${strings.changed_msg}</p>
     <p style="color: #ef4444; font-size: 13px;">${strings.changed_warning}</p>
     <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
-    <small style="color: #64748b;">FitdaysWeb &bull; ${strings.team}</small>
+    <small style="color: #64748b;">Recomp Pro &bull; ${strings.team}</small>
   </div>
 </body>
 </html>`;
