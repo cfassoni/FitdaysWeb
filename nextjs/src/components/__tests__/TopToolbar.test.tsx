@@ -81,7 +81,7 @@ describe("TopToolbar", () => {
     render(<TopToolbar {...mockProps} />);
 
     // Branding / Logo text should be in document
-    expect(screen.getByText("FitdaysWeb")).toBeInTheDocument();
+    expect(screen.getByText("Recomp Pro")).toBeInTheDocument();
 
     // Controls should be present
     expect(screen.getByLabelText("Toggle navigation menu")).toBeInTheDocument();

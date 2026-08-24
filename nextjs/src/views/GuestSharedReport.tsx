@@ -7,6 +7,7 @@ import type { SharedLinkPublicMetadata, SharedLinkPublicData, FitdaysRecord } fr
 import { formatDate, formatDateTime } from "@/lib/i18n";
 import LanguageMenu from "@/components/LanguageMenu";
 import ThemeToggle from "@/components/ThemeToggle";
+import Logo from "@/components/Logo";
 import {
   Loader2,
   AlertTriangle,
@@ -307,8 +308,7 @@ export default function GuestSharedReport({ token }: GuestSharedReportProps) {
       {/* Top Header */}
       <header className="flex flex-col sm:flex-row h-auto sm:h-16 w-full items-start sm:items-center justify-between border-b border-border bg-card p-4 md:px-6 gap-3 z-40 sticky top-0">
         <div className="flex items-center gap-3">
-          <Scale className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg tracking-tight">FitdaysWeb</span>
+          <Logo />
           <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold uppercase tracking-wider">
             {t("sharing.guestTitle")}
           </span>

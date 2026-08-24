@@ -12,7 +12,7 @@ export default function Logo({ className = "" }: LogoProps) {
 
       {/* Text changes sizes or hides based on breakpoints */}
       <span className="font-bold tracking-tight bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent transition-all duration-300 hidden sm:inline-block sm:text-base lg:text-lg">
-        FitdaysWeb
+        Recomp Pro
       </span>
     </div>
   );
