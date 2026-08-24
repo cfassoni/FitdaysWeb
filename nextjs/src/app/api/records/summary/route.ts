@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
 import { db } from "@/db/client";
 import { fitdaysRecords } from "@/db/schema";
+import { safeToISOString } from "@/lib/dateUtils";
 import { eq, asc } from "drizzle-orm";
 
 export const GET = withAuth(async (req, { user }) => {
@@ -23,7 +24,7 @@ export const GET = withAuth(async (req, { user }) => {
     const last = records[records.length - 1];
 
     const weightHistory = records.map((r) => ({
-      date: r.date ? new Date(r.date).toISOString() : new Date().toISOString(),
+      date: safeToISOString(r.date, true),
       weight: r.weight,
       body_fat_pct: r.bodyFatPct,
       body_fat_mass: r.fatMass,
@@ -36,8 +37,8 @@ export const GET = withAuth(async (req, { user }) => {
 
     return NextResponse.json({
       total_records: totalRecords,
-      first_record_date: first.date ? new Date(first.date).toISOString() : null,
-      latest_record_date: last.date ? new Date(last.date).toISOString() : null,
+      first_record_date: safeToISOString(first.date),
+      latest_record_date: safeToISOString(last.date),
       starting_weight: first.weight,
       current_weight: last.weight,
       weight_change: round2(last.weight - first.weight),

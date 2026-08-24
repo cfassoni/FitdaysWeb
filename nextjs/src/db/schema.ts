@@ -4,8 +4,28 @@ import {
   text,
   real,
   unique,
+  customType,
 } from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
+import { parseFlexibleDate, formatSQLiteDateTime } from "@/lib/dateUtils";
+
+// Custom SQLite DateTime column for 100% interoperability with SQLAlchemy & ISO formats
+export const sqliteDateTime = customType<{
+  data: Date;
+  driverData: string | number | null;
+}>({
+  dataType() {
+    return "datetime";
+  },
+  fromDriver(value: string | number | null): Date {
+    if (value === null || value === undefined) return null as unknown as Date;
+    return parseFlexibleDate(value) || new Date();
+  },
+  toDriver(value: Date | null): string | null {
+    if (value === null || value === undefined) return null;
+    return formatSQLiteDateTime(value);
+  },
+});
 
 // -----------------------------------------------------------------------------
 // Table: Users
@@ -24,13 +44,13 @@ export const users = sqliteTable("users", {
   emailConfirmed: integer("email_confirmed", { mode: "boolean" }).notNull().default(false),
   pendingEmail: text("pending_email"),
   verificationCode: text("verification_code"),
-  verificationCodeExpiresAt: integer("verification_code_expires_at", { mode: "timestamp" }),
+  verificationCodeExpiresAt: sqliteDateTime("verification_code_expires_at"),
   verificationAttempts: integer("verification_attempts").notNull().default(0),
   resetPasswordToken: text("reset_password_token"),
   resetPasswordCode: text("reset_password_code"),
-  resetPasswordExpiresAt: integer("reset_password_expires_at", { mode: "timestamp" }),
+  resetPasswordExpiresAt: sqliteDateTime("reset_password_expires_at"),
   resetPasswordAttempts: integer("reset_password_attempts").notNull().default(0),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  createdAt: sqliteDateTime("created_at").notNull().$defaultFn(() => new Date()),
 });
 
 // -----------------------------------------------------------------------------
@@ -39,7 +59,7 @@ export const users = sqliteTable("users", {
 export const fitdaysRecords = sqliteTable("fitdays_records", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  date: integer("date", { mode: "timestamp" }).notNull(),
+  date: sqliteDateTime("date").notNull(),
 
   // Core Weight / Body Metrics
   weight: real("weight").notNull(),
@@ -133,7 +153,7 @@ export const fitdaysReports = sqliteTable("fitdays_reports", {
   filename: text("filename").notNull(),
   mimeType: text("mime_type").notNull(),
   fileSize: integer("file_size").notNull(),
-  uploadedAt: integer("uploaded_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  uploadedAt: sqliteDateTime("uploaded_at").notNull().$defaultFn(() => new Date()),
 });
 
 // -----------------------------------------------------------------------------
@@ -146,9 +166,9 @@ export const sharedLinks = sqliteTable("shared_links", {
   description: text("description").notNull(),
   passwordHash: text("password_hash"),
   includeAttachments: integer("include_attachments", { mode: "boolean" }).notNull().default(true),
-  expiresAt: integer("expires_at", { mode: "timestamp" }),
+  expiresAt: sqliteDateTime("expires_at"),
   snapshotData: text("snapshot_data").notNull(), // JSON string
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  createdAt: sqliteDateTime("created_at").notNull().$defaultFn(() => new Date()),
 });
 
 // -----------------------------------------------------------------------------
@@ -157,7 +177,7 @@ export const sharedLinks = sqliteTable("shared_links", {
 export const sharedLinkAuditLogs = sqliteTable("shared_link_audit_logs", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   sharedLinkId: text("shared_link_id").notNull().references(() => sharedLinks.id, { onDelete: "cascade" }),
-  accessedAt: integer("accessed_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  accessedAt: sqliteDateTime("accessed_at").notNull().$defaultFn(() => new Date()),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
   status: text("status").notNull(),

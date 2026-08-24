@@ -1,4 +1,5 @@
 import { users } from "@/db/schema";
+import { safeToISOString } from "./dateUtils";
 import path from "path";
 
 export type UserSelect = typeof users.$inferSelect;
@@ -23,6 +24,6 @@ export function formatUserResponse(user: UserSelect) {
     preferred_language: user.preferredLanguage,
     email_confirmed: user.emailConfirmed,
     pending_email: user.pendingEmail,
-    created_at: user.createdAt ? new Date(user.createdAt).toISOString() : new Date().toISOString(),
+    created_at: safeToISOString(user.createdAt, true),
   };
 }

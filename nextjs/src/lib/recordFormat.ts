@@ -1,4 +1,5 @@
 import { fitdaysRecords, fitdaysReports } from "@/db/schema";
+import { safeToISOString } from "./dateUtils";
 import path from "path";
 
 export type RecordSelect = typeof fitdaysRecords.$inferSelect;
@@ -13,7 +14,7 @@ export function formatReportResponse(report: ReportSelect | null | undefined) {
     filename: report.filename,
     mime_type: report.mimeType,
     file_size: report.fileSize,
-    uploaded_at: report.uploadedAt ? new Date(report.uploadedAt).toISOString() : new Date().toISOString(),
+    uploaded_at: safeToISOString(report.uploadedAt, true),
     url: `/uploads/reports/${filename}`,
   };
 }
@@ -25,7 +26,7 @@ export function formatRecordResponse(
   return {
     id: record.id,
     user_id: record.userId,
-    date: record.date ? new Date(record.date).toISOString() : new Date().toISOString(),
+    date: safeToISOString(record.date, true),
     report: report !== undefined ? formatReportResponse(report) : undefined,
 
     // Core Weight / Body Metrics

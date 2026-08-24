@@ -7,13 +7,14 @@ import { MAX_RESET_PASSWORD_ATTEMPTS } from "@/lib/auth";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { token_or_code, email } = body;
+    const tokenOrCode = body.token_or_code || body.token || body.code;
+    const email = body.email;
 
-    if (!token_or_code) {
+    if (!tokenOrCode) {
       return NextResponse.json({ valid: false });
     }
 
-    const cleanToken = token_or_code.trim();
+    const cleanToken = String(tokenOrCode).trim();
 
     let user;
     if (email) {

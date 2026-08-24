@@ -1,5 +1,6 @@
-import { sharedLinks, sharedLinkAuditLogs, users } from "@/db/schema";
+import { sharedLinks, sharedLinkAuditLogs } from "@/db/schema";
 import { verifyAccessToken } from "./auth";
+import { safeToISOString } from "./dateUtils";
 import { db } from "@/db/client";
 
 export type SharedLinkSelect = typeof sharedLinks.$inferSelect;
@@ -23,10 +24,10 @@ export function formatSharedLinkResponse(
   let lastAccessedAt: string | null = null;
   if (successLogs.length > 0) {
     const dates = successLogs
-      .map((l) => l.accessedAt ? new Date(l.accessedAt).getTime() : 0)
-      .filter((t) => t > 0);
+      .map((l) => (l.accessedAt ? new Date(l.accessedAt).getTime() : 0))
+      .filter((t) => !isNaN(t) && t > 0);
     if (dates.length > 0) {
-      lastAccessedAt = new Date(Math.max(...dates)).toISOString();
+      lastAccessedAt = safeToISOString(new Date(Math.max(...dates)));
     }
   }
 
@@ -36,8 +37,8 @@ export function formatSharedLinkResponse(
     description: link.description,
     has_password: Boolean(link.passwordHash),
     include_attachments: link.includeAttachments,
-    expires_at: link.expiresAt ? new Date(link.expiresAt).toISOString() : null,
-    created_at: link.createdAt ? new Date(link.createdAt).toISOString() : new Date().toISOString(),
+    expires_at: safeToISOString(link.expiresAt),
+    created_at: safeToISOString(link.createdAt, true),
     entry_count: entryCount,
     access_count: accessCount,
     last_accessed_at: lastAccessedAt,

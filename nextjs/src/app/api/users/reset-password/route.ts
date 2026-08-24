@@ -12,16 +12,18 @@ import { sendPasswordChangedEmail } from "@/lib/email";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { token_or_code, email, new_password } = body;
+    const tokenOrCode = body.token_or_code || body.token || body.code;
+    const email = body.email;
+    const new_password = body.new_password || body.newPassword;
 
-    if (!token_or_code || !new_password || new_password.length < 6) {
+    if (!tokenOrCode || !new_password || new_password.length < 6) {
       return NextResponse.json(
         { detail: "Invalid password reset parameters" },
         { status: 400 }
       );
     }
 
-    const cleanToken = token_or_code.trim();
+    const cleanToken = String(tokenOrCode).trim();
 
     let user;
     if (email) {

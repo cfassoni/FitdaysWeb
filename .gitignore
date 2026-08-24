@@ -54,3 +54,4 @@ next-env.d.ts
 /data/
 nextjs/data/
 test-mailgun.env
+scratch/

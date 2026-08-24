@@ -7,10 +7,10 @@ import { eq, inArray, and } from "drizzle-orm";
 export const POST = withAuth(async (req, { user }) => {
   try {
     const body = await req.json();
-    const { ids } = body;
+    const ids = body.record_ids || body.ids;
 
     if (!ids || !Array.isArray(ids)) {
-      return NextResponse.json({ detail: "ids must be an array of numbers" }, { status: 400 });
+      return NextResponse.json({ detail: "record_ids or ids must be an array of numbers" }, { status: 400 });
     }
 
     const deletedIds: number[] = [];

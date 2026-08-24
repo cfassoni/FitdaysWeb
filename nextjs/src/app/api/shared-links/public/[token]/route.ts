@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { sharedLinks } from "@/db/schema";
+import { safeToISOString } from "@/lib/dateUtils";
 import { eq } from "drizzle-orm";
 
 export async function GET(
@@ -35,9 +36,12 @@ export async function GET(
     try {
       const entries = JSON.parse(link.snapshotData);
       if (entries && entries.length > 0) {
-        const dates = entries.map((e: { date: string }) => new Date(e.date).getTime());
-        const maxTime = Math.max(...dates);
-        latestMeasurementDate = new Date(maxTime).toISOString();
+        const dates = entries
+          .map((e: { date: string }) => new Date(e.date).getTime())
+          .filter((t: number) => !isNaN(t) && t > 0);
+        if (dates.length > 0) {
+          latestMeasurementDate = safeToISOString(new Date(Math.max(...dates)));
+        }
       }
     } catch {
       // ignore
@@ -47,8 +51,8 @@ export async function GET(
       id: link.id,
       description: link.description,
       has_password: Boolean(link.passwordHash),
-      expires_at: link.expiresAt ? new Date(link.expiresAt).toISOString() : null,
-      created_at: link.createdAt ? new Date(link.createdAt).toISOString() : new Date().toISOString(),
+      expires_at: safeToISOString(link.expiresAt),
+      created_at: safeToISOString(link.createdAt, true),
       owner_name: link.owner?.displayName || link.owner?.email || "User",
       owner_email: link.owner?.email || "",
       latest_measurement_date: latestMeasurementDate,
