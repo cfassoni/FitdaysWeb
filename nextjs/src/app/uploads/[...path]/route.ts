@@ -24,14 +24,14 @@ export async function GET(
 
     // Also check backend uploads directory during side-by-side local development
     let filePath = path.resolve(baseDir, relativePath);
-    if (!fs.existsSync(filePath)) {
+    if (!fs.existsSync(/*turbopackIgnore: true*/ filePath)) {
       const backendUploads = path.resolve(process.cwd(), "../backend/uploads", relativePath);
-      if (fs.existsSync(backendUploads)) {
+      if (fs.existsSync(/*turbopackIgnore: true*/ backendUploads)) {
         filePath = backendUploads;
       }
     }
 
-    if (!fs.existsSync(filePath)) {
+    if (!fs.existsSync(/*turbopackIgnore: true*/ filePath)) {
       return NextResponse.json({ detail: "File not found" }, { status: 404 });
     }
 
@@ -47,7 +47,7 @@ export async function GET(
     };
 
     const contentType = mimeTypes[ext] || "application/octet-stream";
-    const fileBuffer = fs.readFileSync(filePath);
+    const fileBuffer = fs.readFileSync(/*turbopackIgnore: true*/ filePath);
 
     return new NextResponse(fileBuffer, {
       status: 200,
