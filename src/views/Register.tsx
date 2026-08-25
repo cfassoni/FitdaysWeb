@@ -237,7 +237,8 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
         birthday,
         parseFloat(heightCm),
         parseFloat(targetWeightKg),
-        preferredLanguage
+        preferredLanguage,
+        profilePic
       );
 
       setIsVerifying(true);
@@ -267,10 +268,6 @@ export default function Register({ onRegisterSuccess, onGoToLogin }: RegisterPro
 
       try {
         await api.login(email, password);
-
-        if (profilePic) {
-          await api.uploadProfilePicture(profilePic);
-        }
 
         setTimeout(() => {
           onRegisterSuccess();

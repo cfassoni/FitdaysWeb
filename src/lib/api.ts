@@ -203,11 +203,13 @@ export const getAuthToken = (): string | null => {
 export const setAuthToken = (token: string): void => {
   if (typeof window === "undefined") return;
   localStorage.setItem(TOKEN_KEY, token);
+  document.cookie = `${TOKEN_KEY}=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
 };
 
 export const removeAuthToken = (): void => {
   if (typeof window === "undefined") return;
   localStorage.removeItem(TOKEN_KEY);
+  document.cookie = `${TOKEN_KEY}=; path=/; max-age=0; SameSite=Lax`;
 };
 
 interface FetchOptions extends RequestInit {
@@ -274,8 +276,27 @@ export const api = {
     birthday: string,
     height_cm: number,
     target_weight_kg: number,
-    preferred_language: string
+    preferred_language: string,
+    profilePic?: File | null
   ): Promise<User> {
+    if (profilePic) {
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("password", password);
+      formData.append("display_name", display_name);
+      formData.append("gender", gender);
+      formData.append("birthday", birthday);
+      formData.append("height_cm", String(height_cm));
+      formData.append("target_weight_kg", String(target_weight_kg));
+      formData.append("preferred_language", preferred_language);
+      formData.append("file", profilePic);
+
+      return apiFetch<User>("/api/users/register", {
+        method: "POST",
+        formData,
+      });
+    }
+
     return apiFetch<User>("/api/users/register", {
       method: "POST",
       json: {
