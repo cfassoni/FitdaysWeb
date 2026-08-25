@@ -1,75 +1,38 @@
-# Contributing to FitdaysWeb
+# Contributing to Recomp Pro
 
-Thank you for contributing to FitdaysWeb! To maintain high code quality and smooth releases, please follow these guidelines.
+Thank you for contributing! 
 
----
+## Local Development Setup
 
-## 1. Development & Branching Strategy
+1. **Install Node.js 22**
+2. **Install dependencies**: `npm install`
+3. **Database**: A local SQLite file `fitdays.db` will be created automatically.
+4. **Run development server**: `npm run dev`
 
-This project follows a lightweight **GitHub Flow with Release Branches** model:
+## Verification Checks
 
-1. **Feature Branches**: All work (features, bug fixes, chore, etc.) must be done in a short-lived feature branch created from `main`.
-   - Name format: `feat/feature-name`, `fix/bug-name`, `chore/task-name`.
-2. **Pull Requests**: Open a pull request (PR) targeting `main`.
-3. **Merge**: Once reviews pass and the CI check is green, the PR is merged into `main`. Direct pushes to `main` are strictly forbidden.
-4. **Stable Releases**:
-   - When preparing a new version release, create a release stabilization branch named `release/vX.Y.Z` (e.g. `release/v1.0.0`) off `main`.
-   - Test, verify, and resolve any release-specific issues on this branch.
-   - Once stable, the version will be tagged and a release published.
+Before opening a Pull Request, you **must** ensure all local checks pass:
 
----
+1. **Linting**:
+   ```bash
+   npm run lint
+   ```
+2. **Unit Tests**:
+   ```bash
+   npm test
+   ```
+3. **Production Build**:
+   ```bash
+   npm run build
+   ```
 
-## 2. Commit Messages & PR Titles
+## Commit Convention
 
-We enforce **Conventional Commits** for all commits and Pull Request titles to ensure a clear git history and automate changelog generation.
+All commits must follow Conventional Commits (e.g., `feat: add chart`, `fix: correct typo`).
 
-### Format
-`type(scope): description` (scope is optional)
+## Release Process
 
-### Allowed Types
-- `feat`: A new feature
-- `fix`: A bug fix
-- `docs`: Documentation updates
-- `style`: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc.)
-- `refactor`: A code change that neither fixes a bug nor adds a feature
-- `perf`: A code change that improves performance
-- `test`: Adding missing tests or correcting existing tests
-- `build`: Changes that affect the build system or external dependencies
-- `ci`: Changes to CI configuration files and scripts
-- `chore`: Other changes that don't modify src or test files
-- `revert`: Reverting a previous commit
-
-### Imperative Mood
-Use the imperative mood in descriptions.
-- **Good**: `feat: add database migration for body fat logs`
-- **Bad**: `feat: added database migration` / `feat: adding database migration`
-
----
-
-## 3. Versioning & Release Guidelines
-
-FitdaysWeb adopts **Semantic Versioning 2.0.0** (MAJOR.MINOR.PATCH).
-
-### Version Source of Truth
-The version is centrally defined in the root `VERSION` file.
-Before cutting a release, the version must be updated in:
-- `VERSION` at the repository root
-- `backend/pyproject.toml` (`version = "..."` under `[project]`)
-- `frontend/package.json` (`"version": "..."`)
-
-### How to Bump the Version
-A script is provided to update all three files synchronously. Run the following command from the repository root:
+We use a Python script to bump the version across all files:
 ```bash
-python scripts/bump_version.py <new_version>
+uv run python scripts/bump_version.py 0.4.0
 ```
-Example:
-```bash
-python scripts/bump_version.py 1.2.0
-```
-Commit the updated files (`VERSION`, `backend/pyproject.toml`, and `frontend/package.json`) to your release PR.
-
-### Tagging & Publishing
-When a release branch or merge commit containing a version bump is merged, create a Git tag `vX.Y.Z` and publish a GitHub Release.
-Our GitHub Actions will automatically:
-- Trigger the **Release** pipeline to build and publish the backend and frontend Docker images to GitHub Packages (GHCR) tagged with the version and `latest`.
-- Draft a GitHub Release containing release notes categorized automatically by PR labels/titles.

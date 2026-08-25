@@ -1,61 +1,53 @@
+name: recomp-pro
+
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: fitdays-backend
-    environment:
-      - DATABASE_URL=sqlite:////app/data/fitdays.db
-      - UPLOAD_DIR=/app/data/uploads/profile_pics
-      - REPORTS_DIR=/app/data/uploads/reports
-      - SECRET_KEY=${SECRET_KEY:-fitdays_super_secret_key_12345_change_in_production}
-      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
-      - PYTHONUNBUFFERED=1
-      - MAILGUN_API_KEY=${MAILGUN_API_KEY:-}
-      - MAILGUN_DOMAIN=${MAILGUN_DOMAIN:-}
-      - MAILGUN_API_BASE_URL=${MAILGUN_API_BASE_URL:-https://api.mailgun.net/v3}
-      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-FitdaysWeb <noreply@fitdays.local>}
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
+  data-migrator:
+    image: alpine
     volumes:
-      # Persistent SQLite database named volume
-      - fitdays-db-data:/app/data
-    restart: unless-stopped
+      - fitdays-db-data-legacy:/from
+      - recomp_pro_data:/to
+    command: >
+      /bin/sh -c "
+        log() { echo \"[$$(date '+%Y-%m-%d %H:%M:%S')] $$1\"; };
+        if [ ! -f /to/fitdays.db ] && [ -f /from/fitdays.db ]; then
+          log 'Migrating legacy data to new volume...';
+          cp -av /from/. /to/;
+          log 'Migration complete.';
+        else
+          log 'No migration needed.';
+        fi
+      "
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: fitdays-frontend
-    ports:
-      - "80:80"
+  app:
     depends_on:
-      - backend
-    restart: unless-stopped
-
-  nextjs-dev:
+      data-migrator:
+        condition: service_completed_successfully
+    image: recomp-pro:latest
     build:
-      context: ./nextjs
+      context: .
       dockerfile: Dockerfile
-    container_name: fitdays-nextjs-dev
+    container_name: recomp-pro-app
     ports:
-      - "3001:3000"
+      - "80:3000"
     environment:
       - DOCKER_MODE=true
       - DATABASE_URL=file:/app/data/fitdays.db
       - UPLOAD_DIR=/app/data/uploads/profile_pics
       - REPORTS_DIR=/app/data/uploads/reports
       - JWT_SECRET=${SECRET_KEY:-fitdays_super_secret_key_12345_change_in_production}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
       - MAILGUN_API_KEY=${MAILGUN_API_KEY:-}
       - MAILGUN_DOMAIN=${MAILGUN_DOMAIN:-}
       - MAILGUN_API_BASE_URL=${MAILGUN_API_BASE_URL:-https://api.mailgun.net/v3}
-      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-FitdaysWeb <noreply@fitdays.local>}
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3001}
-      - ENABLE_SWAGGER=true
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-Recomp Pro <noreply@recomppro.local>}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost}
     volumes:
-      - fitdays-db-data:/app/data
+      # Persistent SQLite database named volume
+      - recomp_pro_data:/app/data
     restart: unless-stopped
 
 volumes:
-  fitdays-db-data:
-    driver: local
-
+  fitdays-db-data-legacy:
+    name: fitdaysweb_fitdays-db-data
+  recomp_pro_data:
+    name: recomp_pro_data
