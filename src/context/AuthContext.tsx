@@ -13,6 +13,7 @@ interface AuthContextType {
   isCheckingAuth: boolean;
   sharedLinksCount: number;
   setSharedLinksCount: React.Dispatch<React.SetStateAction<number>>;
+  enableWipPages: boolean;
   checkAuth: () => Promise<void>;
   logout: () => void;
 }
@@ -22,9 +23,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({
   children,
   initialLang,
+  enableWipPages = false,
 }: {
   children: React.ReactNode;
   initialLang?: "en" | "pt" | "es";
+  enableWipPages?: boolean;
 }) {
   const { i18n } = useTranslation();
   const router = useRouter();
@@ -119,6 +122,7 @@ export function AuthProvider({
         isCheckingAuth,
         sharedLinksCount,
         setSharedLinksCount,
+        enableWipPages,
         checkAuth,
         logout,
       }}

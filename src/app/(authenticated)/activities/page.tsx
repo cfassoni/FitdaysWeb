@@ -2,11 +2,11 @@
 
 import { notFound } from "next/navigation";
 import { Flame, Activity, Dumbbell, Zap, Info } from "lucide-react";
-import { isWipPagesEnabled } from "@/lib/featureFlags";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ActivitiesMockupPage() {
-  const showWipPages = isWipPagesEnabled();
-  if (!showWipPages) {
+  const { enableWipPages } = useAuth();
+  if (!enableWipPages) {
     notFound();
   }
 
