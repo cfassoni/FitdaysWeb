@@ -32,7 +32,7 @@ All commits must follow Conventional Commits (e.g., `feat: add chart`, `fix: cor
 
 ## Release Process
 
-We use a Python script to bump the version across all files:
+We use an npm script to bump the version across all files:
 ```bash
-uv run python scripts/bump_version.py 0.4.0
+npm run version:bump 0.4.0
 ```
