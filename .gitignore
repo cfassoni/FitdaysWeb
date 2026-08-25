@@ -42,5 +42,16 @@ pnpm-debug.log*
 *.sln
 *.sw?
 
-# User Profile Picture Uploads
+# User Uploads
 backend/uploads/
+nextjs/uploads/
+/uploads/
+specs/
+
+# Next.js
+.next/
+next-env.d.ts
+/data/
+nextjs/data/
+test-mailgun.env
+scratch/

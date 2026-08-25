@@ -1,24 +1,39 @@
 # Workspace Agent Rules
 
-## Development Workflow
+## Development & Branching Workflow
 
-- **GitHub PR Workflow Only**: All changes must be proposed via GitHub Pull Requests. Direct pushes to the `main` branch are strictly forbidden. Always create a feature branch, push the branch, and create a pull request.
+- **Branch Hierarchy & PR Targets**:
+  - All feature and task development must occur on dedicated feature branches (e.g., `feat/<feature-name>`).
+  - Pull Requests from feature branches must **ALWAYS** target the **`preview`** branch (`gh pr create --base preview`).
+  - Direct pushes to `main` or `preview` are strictly forbidden.
+  - The `main` branch is strictly reserved for release cutovers promoted from `preview`.
 
 - **Link and Close GitHub Issues**: When creating a Pull Request, always include closing keywords (e.g., `Closes #<issue_number>` or `Fixes #<issue_number>`) in the Pull Request description so that the associated issue is automatically closed when the PR is merged.
 
 - **Pre-PR Verification Checklist**: Before requesting user approval for commits/PRs or pushing branches, always execute and pass the complete local verification suite:
-  - **Backend**: `uv run python -m pytest`
-  - **Frontend**: `npm run lint`, `npm run test:run`, and `npm run build`
+  - **Checks**: `npm run lint` and `npm test`
+  - **Build**: `npm run build`
 
-- **Dependency & Dockerfile Synchronization**: Whenever adding or modifying Python dependencies in `backend/pyproject.toml`, always update the dependency list in `backend/Dockerfile` and any related environment variables in `docker-compose.yml` / `docker-compose.prod.yml`.
+- **Database Migrations (Drizzle ORM)**: Any changes to the database schema must include corresponding Drizzle migration scripts generated via `npm run db:generate`. The application must run these migrations automatically on startup via `src/instrumentation.ts`. Direct/manual changes to production databases are strictly forbidden.
 
-- **Database Migrations Required**: Any changes to the database schema must include corresponding Alembic migration scripts. The application must run these migrations automatically on startup. Direct/manual changes to production databases are strictly forbidden.
+- **Contribution & Versioning Guidelines**: Always read and follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md) when developing features, tracking versions, or preparing releases (e.g., using `uv run python scripts/bump_version.py <version>`).
 
-- **Python Management via UV**: This project uses `uv` for Python environment and dependency management. Always run Python/pip related commands, tests, database migrations, and scripts using `uv` (e.g., `uv run`, `uv pip`, etc.).
+## Frontend & SSR Invariants
 
-- **Contribution Guidelines**: Always read and follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md) when developing features, tracking versions, or preparing releases (e.g., using `python scripts/bump_version.py` for version bumps).
+- **Zero-FOUC & Hydration Safe i18n**:
+  - All user-facing text, tooltips (`title`), screen reader descriptions (`aria-label`), and menu/button labels must be fully internationalized with exact key parity across `src/locales/{en,pt,es}.json`.
+  - Server components (e.g., `src/app/layout.tsx`) must **NEVER** import client-only `react-i18next` modules. Use pure server-safe helpers (`src/lib/locale.ts`) with native `next/headers` (`cookies()`, `headers()`) to prevent React hydration errors (Error #418) and avoid flashes of untranslated content (FOUC).
 
-- **Frontend Internationalization (i18n)**: All user-facing text, tooltips (`title`), screen reader descriptions (`aria-label`), and menu/button labels in the React frontend must be fully internationalized using `useTranslation` from `react-i18next`. Avoid hardcoded strings in components. Ensure exact key parity across all locale JSON files (`en.json`, `pt.json`, `es.json`) and update test mocks accordingly.
+- **Brand Sanitization in Client Storage**:
+  - Never use legacy branding identifiers (`fitdays*`) in client-accessible storage (`localStorage`, session cookies, URL query params). Always use active brand namespaces (`recomp_pro_*` / `recomp_*`).
+
+## Infrastructure & Operational Logging
+
+- **Timestamped Container Logs**:
+  - All Node.js server logging and Docker container shell commands/init containers must format timestamps with `[YYYY-MM-DD HH:MM:SS]` for observability.
+
+- **Explicit Docker Compose Volume Naming**:
+  - Always specify explicit `name` properties for Docker named volumes (e.g., `volumes: recomp_pro_data: name: recomp_pro_data`) to prevent Docker Compose from prefixing project names.
 
 ## Git Commits and Push Policy
 
@@ -30,3 +45,9 @@
 - Stage files to prepare for a commit, but **do not commit** without explicit approval from the user.
 
 - **Do not push** to remote repositories without explicit approval from the user.
+
+## Lessons Learned & Step-Wise Delivery Policy
+
+- **Iterative & Incremental Delivery Only**: Never attempt massive "big bang" full-stack architectural rewrites in a single step. All major refactors or stack migrations must be broken down into small, isolated, and testable milestones with end-to-end working software at every phase.
+- **Strict Scope & Functionality Alignment**: Always confirm exact functional expectations and testing criteria with the user *before* scaffolding or replacing core architecture.
+- **Workspace & Artifact Cleanliness**: When switching branches or rolling back experimental work, always explicitly purge untracked build artifacts (`.next/`, temporary cache, database files) to prevent polluting the user's IDE file watcher and source control tree.
