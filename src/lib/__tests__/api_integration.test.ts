@@ -61,6 +61,35 @@ describe("API Route Handlers Integration", () => {
     expect(data.email).toBe(testEmail);
     expect(data.display_name).toBe("Test User");
     expect(data.email_confirmed).toBe(false);
+    expect(data.profile_image_url).toBeNull();
+  });
+
+  it("POST /api/users/register with multipart/form-data and avatar should save profile picture", async () => {
+    const avatarEmail = `avatar_${Date.now()}@example.com`;
+    const formData = new FormData();
+    formData.append("email", avatarEmail);
+    formData.append("password", testPassword);
+    formData.append("display_name", "Avatar User");
+    formData.append("gender", "female");
+    formData.append("birthday", "1995-05-15");
+    formData.append("height_cm", "165");
+    formData.append("target_weight_kg", "60");
+    formData.append("preferred_language", "pt");
+
+    const sampleBlob = new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xe0])], { type: "image/jpeg" });
+    formData.append("file", sampleBlob, "avatar.jpg");
+
+    const req = new NextRequest("http://localhost:3000/api/users/register", {
+      method: "POST",
+      body: formData,
+    });
+
+    const res = await registerHandler(req);
+    expect(res.status).toBe(201);
+    const data = await res.json();
+    expect(data.email).toBe(avatarEmail);
+    expect(data.profile_image_url).toBeDefined();
+    expect(data.profile_image_url).toMatch(/^\/uploads\/profile_pics\/user_\d+_[a-f0-9]+\.jpg$/);
   });
 
   it("POST /api/users/login before confirmation should return 403 EMAIL_NOT_CONFIRMED", async () => {
