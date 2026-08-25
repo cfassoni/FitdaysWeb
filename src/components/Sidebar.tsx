@@ -15,8 +15,8 @@ import {
   UtensilsCrossed,
   Flame,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 import Version from "./Version";
-import { isWipPagesEnabled } from "@/lib/featureFlags";
 
 interface SidebarProps {
   isMobileOpen: boolean;
@@ -31,9 +31,10 @@ export default function Sidebar({
 }: SidebarProps) {
   const { t } = useTranslation();
   const pathname = usePathname();
+  const { enableWipPages } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const showWipPages = isWipPagesEnabled();
+  const showWipPages = enableWipPages;
 
   const navItems = [
     { id: "dashboard", href: "/dashboard", icon: LayoutDashboard },

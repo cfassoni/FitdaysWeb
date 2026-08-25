@@ -41,6 +41,7 @@ services:
       - MAILGUN_API_BASE_URL=${MAILGUN_API_BASE_URL:-https://api.mailgun.net/v3}
       - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-Recomp Pro <noreply@recomppro.local>}
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost}
+      - ENABLE_WIP_PAGES=true
     volumes:
       # Persistent SQLite database named volume
       - recomp_pro_data:/app/data

@@ -103,9 +103,9 @@ export async function getSessionFromRequest(req: Request): Promise<TokenPayload 
   // 2. Check cookie header
   const cookieHeader = req.headers.get("cookie");
   if (cookieHeader) {
-    const match = cookieHeader.match(/session=([^;]+)/);
+    const match = cookieHeader.match(/(?:recomp_pro_token|session)=([^;]+)/);
     if (match && match[1]) {
-      return verifyAccessToken(match[1]);
+      return verifyAccessToken(decodeURIComponent(match[1]));
     }
   }
 

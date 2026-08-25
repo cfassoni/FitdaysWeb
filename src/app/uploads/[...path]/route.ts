@@ -18,12 +18,32 @@ export async function GET(
 
     // Determine upload directory base
     const baseDir =
-      process.env.DOCKER_MODE === "true"
+      process.env.UPLOAD_DIR
+        ? path.resolve(process.env.UPLOAD_DIR, "..")
+        : process.env.DOCKER_MODE === "true"
         ? "/app/data/uploads"
         : path.resolve(process.cwd(), "./uploads");
 
-    // Also check backend uploads directory during side-by-side local development
     let filePath = path.resolve(baseDir, relativePath);
+
+    // If not found in baseDir, check custom UPLOAD_DIR or REPORTS_DIR directly
+    if (!fs.existsSync(/*turbopackIgnore: true*/ filePath)) {
+      if (process.env.UPLOAD_DIR && relativePath.startsWith("profile_pics/")) {
+        const sub = relativePath.replace(/^profile_pics\//, "");
+        const candidate = path.resolve(process.env.UPLOAD_DIR, sub);
+        if (fs.existsSync(/*turbopackIgnore: true*/ candidate)) {
+          filePath = candidate;
+        }
+      } else if (process.env.REPORTS_DIR && relativePath.startsWith("reports/")) {
+        const sub = relativePath.replace(/^reports\//, "");
+        const candidate = path.resolve(process.env.REPORTS_DIR, sub);
+        if (fs.existsSync(/*turbopackIgnore: true*/ candidate)) {
+          filePath = candidate;
+        }
+      }
+    }
+
+    // Also check backend uploads directory during side-by-side local development
     if (!fs.existsSync(/*turbopackIgnore: true*/ filePath)) {
       const backendUploads = path.resolve(process.cwd(), "../backend/uploads", relativePath);
       if (fs.existsSync(/*turbopackIgnore: true*/ backendUploads)) {

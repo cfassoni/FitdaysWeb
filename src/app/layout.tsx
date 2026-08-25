@@ -36,6 +36,7 @@ export default async function RootLayout({
   const headerStore = await headers();
   const acceptLanguage = headerStore.get("accept-language");
   const initialLang = resolveLanguage(langCookie, acceptLanguage);
+  const enableWipPages = process.env.ENABLE_WIP_PAGES === "true";
 
   return (
     <html
@@ -44,7 +45,9 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <AuthProvider initialLang={initialLang}>{children}</AuthProvider>
+        <AuthProvider initialLang={initialLang} enableWipPages={enableWipPages}>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

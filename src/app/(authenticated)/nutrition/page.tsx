@@ -2,11 +2,11 @@
 
 import { notFound } from "next/navigation";
 import { UtensilsCrossed, PieChart, Apple, Info } from "lucide-react";
-import { isWipPagesEnabled } from "@/lib/featureFlags";
+import { useAuth } from "@/context/AuthContext";
 
 export default function NutritionMockupPage() {
-  const showWipPages = isWipPagesEnabled();
-  if (!showWipPages) {
+  const { enableWipPages } = useAuth();
+  if (!enableWipPages) {
     notFound();
   }
 
