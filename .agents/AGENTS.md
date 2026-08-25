@@ -1,53 +1,87 @@
 # Workspace Agent Rules
 
-## Development & Branching Workflow
+## 1. Development & Branching Hierarchy
+
+```
+main (Production, tagged releases only)
+  ▲
+  │ (User-Approved Release PR)
+preview (Staging / Integration base)
+  ▲
+  │ (User-Approved Feature/Fix PR)
+feat/* | fix/* | docs/* (Isolated feature branches)
+```
 
 - **Branch Hierarchy & PR Targets**:
-  - All feature and task development must occur on dedicated feature branches (e.g., `feat/<feature-name>`).
+  - All feature and task development must occur on dedicated feature branches (e.g., `feat/<feature-name>`, `fix/<bug-name>`).
   - Pull Requests from feature branches must **ALWAYS** target the **`preview`** branch (`gh pr create --base preview`).
   - Direct pushes to `main` or `preview` are strictly forbidden.
   - The `main` branch is strictly reserved for release cutovers promoted from `preview`.
 
 - **Link and Close GitHub Issues**: When creating a Pull Request, always include closing keywords (e.g., `Closes #<issue_number>` or `Fixes #<issue_number>`) in the Pull Request description so that the associated issue is automatically closed when the PR is merged.
 
-- **Pre-PR Verification Checklist**: Before requesting user approval for commits/PRs or pushing branches, always execute and pass the complete local verification suite:
-  - **Checks**: `npm run lint` and `npm test`
-  - **Build**: `npm run build`
+---
 
-- **Database Migrations (Drizzle ORM)**: Any changes to the database schema must include corresponding Drizzle migration scripts generated via `npm run db:generate`. The application must run these migrations automatically on startup via `src/instrumentation.ts`. Direct/manual changes to production databases are strictly forbidden.
+## 2. Hard Autonomy Boundaries (The Approval Gates)
 
-- **Contribution & Versioning Guidelines**: Always read and follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md) when developing features, tracking versions, or preparing releases (e.g., using `npm run version:bump <version>`).
+| Action | Allowed Autonomously? | Protocol / Requirement |
+| :--- | :---: | :--- |
+| **Researching codebase / reading files** | 🟢 **YES** | Proactive exploration. |
+| **Editing code files locally** | 🟢 **YES** | Keep changes isolated and focused on the active task. |
+| **Running verification suite (`lint`, `test`, `build`)** | 🟢 **YES** | Always verify before declaring work complete. |
+| **Creating local feature branch (`fix/*`, `feat/*`)** | 🟢 **YES** | Always branch off latest `preview`. |
+| **Committing locally on feature branch** | 🟢 **YES** | Use Conventional Commits (`feat:`, `fix:`, `chore:`). |
+| **Merging feature branch locally into `preview` or `main`** | 🛑 **NEVER** | **Requires explicit written user approval after user testing.** |
+| **Pushing to remote repository (`git push`)** | 🛑 **NEVER** | **Requires explicit written user approval.** |
+| **Creating Pull Requests (`gh pr create`)** | 🛑 **NEVER** | **Requires explicit written user approval.** |
+| **Merging Pull Requests (`gh pr merge`)** | 🛑 **NEVER** | **Requires explicit written user approval.** |
+| **Publishing Releases / Tags (`gh release create`)** | 🛑 **NEVER** | **Requires explicit written user approval.** |
 
-## Frontend & SSR Invariants
+---
 
-- **Zero-FOUC & Hydration Safe i18n**:
+## 3. Technical & Architectural Invariants
+
+- **100% Pure Node.js Toolchain (Zero Python)**:
+  - The application runtime and developer tooling are strictly Node.js 22+ and TypeScript.
+  - Version bumping is managed via `npm run version:bump <version>` (updating `VERSION`, `package.json`, and `Version.tsx`).
+
+- **Database Migrations (Drizzle ORM)**:
+  - Schema changes in `src/db/schema.ts` must include corresponding Drizzle migration scripts generated via `npm run db:generate`.
+  - Migrations run automatically on startup via `src/instrumentation.ts`. Direct/manual changes to production databases are strictly forbidden.
+
+- **Zero-FOUC & Hydration-Safe i18n**:
   - All user-facing text, tooltips (`title`), screen reader descriptions (`aria-label`), and menu/button labels must be fully internationalized with exact key parity across `src/locales/{en,pt,es}.json`.
-  - Server components (e.g., `src/app/layout.tsx`) must **NEVER** import client-only `react-i18next` modules. Use pure server-safe helpers (`src/lib/locale.ts`) with native `next/headers` (`cookies()`, `headers()`) to prevent React hydration errors (Error #418) and avoid flashes of untranslated content (FOUC).
+  - Server components (e.g., `src/app/layout.tsx`) must **NEVER** import client-only `react-i18next` modules. Use pure server-safe helpers (`src/lib/locale.ts`) with native `next/headers` (`cookies()`, `headers()`) to prevent React hydration errors (Error #418) and flashes of untranslated content (FOUC).
+
+- **Dynamic Runtime Configuration (Zero-Rebuild Flags)**:
+  - Feature flags (like `ENABLE_WIP_PAGES`) must be read on the server (`layout.tsx`) and injected into context/props so that environment variable changes in `docker-compose.yml` take effect upon container restart without requiring Docker image rebuilds.
 
 - **Brand Sanitization in Client Storage**:
   - Never use legacy branding identifiers (`fitdays*`) in client-accessible storage (`localStorage`, session cookies, URL query params). Always use active brand namespaces (`recomp_pro_*` / `recomp_*`).
 
-## Infrastructure & Operational Logging
-
-- **Timestamped Container Logs**:
+- **Infrastructure & Operational Logging**:
   - All Node.js server logging and Docker container shell commands/init containers must format timestamps with `[YYYY-MM-DD HH:MM:SS]` for observability.
-
-- **Explicit Docker Compose Volume Naming**:
   - Always specify explicit `name` properties for Docker named volumes (e.g., `volumes: recomp_pro_data: name: recomp_pro_data`) to prevent Docker Compose from prefixing project names.
 
-## Git Commits and Push Policy
+---
 
-- Use **Conventional Commits** for all commit messages in this project.
-  - Format: `<type>(<optional-scope>): <description>`
-  - Allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
-  - Use imperative mood in descriptions (e.g., "add feature", "fix bug").
+## 4. DOs and DON'Ts Reference Table
 
-- Stage files to prepare for a commit, but **do not commit** without explicit approval from the user.
+### ✅ DOs
+- **DO** keep all active work isolated on dedicated `feat/*` or `fix/*` branches.
+- **DO** run and pass the full local verification suite (`npm run lint`, `npm test`, `npm run build`, `docker compose build`) before presenting completed work.
+- **DO** leave the testing and validation in the hands of the user before suggesting any branch merges or remote actions.
+- **DO** link and close GitHub issues in PR bodies using standard keywords (e.g., `Closes #64`).
+- **DO** ensure Docker volumes use explicit names (e.g., `recomp_pro_data`) and legacy volumes use `external: true` for Portainer compatibility.
+- **DO** write comprehensive unit/integration tests for every newly added feature or bug fix.
 
-- **Do not push** to remote repositories, **do not create Pull Requests** (`gh pr create`), and **do not merge PRs** (`gh pr merge`) without explicit written approval from the user. All code modifications, tests, and builds must remain strictly local until the user explicitly commands to push or open a PR.
+### ❌ DON'Ts
+- **DON'T EVER** push to `origin` without explicit user permission.
+- **DON'T EVER** open or merge a Pull Request without explicit user permission.
+- **DON'T EVER** merge a feature branch into local `preview` or `main` before the user has finished testing on the feature branch.
+- **DON'T EVER** target `main` directly for feature PRs (all feature PRs must target `preview`).
+- **DON'T EVER** introduce Python scripts or `uv` dependencies into the repository.
+- **DON'T EVER** import `react-i18next` inside Next.js Server Components.
+- **DON'T EVER** delete Git branches without explicit user instruction.
+- **DON'T EVER** attempt large "big-bang" architectural changes in a single step; always deliver in testable, incremental milestones.
 
-## Lessons Learned & Step-Wise Delivery Policy
-
-- **Iterative & Incremental Delivery Only**: Never attempt massive "big bang" full-stack architectural rewrites in a single step. All major refactors or stack migrations must be broken down into small, isolated, and testable milestones with end-to-end working software at every phase.
-- **Strict Scope & Functionality Alignment**: Always confirm exact functional expectations and testing criteria with the user *before* scaffolding or replacing core architecture.
-- **Workspace & Artifact Cleanliness**: When switching branches or rolling back experimental work, always explicitly purge untracked build artifacts (`.next/`, temporary cache, database files) to prevent polluting the user's IDE file watcher and source control tree.
