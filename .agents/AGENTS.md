@@ -16,7 +16,7 @@
 
 - **Database Migrations (Drizzle ORM)**: Any changes to the database schema must include corresponding Drizzle migration scripts generated via `npm run db:generate`. The application must run these migrations automatically on startup via `src/instrumentation.ts`. Direct/manual changes to production databases are strictly forbidden.
 
-- **Contribution & Versioning Guidelines**: Always read and follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md) when developing features, tracking versions, or preparing releases (e.g., using `uv run python scripts/bump_version.py <version>`).
+- **Contribution & Versioning Guidelines**: Always read and follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md) when developing features, tracking versions, or preparing releases (e.g., using `npm run version:bump <version>`).
 
 ## Frontend & SSR Invariants
 
@@ -44,7 +44,7 @@
 
 - Stage files to prepare for a commit, but **do not commit** without explicit approval from the user.
 
-- **Do not push** to remote repositories without explicit approval from the user.
+- **Do not push** to remote repositories, **do not create Pull Requests** (`gh pr create`), and **do not merge PRs** (`gh pr merge`) without explicit written approval from the user. All code modifications, tests, and builds must remain strictly local until the user explicitly commands to push or open a PR.
 
 ## Lessons Learned & Step-Wise Delivery Policy
 
