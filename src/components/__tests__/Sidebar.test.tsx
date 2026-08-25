@@ -18,10 +18,21 @@ vi.mock("react-i18next", () => ({
         "sidebar.import": "Import CSV Data",
         "sidebar.sharedReports": "Shared Reports",
         "sidebar.closeMenu": "Close Menu",
+        "sidebar.nutrition": "Nutrition",
+        "sidebar.activities": "Activities",
       };
       return translations[key] || key;
     },
   }),
+}));
+
+const mockUseAuth = vi.fn(() => ({
+  enableWipPages: false,
+}));
+
+// Mock @/context/AuthContext
+vi.mock("@/context/AuthContext", () => ({
+  useAuth: () => mockUseAuth(),
 }));
 
 describe("Sidebar Component", () => {
@@ -68,5 +79,23 @@ describe("Sidebar Component", () => {
 
     fireEvent.click(closeButtons[0]);
     expect(mockProps.onMobileClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not render WiP items when enableWipPages is false", () => {
+    mockUseAuth.mockReturnValue({ enableWipPages: false });
+    render(<Sidebar {...mockProps} />);
+
+    expect(screen.queryByRole("link", { name: /Nutrition/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Activities/i })).not.toBeInTheDocument();
+  });
+
+  it("renders WiP items when enableWipPages is true", () => {
+    mockUseAuth.mockReturnValue({ enableWipPages: true });
+    render(<Sidebar {...mockProps} />);
+
+    const nutritionLink = screen.getByRole("link", { name: /Nutrition/i });
+    const activitiesLink = screen.getByRole("link", { name: /Activities/i });
+    expect(nutritionLink).toHaveAttribute("href", "/nutrition");
+    expect(activitiesLink).toHaveAttribute("href", "/activities");
   });
 });
