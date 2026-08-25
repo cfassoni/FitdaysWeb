@@ -7,8 +7,8 @@
 - **Link and Close GitHub Issues**: When creating a Pull Request, always include closing keywords (e.g., `Closes #<issue_number>` or `Fixes #<issue_number>`) in the Pull Request description so that the associated issue is automatically closed when the PR is merged.
 
 - **Pre-PR Verification Checklist**: Before requesting user approval for commits/PRs or pushing branches, always execute and pass the complete local verification suite:
-  - **Backend**: `uv run python -m pytest`
-  - **Frontend**: `npm run lint`, `npm run test:run`, and `npm run build`
+  - **Checks**: `npm run lint` and `npm test`
+  - **Build**: `npm run build`
 
 - **Dependency & Dockerfile Synchronization**: Whenever adding or modifying Python dependencies in `backend/pyproject.toml`, always update the dependency list in `backend/Dockerfile` and any related environment variables in `docker-compose.yml` / `docker-compose.prod.yml`.
 
