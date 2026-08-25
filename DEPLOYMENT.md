@@ -10,16 +10,17 @@ Recomp Pro is currently optimized for self-hosting via Docker.
    ```bash
    docker compose -f docker-compose.prod.yml up -d
    ```
-4. A persistent volume `fitdays-db-data` is created to securely store your SQLite database and profile pictures.
+4. A persistent volume `recomp_pro_data` is created to securely store your SQLite database and profile pictures.
 
 ## Legacy Migration (From v0.3.0 to v0.4.0)
 
 If you are upgrading from `FitdaysWeb` (Python + Nginx multi-container) to `Recomp Pro v0.4.0` (Next.js single-container):
 
 1. Stop the old containers: `docker compose down`
-2. Update your `docker-compose.yml` to the new single-service architecture.
-3. Your existing `fitdays-db-data` volume will be seamlessly picked up.
-4. The Next.js application will automatically verify the database schema and apply a baseline Drizzle migration on startup without data loss.
+2. Update your `docker-compose.yml` (or `docker-compose.prod.yml`) to the new Next.js single-container architecture.
+3. Start the stack: `docker compose up -d`
+4. The integrated `data-migrator` service will automatically and safely copy your SQLite database (`fitdays.db`) and uploaded media from the legacy volume (`fitdaysweb_fitdays-db-data`) into `recomp_pro_data` on first startup.
+5. The application will automatically verify the database schema and apply Drizzle migrations on startup without data loss.
 
 ## Future: Cloudflare Pages
 
