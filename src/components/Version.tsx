@@ -21,7 +21,7 @@ interface VersionProps {
   isCollapsed?: boolean;
 }
 
-const VERSION = "0.4.0";
+const VERSION = "0.4.1";
 const GITHUB_REPO = "https://github.com/cfassoni/FitdaysWeb";
 const GITHUB_ISSUES = "https://github.com/cfassoni/FitdaysWeb/issues";
 const RELEASE_URL = `https://github.com/cfassoni/FitdaysWeb/releases/tag/v${VERSION}`;
