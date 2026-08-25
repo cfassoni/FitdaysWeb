@@ -36,9 +36,7 @@ export default async function RootLayout({
   const headerStore = await headers();
   const acceptLanguage = headerStore.get("accept-language");
   const initialLang = resolveLanguage(langCookie, acceptLanguage);
-  const enableWipPages =
-    process.env.ENABLE_WIP_PAGES === "true" ||
-    process.env.NEXT_PUBLIC_ENABLE_WIP_PAGES === "true";
+  const enableWipPages = process.env.ENABLE_WIP_PAGES === "true";
 
   return (
     <html
