@@ -35,6 +35,9 @@ export default function LanguageSelector({ variant = "sidebar", isCollapsed = fa
   const handleLanguageChange = (code: "en" | "pt" | "es") => {
     i18n.changeLanguage(code);
     setIsOpen(false);
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("recomp_pro_lang", code);
+    }
   };
 
   if (variant === "floating") {
