@@ -21,7 +21,8 @@ export function setLanguageCookie(lang: string, days = 365): void {
   if (typeof document === "undefined") return;
   const date = new Date();
   date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-  document.cookie = `${COOKIE_NAME}=${lang};expires=${date.toUTCString()};path=/;SameSite=Strict;Secure`;
+  const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
+  document.cookie = `${COOKIE_NAME}=${lang};expires=${date.toUTCString()};path=/;SameSite=Lax${isSecure ? ";Secure" : ""}`;
 }
 
 import { resolveLanguage, type SupportedLanguage } from "./locale";
