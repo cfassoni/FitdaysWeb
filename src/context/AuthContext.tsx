@@ -32,10 +32,13 @@ export function AuthProvider({
   const { i18n } = useTranslation();
   const router = useRouter();
 
-  // Ensure synchronous language alignment with SSR on initial render
-  if (initialLang && i18n.language !== initialLang) {
-    i18n.changeLanguage(initialLang);
-  }
+  // Ensure initial language alignment with SSR on mount
+  useEffect(() => {
+    if (initialLang && i18n.language !== initialLang) {
+      i18n.changeLanguage(initialLang);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
