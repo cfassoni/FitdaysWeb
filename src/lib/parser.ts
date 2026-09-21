@@ -157,12 +157,15 @@ export interface ParsedRecompRecord {
   leftLegImpedanceLow?: number | null;
 }
 
-export function classifyColumn(col: string): string | null {
+export function classifyColumn(col: string, sampleVal?: unknown): string | null {
   const colLower = col.toLowerCase().trim();
   // Remove accents for normalized text matching, keep % and units
   const colNorm = colLower
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
+
+  const sampleLower =
+    sampleVal !== null && sampleVal !== undefined ? String(sampleVal).toLowerCase().trim() : "";
 
   // 1. Check segmentals first (Right/Left Arm, Trunk, Right/Left Leg)
   let segment: string | null = null;
@@ -224,10 +227,21 @@ export function classifyColumn(col: string): string | null {
     colNorm.includes("musc esquel");
 
   if (isSkeletalMuscle) {
-    if (colLower.includes("%") || colNorm.includes("rate") || colNorm.includes("taxa")) {
+    if (colLower.includes("%") || sampleLower.includes("%") || colNorm.includes("rate") || colNorm.includes("taxa")) {
       return "skeletalMuscleMassPct";
     }
-    if (colLower.includes("kg") || colNorm.includes("mass") || colNorm.includes("massa")) {
+    if (colLower.includes("kg") || sampleLower.includes("kg")) {
+      return "skeletalMuscleMass";
+    }
+    // Disambiguation when units are omitted from both header and sample value:
+    // In Portuguese Fitdays exports, "Massa Musc.  Esquelética" represents % and "Músculo esquelético" represents kg mass
+    if (colNorm.includes("musc") && (colNorm.includes("massa") || colNorm.includes("taxa"))) {
+      return "skeletalMuscleMassPct";
+    }
+    if (colNorm.includes("musculo") && !colNorm.includes("massa")) {
+      return "skeletalMuscleMass";
+    }
+    if (colNorm.includes("mass") || colNorm.includes("massa")) {
       return "skeletalMuscleMass";
     }
     return "skeletalMuscleMassPct";
@@ -238,6 +252,9 @@ export function classifyColumn(col: string): string | null {
     return "muscleRatePct";
   }
   if (colNorm.includes("massa muscular") || colNorm.includes("muscle mass")) {
+    if (colLower.includes("%") || sampleLower.includes("%")) {
+      return "muscleRatePct";
+    }
     return "muscleMass";
   }
 
@@ -273,6 +290,9 @@ export function classifyColumn(col: string): string | null {
     return "proteinMass";
   }
   if (colNorm.includes("proteina") || colNorm.includes("protein")) {
+    if (colLower.includes("kg") || sampleLower.includes("kg")) {
+      return "proteinMass";
+    }
     return "proteinPct";
   }
 
@@ -328,8 +348,22 @@ export function parseFitdaysFile(buffer: Buffer | Uint8Array | ArrayBuffer): Par
   const sampleRow = rows[0];
   const colMap: Record<string, string> = {};
 
+  const getSampleValue = (col: string): unknown => {
+    for (let i = 0; i < Math.min(rows.length, 10); i++) {
+      const val = rows[i]?.[col];
+      if (val !== null && val !== undefined) {
+        const s = String(val).trim();
+        if (s && s !== "-" && s !== "- -" && s !== "--") {
+          return val;
+        }
+      }
+    }
+    return undefined;
+  };
+
   for (const col of Object.keys(sampleRow)) {
-    const target = classifyColumn(col);
+    const sampleVal = getSampleValue(col);
+    const target = classifyColumn(col, sampleVal);
     if (target) {
       colMap[col] = target;
     }
