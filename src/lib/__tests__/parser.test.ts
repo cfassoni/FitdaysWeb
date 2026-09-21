@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { cleanFloat, parseSegmental, parseImpedance, parseDate, parseFitdaysFile, classifyColumn } from "../parser";
 import * as XLSX from "xlsx";
+import fs from "fs";
+import path from "path";
 
 describe("Parser Utilities", () => {
   it("cleanFloat should parse valid floats, ints, strings and handle edge cases", () => {
@@ -59,6 +61,16 @@ describe("Parser Utilities", () => {
     expect(classifyColumn("Teor de Umidade(kg)")).toBe("moistureContent");
     expect(classifyColumn("Proteína(%)")).toBe("proteinPct");
     expect(classifyColumn("Massa Protéica(kg)")).toBe("proteinMass");
+
+    // Real Fitdays exports without unit suffixes in headers, using sample cell values
+    expect(classifyColumn("Massa Musc.  Esquelética", "34.6%")).toBe("skeletalMuscleMassPct");
+    expect(classifyColumn("Músculo esquelético", "40.9(32.8-40.1)kg")).toBe("skeletalMuscleMass");
+    expect(classifyColumn("Massa Muscular", "66.4(51.9-64.6)kg")).toBe("muscleMass");
+    expect(classifyColumn("Taxa muscular", "56.2%")).toBe("muscleRatePct");
+
+    // Fallback heuristics when both header and sample lack explicit unit tokens
+    expect(classifyColumn("Massa Musc.  Esquelética")).toBe("skeletalMuscleMassPct");
+    expect(classifyColumn("Músculo esquelético")).toBe("skeletalMuscleMass");
   });
 
   it("parseFitdaysFile should correctly parse a Portuguese spreadsheet buffer with correct skeletal muscle mappings", () => {
@@ -174,5 +186,41 @@ describe("Parser Utilities", () => {
     expect(r.fatMass).toBe(13.9);
     expect(r.proteinPct).toBe(19.5);
     expect(r.proteinMass).toBe(16.0);
+  });
+
+  it("parseFitdaysFile should correctly parse actual Fitdays-test-data.csv without swapping skeletal muscle % and kg", () => {
+    const filePath = path.resolve(process.cwd(), "test-data/Fitdays-test-data.csv");
+    if (!fs.existsSync(filePath)) {
+      return;
+    }
+    const buf = fs.readFileSync(filePath);
+    const records = parseFitdaysFile(buf);
+
+    expect(records.length).toBe(4);
+    const r = records[0];
+    expect(r.weight).toBe(118.1);
+    expect(r.bmi).toBe(34.1);
+    expect(r.bodyFatPct).toBe(39.8);
+    expect(r.subcutaneousFatPct).toBe(28.3);
+    expect(r.visceralFat).toBe(20.0);
+    expect(r.bodyWaterPct).toBe(44.1);
+
+    // Assert that skeletal muscle % and kg are NOT swapped:
+    // "Massa Musc.  Esquelética" = 34.6%
+    expect(r.skeletalMuscleMassPct).toBe(34.6);
+    // "Músculo esquelético" = 40.9 kg
+    expect(r.skeletalMuscleMass).toBe(40.9);
+
+    // Total muscle metrics:
+    // "Massa Muscular" = 66.4 kg
+    expect(r.muscleMass).toBe(66.4);
+    // "Taxa muscular" = 56.2%
+    expect(r.muscleRatePct).toBe(56.2);
+
+    expect(r.fatMass).toBe(47.0);
+    expect(r.proteinPct).toBe(12.0);
+    expect(r.rightArmMuscleMass).toBe(4.0);
+    expect(r.rightArmMusclePct).toBe(92.5);
+    expect(r.rightArmMuscleLevel).toBe("Padrão");
   });
 });
