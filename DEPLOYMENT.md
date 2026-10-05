@@ -1,6 +1,6 @@
 # Deployment Guide
-
-Recomp Pro is optimized for self-hosting via Docker and Portainer.
+ 
+Recomp Pro is optimized for self-hosting via Docker and Portainer with native multi-platform container images (`linux/amd64` and `linux/arm64`).
 
 ---
 
