@@ -489,6 +489,7 @@
     "errorIncorrectPassword": "Contraseña incorrecta.",
     "recordCount_one": "1 registro",
     "recordCount_other": "{{count}} registros",
-    "withFiles": " + archivos"
+    "withFiles": " + archivos",
+    "reviewingMeasurements": "Revisando {{count}} mediciones compartidas con usted"
   }
 }

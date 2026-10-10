@@ -339,7 +339,7 @@ export default function GuestSharedReport({ token }: GuestSharedReportProps) {
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-foreground m-0">{metadata.description}</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Reviewing {summary.total_records} measurements shared with you
+            {t("sharing.reviewingMeasurements", { count: summary.total_records })}
           </p>
         </div>
 

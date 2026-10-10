@@ -491,6 +491,7 @@
     "errorIncorrectPassword": "Senha incorreta.",
     "recordCount_one": "1 registro",
     "recordCount_other": "{{count}} registros",
-    "withFiles": " + arquivos"
+    "withFiles": " + arquivos",
+    "reviewingMeasurements": "Revisando {{count}} medições compartilhadas com você"
   }
 }
