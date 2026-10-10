@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { formatRecordDateKey, normalizeToMinute } from "./dateUtils";
 
 export function cleanFloat(val: unknown): number | null {
   if (val === null || val === undefined) return null;
@@ -50,32 +51,79 @@ export function parseImpedance(val: unknown): [number | null, number | null] {
 
 export function parseDate(val: unknown): Date | null {
   if (!val) return null;
-  if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+  if (val instanceof Date) {
+    return isNaN(val.getTime()) ? null : normalizeToMinute(val);
+  }
 
   const str = String(val).trim();
-  // Match "HH:mm dd/MM/yyyy" or "HH:mm dd-MM-yyyy"
-  const matchTimeDate = str.match(/^(\d{1,2}):(\d{2})\s+(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (!str) return null;
+
+  // Match "HH:mm[:ss] dd/MM/yyyy" or "HH:mm[:ss] dd-MM-yyyy"
+  const matchTimeDate = str.match(
+    /^(\d{1,2}):(\d{2})(?::(\d{2}))?\s+(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/
+  );
   if (matchTimeDate) {
-    const [, hours, minutes, day, month, year] = matchTimeDate;
-    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes));
+    const [, hours, minutes, , day, month, year] = matchTimeDate;
+    return new Date(
+      Date.UTC(
+        parseInt(year, 10),
+        parseInt(month, 10) - 1,
+        parseInt(day, 10),
+        parseInt(hours, 10),
+        parseInt(minutes, 10),
+        0,
+        0
+      )
+    );
   }
 
-  // Match "dd/MM/yyyy HH:mm" or "dd-MM-yyyy HH:mm"
-  const matchDateTime = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\s+(\d{1,2}):(\d{2})$/);
+  // Match "dd/MM/yyyy HH:mm[:ss]" or "dd-MM-yyyy HH:mm[:ss]"
+  const matchDateTime = str.match(
+    /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?$/
+  );
   if (matchDateTime) {
     const [, day, month, year, hours, minutes] = matchDateTime;
-    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes));
+    return new Date(
+      Date.UTC(
+        parseInt(year, 10),
+        parseInt(month, 10) - 1,
+        parseInt(day, 10),
+        parseInt(hours, 10),
+        parseInt(minutes, 10),
+        0,
+        0
+      )
+    );
   }
 
-  // Match "yyyy-MM-dd HH:mm:ss" or ISO strings
+  // Match "yyyy-MM-dd HH:mm[:ss]" or "yyyy/MM/dd HH:mm[:ss]" without explicit timezone offset
+  const matchIsoWallClock = str.match(
+    /^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})[T\s]+(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?$/
+  );
+  if (matchIsoWallClock) {
+    const [, year, month, day, hours, minutes] = matchIsoWallClock;
+    return new Date(
+      Date.UTC(
+        parseInt(year, 10),
+        parseInt(month, 10) - 1,
+        parseInt(day, 10),
+        parseInt(hours, 10),
+        parseInt(minutes, 10),
+        0,
+        0
+      )
+    );
+  }
+
+  // Match ISO strings with explicit timezone (e.g. Z or +HH:MM)
   const parsed = new Date(str.replace(" ", "T"));
   if (!isNaN(parsed.getTime())) {
-    return parsed;
+    return normalizeToMinute(parsed);
   }
 
   const rawParsed = new Date(str);
   if (!isNaN(rawParsed.getTime())) {
-    return rawParsed;
+    return normalizeToMinute(rawParsed);
   }
 
   return null;
@@ -412,5 +460,25 @@ export function parseFitdaysFile(buffer: Buffer | Uint8Array | ArrayBuffer): Par
     }
   }
 
-  return records;
+  return deduplicateParsedRecords(records);
+}
+
+/**
+ * Deduplicates parsed records in-memory by canonical minute timestamp ("YYYY-MM-DD HH:MM:00").
+ * When multiple rows in the same file share the same minute timestamp, later rows overwrite earlier ones.
+ */
+export function deduplicateParsedRecords(records: ParsedRecompRecord[]): ParsedRecompRecord[] {
+  const byDateKey = new Map<string, ParsedRecompRecord>();
+
+  for (const rec of records) {
+    const normalizedDate = normalizeToMinute(rec.date);
+    const key = formatRecordDateKey(normalizedDate);
+    if (!key) continue;
+    byDateKey.set(key, {
+      ...rec,
+      date: normalizedDate,
+    });
+  }
+
+  return Array.from(byDateKey.values());
 }

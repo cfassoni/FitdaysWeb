@@ -1,5 +1,71 @@
 import { sql } from "drizzle-orm";
 import { db } from "./client";
+import { formatRecordDateKey } from "@/lib/dateUtils";
+
+export async function normalizeFitdaysRecordDates(): Promise<void> {
+  const rows = await db.all<{ id: number; user_id: number; date: string | number | null }>(
+    sql`SELECT id, user_id, date FROM fitdays_records ORDER BY id ASC`
+  );
+
+  if (rows.length === 0) return;
+
+  const reports = await db.all<{ id: number; record_id: number }>(
+    sql`SELECT id, record_id FROM fitdays_reports`
+  );
+  const reportByRecordId = new Map<number, number>();
+  for (const r of reports) {
+    reportByRecordId.set(r.record_id, r.id);
+  }
+
+  const groups = new Map<
+    string,
+    Array<{ id: number; user_id: number; date: string | number | null; canonical: string }>
+  >();
+
+  for (const row of rows) {
+    const canonical = formatRecordDateKey(row.date);
+    if (!canonical) continue;
+    const key = `${row.user_id}::${canonical}`;
+    const list = groups.get(key) || [];
+    list.push({ ...row, canonical });
+    groups.set(key, list);
+  }
+
+  for (const group of groups.values()) {
+    if (group.length === 1) {
+      const item = group[0];
+      if (typeof item.date !== "string" || item.date !== item.canonical) {
+        await db.run(
+          sql`UPDATE fitdays_records SET date = ${item.canonical} WHERE id = ${item.id}`
+        );
+      }
+      continue;
+    }
+
+    // Multiple rows map to the same (user_id, canonical minute timestamp).
+    // Keep the latest row by id, preserving any attached report from older duplicate rows.
+    const keeper = group[group.length - 1];
+    const duplicates = group.slice(0, -1);
+
+    let keeperHasReport = reportByRecordId.has(keeper.id);
+    for (const dup of duplicates) {
+      const dupReportId = reportByRecordId.get(dup.id);
+      if (dupReportId !== undefined && !keeperHasReport) {
+        await db.run(
+          sql`UPDATE fitdays_reports SET record_id = ${keeper.id} WHERE id = ${dupReportId}`
+        );
+        keeperHasReport = true;
+      }
+      await db.run(sql`DELETE FROM fitdays_records WHERE id = ${dup.id}`);
+    }
+
+    if (typeof keeper.date !== "string" || keeper.date !== keeper.canonical) {
+      await db.run(
+        sql`UPDATE fitdays_records SET date = ${keeper.canonical} WHERE id = ${keeper.id}`
+      );
+    }
+  }
+}
 
 export async function ensureTablesExist(): Promise<void> {
   await db.run(sql`
@@ -31,7 +97,7 @@ export async function ensureTablesExist(): Promise<void> {
     CREATE TABLE IF NOT EXISTS fitdays_records (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      date INTEGER NOT NULL,
+      date DATETIME NOT NULL,
       weight REAL NOT NULL,
       bmi REAL NOT NULL,
       body_fat_pct REAL NOT NULL,
@@ -139,4 +205,6 @@ export async function ensureTablesExist(): Promise<void> {
       status TEXT NOT NULL
     );
   `);
+
+  await normalizeFitdaysRecordDates();
 }

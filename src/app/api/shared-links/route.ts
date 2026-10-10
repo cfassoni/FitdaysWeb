@@ -3,7 +3,7 @@ import { withAuth } from "@/lib/withAuth";
 import { db } from "@/db/client";
 import { sharedLinks, fitdaysRecords } from "@/db/schema";
 import { eq, and, gt, isNull, or, inArray, desc } from "drizzle-orm";
-import { hashPassword, generateResetToken } from "@/lib/auth";
+import { hashPassword, generateSharedLinkToken } from "@/lib/auth";
 import { formatSharedLinkResponse } from "@/lib/sharedLinkFormat";
 import { formatRecordResponse } from "@/lib/recordFormat";
 import crypto from "crypto";
@@ -72,7 +72,7 @@ export const POST = withAuth(async (req, { user }) => {
       return formatted;
     });
 
-    const token = generateResetToken();
+    const token = generateSharedLinkToken();
     const passwordHash = password ? await hashPassword(password) : null;
     const linkId = crypto.randomUUID();
 
