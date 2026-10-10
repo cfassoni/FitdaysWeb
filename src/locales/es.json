@@ -199,6 +199,7 @@
     "deleteSelected": "Eliminar Seleccionados ({{count}})",
     "deleting": "Eliminando...",
     "table": {
+      "starred": "Favorito",
       "date": "Fecha y Hora",
       "weight": "Peso",
       "bmi": "IMC",
@@ -289,7 +290,12 @@
     "noMatch": "Ninguna medición coincide con sus criterios.",
     "deleteTooltip": "Eliminar medición",
     "errorLoad": "Error al cargar registros",
-    "reportUploadError": "Error al subir informe"
+    "reportUploadError": "Error al subir informe",
+    "filterStarred": "Solo favoritos",
+    "filterAll": "Todos los registros",
+    "starTooltip": "Marcar como favorito",
+    "unstarTooltip": "Quitar de favoritos",
+    "starError": "Error al actualizar favorito"
   },
   "import": {
     "title": "Importar Datos CSV",
@@ -414,6 +420,11 @@
     "limitCounter": "Enlaces compartidos {{count}} de 10",
     "sharedHistoryEntries": "Historial Compartido",
     "shareButton": "Compartir Seleccionados",
+    "shareAction": "Compartir",
+    "shareSelectedCount": "Compartir {{count}} registros seleccionados",
+    "selectedRecordsCount": "{{count}} registros seleccionados manualmente.",
+    "autoShareEmptySelectionNotice": "No hay registros seleccionados. Con el auto-compartir activado, este enlace compartirá todos sus registros favoritos (incluidos los registros marcados como favoritos en el futuro).",
+    "noRecordsSelectedError": "Seleccione al menos un registro o active el uso compartido automático de favoritos.",
     "warningDataPrivacy": "ADVERTENCIA: Está a punto de compartir datos privados de salud y composición corporal. Asegúrese de confiar en el destinatario.",
     "modalTitle": "Compartir Historial",
     "descriptionLabel": "Descripción Corta",
@@ -421,6 +432,9 @@
     "passwordLabel": "Protección por Contraseña (Opcional)",
     "passwordPlaceholder": "Deje en blanco para no usar contraseña",
     "includeAttachmentsLabel": "Adjuntos",
+    "autoShareStarredLabel": "Compartir favoritos automáticamente",
+    "autoShareStarredDesc": "Los nuevos registros favoritos se incluirán automáticamente en este enlace.",
+    "autoShareBadge": "Favoritos automáticos",
     "expiresLabel": "Expiración del Link",
     "expiresNever": "Nunca",
     "expires1d": "1 Día",

@@ -28,6 +28,7 @@ import {
   Share2,
   Copy,
   Check,
+  Star,
 } from "lucide-react";
 
 export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: number) => void } = {}) {
@@ -55,8 +56,9 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
     };
   }, []);
 
-  // Table search and sort states
+  // Table search, filter and sort states
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterStarredOnly, setFilterStarredOnly] = useState(false);
   const [sortField, setSortField] = useState<keyof FitdaysRecord>("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
@@ -75,6 +77,7 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
   const [shareDescription, setShareDescription] = useState("");
   const [sharePassword, setSharePassword] = useState("");
   const [shareIncludeAttachments, setShareIncludeAttachments] = useState(true);
+  const [shareAutoShareStarred, setShareAutoShareStarred] = useState(false);
   const [shareExpiration, setShareExpiration] = useState<"never" | "1d" | "7d" | "30d" | "custom">("never");
   const [shareCustomExpiryDate, setShareCustomExpiryDate] = useState("");
   const [isCreatingShare, setIsCreatingShare] = useState(false);
@@ -94,6 +97,11 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
   const handleCreateShareSubmit = async () => {
     if (!shareDescription.trim()) {
       setShareError(t("common.required"));
+      return;
+    }
+
+    if (selectedIds.length === 0 && !shareAutoShareStarred) {
+      setShareError(t("sharing.noRecordsSelectedError"));
       return;
     }
 
@@ -117,7 +125,8 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
         sharePassword || null,
         shareIncludeAttachments,
         expires_at,
-        selectedIds
+        selectedIds,
+        shareAutoShareStarred
       );
 
       if (onLinksUpdated) {
@@ -145,6 +154,7 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
     setShareDescription("");
     setSharePassword("");
     setShareIncludeAttachments(true);
+    setShareAutoShareStarred(false);
     setShareExpiration("never");
     setShareCustomExpiryDate("");
     setCreatedShareLink(null);
@@ -325,6 +335,28 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
     fetchRecords();
   }, [t]);
 
+  const handleToggleStar = async (recordId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Optimistic toggle
+    setRecords((prev) =>
+      prev.map((r) => (r.id === recordId ? { ...r, starred: !r.starred } : r))
+    );
+    try {
+      await api.toggleRecordStar(recordId);
+    } catch (err) {
+      console.error("Failed to toggle star:", err);
+      // Revert optimistic toggle
+      setRecords((prev) =>
+        prev.map((r) => (r.id === recordId ? { ...r, starred: !r.starred } : r))
+      );
+      setDeleteFeedback({
+        success: false,
+        title: t("common.error"),
+        message: t("history.starError"),
+      });
+    }
+  };
+
   const handleSort = (field: keyof FitdaysRecord) => {
     if (sortField === field) {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -337,6 +369,9 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
   const getSortedRecords = () => {
     return [...records]
       .filter((record) => {
+        if (filterStarredOnly && !record.starred) {
+          return false;
+        }
         const formattedDate = formatDate(record.date).toLowerCase();
         return formattedDate.includes(searchTerm.toLowerCase());
       })
@@ -347,6 +382,9 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
         if (sortField === "date") {
           valA = new Date(a.date).getTime() as never;
           valB = new Date(b.date).getTime() as never;
+        } else if (sortField === "starred") {
+          valA = (a.starred ? 1 : 0) as never;
+          valB = (b.starred ? 1 : 0) as never;
         }
 
         if (valA === null || valA === undefined) return 1;
@@ -439,15 +477,60 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-center">
-          <div className="relative w-full sm:max-w-xs">
-            <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-muted-foreground flex items-center pointer-events-none" />
-            <input
-              type="text"
-              placeholder={t("history.searchPlaceholder")}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-card border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground transition-all"
-            />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-muted-foreground flex items-center pointer-events-none" />
+              <input
+                type="text"
+                placeholder={t("history.searchPlaceholder")}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 bg-card border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground transition-all"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setFilterStarredOnly((prev) => !prev)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer shrink-0 ${
+                filterStarredOnly
+                  ? "bg-amber-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400 shadow-xs"
+                  : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+              title={filterStarredOnly ? t("history.filterAll") : t("history.filterStarred")}
+              aria-label={filterStarredOnly ? t("history.filterAll") : t("history.filterStarred")}
+            >
+              <Star className={`h-3.5 w-3.5 ${filterStarredOnly ? "fill-amber-400 text-amber-400" : ""}`} />
+              <span className="hidden sm:inline">
+                {filterStarredOnly ? t("history.filterStarred") : t("history.filterStarred")}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (selectedIds.length === 0) {
+                  setShareAutoShareStarred(true);
+                }
+                setIsShareModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground hover:bg-primary/95 rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer shrink-0"
+              style={{ height: "38px" }}
+              title={
+                selectedIds.length > 0
+                  ? t("sharing.shareSelectedCount", { count: selectedIds.length })
+                  : t("sharing.shareAction")
+              }
+              aria-label={t("sharing.shareAction")}
+            >
+              <Share2 className="h-4 w-4" />
+              <span className="hidden sm:inline">
+                {selectedIds.length > 0
+                  ? `${t("sharing.shareAction")} (${selectedIds.length})`
+                  : t("sharing.shareAction")}
+              </span>
+              {selectedIds.length > 0 && (
+                <span className="sm:hidden text-xs">({selectedIds.length})</span>
+              )}
+            </button>
           </div>
           {selectedIds.length > 0 && (
             <div className="flex gap-2">
@@ -459,16 +542,9 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
                 className="flex items-center justify-center bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-lg transition-all cursor-pointer shadow-sm animate-in fade-in zoom-in-95 duration-250 shrink-0"
                 style={{ height: "38px", width: "38px" }}
                 title={t("history.deleteSelected", { count: selectedIds.length })}
+                aria-label={t("history.deleteSelected", { count: selectedIds.length })}
               >
                 <Trash2 className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => setIsShareModalOpen(true)}
-                className="flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/95 rounded-lg transition-all cursor-pointer shadow-sm animate-in fade-in zoom-in-95 duration-250 shrink-0"
-                style={{ height: "38px", width: "38px" }}
-                title={t("sharing.shareButton")}
-              >
-                <Share2 className="h-5 w-5" />
               </button>
             </div>
           )}
@@ -512,6 +588,16 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
                       }}
                       className="rounded border-border text-primary focus:ring-primary h-4 w-4 bg-card cursor-pointer"
                     />
+                  </th>
+                  <th
+                    onClick={() => handleSort("starred")}
+                    className="px-3 py-4 w-10 text-center cursor-pointer hover:bg-muted/80 transition-colors select-none"
+                    title={t("history.table.starred")}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      <Star className="h-4 w-4" />
+                      {renderSortIcon("starred")}
+                    </div>
                   </th>
                   <th
                     onClick={() => handleSort("date")}
@@ -568,6 +654,23 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
                         }}
                         className="rounded border-border text-primary focus:ring-primary h-4 w-4 bg-card cursor-pointer"
                       />
+                    </td>
+                    <td className="px-3 py-4 text-center whitespace-nowrap w-10">
+                      <button
+                        type="button"
+                        onClick={(e) => handleToggleStar(record.id, e)}
+                        className="p-1 rounded-md hover:bg-muted/60 transition-all cursor-pointer group"
+                        title={record.starred ? t("history.unstarTooltip") : t("history.starTooltip")}
+                        aria-label={record.starred ? t("history.unstarTooltip") : t("history.starTooltip")}
+                      >
+                        <Star
+                          className={`h-4 w-4 transition-all ${
+                            record.starred
+                              ? "text-amber-400 fill-amber-400 scale-110"
+                              : "text-muted-foreground/30 hover:text-amber-400 hover:scale-110"
+                          }`}
+                        />
+                      </button>
                     </td>
                     <td className="px-6 py-4 font-medium whitespace-nowrap">
                       <div className="flex items-center gap-2">
@@ -1148,7 +1251,14 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
           <div className="relative w-full max-w-lg bg-card border border-border rounded-xl shadow-2xl flex flex-col p-6 overflow-hidden animate-in zoom-in-95 duration-200 z-10 text-foreground">
             {/* Header */}
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-border">
-              <h2 className="text-xl font-bold tracking-tight m-0">{t("sharing.modalTitle")}</h2>
+              <h2 className="text-xl font-bold tracking-tight m-0">
+                {t("sharing.modalTitle")}
+                {selectedIds.length > 0 && (
+                  <span className="text-sm font-normal text-muted-foreground ml-2">
+                    ({t("sharing.recordCount", { count: selectedIds.length })})
+                  </span>
+                )}
+              </h2>
               <button
                 disabled={isCreatingShare}
                 onClick={handleCloseShareModal}
@@ -1166,6 +1276,18 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
                   <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                   <span>{t("sharing.warningDataPrivacy")}</span>
                 </div>
+
+                {/* Empty selection notice or selected records count */}
+                {selectedIds.length === 0 ? (
+                  <div className="p-3 rounded-lg border border-primary/20 bg-primary/10 text-primary text-xs flex items-start gap-2 leading-relaxed">
+                    <Star className="h-4 w-4 shrink-0 mt-0.5 fill-amber-400 text-amber-400" />
+                    <span>{t("sharing.autoShareEmptySelectionNotice")}</span>
+                  </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground font-medium px-1">
+                    {t("sharing.selectedRecordsCount", { count: selectedIds.length })}
+                  </div>
+                )}
 
                 {/* Description Input */}
                 <div>
@@ -1208,6 +1330,25 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
                     checked={shareIncludeAttachments}
                     onChange={(e) => setShareIncludeAttachments(e.target.checked)}
                     className="rounded border-border text-primary focus:ring-primary h-4 w-4 bg-card cursor-pointer"
+                  />
+                </div>
+
+                {/* Auto-share Starred Toggle */}
+                <div className="flex items-start justify-between py-2 border-b border-border gap-3">
+                  <div className="flex flex-col gap-0.5">
+                    <label htmlFor="share-auto-starred" className="text-sm font-medium text-foreground cursor-pointer">
+                      {t("sharing.autoShareStarredLabel")}
+                    </label>
+                    <span className="text-xs text-muted-foreground">
+                      {t("sharing.autoShareStarredDesc")}
+                    </span>
+                  </div>
+                  <input
+                    id="share-auto-starred"
+                    type="checkbox"
+                    checked={shareAutoShareStarred}
+                    onChange={(e) => setShareAutoShareStarred(e.target.checked)}
+                    className="mt-0.5 rounded border-border text-primary focus:ring-primary h-4 w-4 bg-card cursor-pointer shrink-0"
                   />
                 </div>
 
@@ -1262,7 +1403,7 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
                     {t("common.cancel")}
                   </button>
                   <button
-                    disabled={isCreatingShare}
+                    disabled={isCreatingShare || (selectedIds.length === 0 && !shareAutoShareStarred)}
                     onClick={handleCreateShareSubmit}
                     className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/95 text-sm font-semibold rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                   >
@@ -1272,7 +1413,11 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
                         <span>{t("common.loading")}</span>
                       </>
                     ) : (
-                      <span>{t("sharing.shareButton")}</span>
+                      <span>
+                        {selectedIds.length > 0
+                          ? t("sharing.shareButton")
+                          : t("sharing.shareAction")}
+                      </span>
                     )}
                   </button>
                 </div>

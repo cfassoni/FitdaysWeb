@@ -3,7 +3,7 @@ import { withAuth } from "@/lib/withAuth";
 import { db } from "@/db/client";
 import { sharedLinks } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import { formatSharedLinkResponse } from "@/lib/sharedLinkFormat";
+import { formatSharedLinkResponse, recomputeSharedLinkSnapshot } from "@/lib/sharedLinkFormat";
 import { hashPassword } from "@/lib/auth";
 
 export const GET = withAuth(async (req, { user, params }) => {
@@ -59,7 +59,7 @@ export const PATCH = withAuth(async (req, { user, params }) => {
     }
 
     const body = await req.json();
-    const { description, expires_at, clear_password, password } = body;
+    const { description, expires_at, clear_password, password, auto_share_starred } = body;
 
     const updates: Partial<typeof sharedLinks.$inferInsert> = {};
 
@@ -77,13 +77,22 @@ export const PATCH = withAuth(async (req, { user, params }) => {
       updates.passwordHash = await hashPassword(password);
     }
 
+    if (auto_share_starred !== undefined) {
+      updates.autoShareStarred = Boolean(auto_share_starred);
+    }
+
     const [updatedLink] = await db
       .update(sharedLinks)
       .set(updates)
       .where(eq(sharedLinks.id, linkId))
       .returning();
 
-    return NextResponse.json(formatSharedLinkResponse(updatedLink, link.auditLogs));
+    let finalLink = updatedLink;
+    if (auto_share_starred !== undefined) {
+      finalLink = await recomputeSharedLinkSnapshot(updatedLink);
+    }
+
+    return NextResponse.json(formatSharedLinkResponse(finalLink, link.auditLogs));
   } catch (err) {
     console.error("Update shared link error:", err);
     return NextResponse.json(

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
 import { db } from "@/db/client";
 import { sharedLinks, fitdaysRecords } from "@/db/schema";
-import { eq, and, gt, isNull, or, inArray, desc } from "drizzle-orm";
+import { eq, and, gt, isNull, or, inArray, desc, asc } from "drizzle-orm";
 import { hashPassword, generateSharedLinkToken } from "@/lib/auth";
 import { formatSharedLinkResponse } from "@/lib/sharedLinkFormat";
 import { formatRecordResponse } from "@/lib/recordFormat";
@@ -17,9 +17,13 @@ export const POST = withAuth(async (req, { user }) => {
       password,
       include_attachments = true,
       expires_at,
+      auto_share_starred = false,
     } = body;
 
-    if (!description || !entry_ids || !Array.isArray(entry_ids) || entry_ids.length === 0) {
+    const isAutoShare = Boolean(auto_share_starred);
+    const manualIds = Array.isArray(entry_ids) ? entry_ids.map(Number) : [];
+
+    if (!description || (!isAutoShare && manualIds.length === 0)) {
       return NextResponse.json(
         { detail: "Description and at least one entry_id are required" },
         { status: 400 }
@@ -45,18 +49,36 @@ export const POST = withAuth(async (req, { user }) => {
       );
     }
 
-    // Fetch and validate records belonging to user
-    const records = await db.query.fitdaysRecords.findMany({
-      where: and(
+    // Fetch and validate records belonging to user (union with starred if auto_share_starred)
+    let recordsWhere;
+    if (isAutoShare) {
+      if (manualIds.length > 0) {
+        recordsWhere = and(
+          eq(fitdaysRecords.userId, user.id),
+          or(inArray(fitdaysRecords.id, manualIds), eq(fitdaysRecords.starred, true))
+        );
+      } else {
+        recordsWhere = and(
+          eq(fitdaysRecords.userId, user.id),
+          eq(fitdaysRecords.starred, true)
+        );
+      }
+    } else {
+      recordsWhere = and(
         eq(fitdaysRecords.userId, user.id),
-        inArray(fitdaysRecords.id, entry_ids.map(Number))
-      ),
+        inArray(fitdaysRecords.id, manualIds)
+      );
+    }
+
+    const records = await db.query.fitdaysRecords.findMany({
+      where: recordsWhere,
+      orderBy: [asc(fitdaysRecords.date)],
       with: {
         report: true,
       },
     });
 
-    if (!records || records.length === 0) {
+    if (!isAutoShare && (!records || records.length === 0)) {
       return NextResponse.json(
         { detail: "No valid records selected for sharing" },
         { status: 400 }
@@ -85,6 +107,8 @@ export const POST = withAuth(async (req, { user }) => {
         description,
         passwordHash,
         includeAttachments: Boolean(include_attachments),
+        autoShareStarred: isAutoShare,
+        manualEntryIds: JSON.stringify(manualIds),
         expiresAt: expires_at ? new Date(expires_at) : null,
         snapshotData: JSON.stringify(serializedEntries),
         createdAt: new Date(),

@@ -60,6 +60,7 @@ export const fitdaysRecords = sqliteTable("fitdays_records", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   date: sqliteDateTime("date").notNull(),
+  starred: integer("starred", { mode: "boolean" }).notNull().default(false),
 
   // Core Weight / Body Metrics
   weight: real("weight").notNull(),
@@ -166,6 +167,8 @@ export const sharedLinks = sqliteTable("shared_links", {
   description: text("description").notNull(),
   passwordHash: text("password_hash"),
   includeAttachments: integer("include_attachments", { mode: "boolean" }).notNull().default(true),
+  autoShareStarred: integer("auto_share_starred", { mode: "boolean" }).notNull().default(false),
+  manualEntryIds: text("manual_entry_ids"),
   expiresAt: sqliteDateTime("expires_at"),
   snapshotData: text("snapshot_data").notNull(), // JSON string
   createdAt: sqliteDateTime("created_at").notNull().$defaultFn(() => new Date()),
