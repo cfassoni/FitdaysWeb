@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import LocalizedDatePicker from "@/components/LocalizedDatePicker";
 import type { SharedLink } from "@/lib/api";
 import { formatDate } from "@/lib/i18n";
+import { copyTextToClipboard } from "@/lib/clipboard";
 import {
   Loader2,
   Trash2,
@@ -73,12 +74,10 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
 
   const handleCopyLink = async (link: SharedLink) => {
     const linkUrl = `${window.location.origin}/shared/${link.token}`;
-    try {
-      await navigator.clipboard.writeText(linkUrl);
+    const copied = await copyTextToClipboard(linkUrl);
+    if (copied) {
       setCopiedLinkId(link.id);
       setTimeout(() => setCopiedLinkId(null), 2000);
-    } catch (err) {
-      console.error("Clipboard copy failed:", err);
     }
   };
 
