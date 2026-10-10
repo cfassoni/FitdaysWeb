@@ -199,6 +199,7 @@
     "deleteSelected": "Delete Selected ({{count}})",
     "deleting": "Deleting...",
     "table": {
+      "starred": "Starred",
       "date": "Date & Time",
       "weight": "Weight",
       "bmi": "BMI",
@@ -289,7 +290,12 @@
     "noMatch": "No measurements match your criteria.",
     "deleteTooltip": "Delete measurement",
     "errorLoad": "Failed to load records",
-    "reportUploadError": "Failed to upload report"
+    "reportUploadError": "Failed to upload report",
+    "filterStarred": "Only starred",
+    "filterAll": "All records",
+    "starTooltip": "Mark as starred",
+    "unstarTooltip": "Remove from starred",
+    "starError": "Failed to update star"
   },
   "import": {
     "title": "Import CSV Data",
@@ -423,6 +429,9 @@
     "passwordLabel": "Password Protection (Optional)",
     "passwordPlaceholder": "Leave blank for no password",
     "includeAttachmentsLabel": "Attachments",
+    "autoShareStarredLabel": "Automatically share starred",
+    "autoShareStarredDesc": "Newly starred records will be automatically included in this link.",
+    "autoShareBadge": "Auto-shared starred",
     "expiresLabel": "Link Expiry",
     "expiresNever": "Never",
     "expires1d": "1 Day",

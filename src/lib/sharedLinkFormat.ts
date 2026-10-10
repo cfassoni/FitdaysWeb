@@ -1,7 +1,9 @@
-import { sharedLinks, sharedLinkAuditLogs } from "@/db/schema";
+import { sharedLinks, sharedLinkAuditLogs, fitdaysRecords } from "@/db/schema";
+import { and, eq, or, inArray, isNull, gt, asc } from "drizzle-orm";
 import { verifyAccessToken } from "./auth";
 import { safeToISOString } from "./dateUtils";
 import { db } from "@/db/client";
+import { formatRecordResponse } from "./recordFormat";
 
 export type SharedLinkSelect = typeof sharedLinks.$inferSelect;
 export type AuditLogSelect = typeof sharedLinkAuditLogs.$inferSelect;
@@ -37,6 +39,7 @@ export function formatSharedLinkResponse(
     description: link.description,
     has_password: Boolean(link.passwordHash),
     include_attachments: link.includeAttachments,
+    auto_share_starred: Boolean(link.autoShareStarred),
     expires_at: safeToISOString(link.expiresAt),
     created_at: safeToISOString(link.createdAt, true),
     entry_count: entryCount,
@@ -92,4 +95,82 @@ export async function verifyGuestToken(
   }
 
   return true;
+}
+
+export async function recomputeSharedLinkSnapshot(link: SharedLinkSelect) {
+  let manualIds: number[] = [];
+  try {
+    if (link.manualEntryIds) {
+      manualIds = JSON.parse(link.manualEntryIds);
+      if (!Array.isArray(manualIds)) manualIds = [];
+    }
+  } catch {
+    manualIds = [];
+  }
+
+  let recordsWhere;
+  if (link.autoShareStarred) {
+    if (manualIds.length > 0) {
+      recordsWhere = and(
+        eq(fitdaysRecords.userId, link.ownerId),
+        or(eq(fitdaysRecords.starred, true), inArray(fitdaysRecords.id, manualIds))
+      );
+    } else {
+      recordsWhere = and(
+        eq(fitdaysRecords.userId, link.ownerId),
+        eq(fitdaysRecords.starred, true)
+      );
+    }
+  } else {
+    if (manualIds.length > 0) {
+      recordsWhere = and(
+        eq(fitdaysRecords.userId, link.ownerId),
+        inArray(fitdaysRecords.id, manualIds)
+      );
+    } else {
+      recordsWhere = and(
+        eq(fitdaysRecords.userId, link.ownerId),
+        inArray(fitdaysRecords.id, [-1])
+      );
+    }
+  }
+
+  const records = await db.query.fitdaysRecords.findMany({
+    where: recordsWhere,
+    orderBy: [asc(fitdaysRecords.date)],
+    with: {
+      report: true,
+    },
+  });
+
+  const serializedEntries = records.map((r) => {
+    const formatted = formatRecordResponse(r, r.report);
+    if (r.report && formatted.report) {
+      (formatted.report as Record<string, unknown>).file_path = r.report.filePath;
+    }
+    return formatted;
+  });
+
+  const [updated] = await db
+    .update(sharedLinks)
+    .set({ snapshotData: JSON.stringify(serializedEntries) })
+    .where(eq(sharedLinks.id, link.id))
+    .returning();
+
+  return updated || link;
+}
+
+export async function syncAutoShareLinksForUser(userId: number) {
+  const now = new Date();
+  const autoLinks = await db.query.sharedLinks.findMany({
+    where: and(
+      eq(sharedLinks.ownerId, userId),
+      eq(sharedLinks.autoShareStarred, true),
+      or(isNull(sharedLinks.expiresAt), gt(sharedLinks.expiresAt, now))
+    ),
+  });
+
+  for (const link of autoLinks) {
+    await recomputeSharedLinkSnapshot(link);
+  }
 }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
 import { db } from "@/db/client";
 import { sharedLinks, fitdaysRecords } from "@/db/schema";
-import { eq, and, gt, isNull, or, inArray, desc } from "drizzle-orm";
+import { eq, and, gt, isNull, or, inArray, desc, asc } from "drizzle-orm";
 import { hashPassword, generateSharedLinkToken } from "@/lib/auth";
 import { formatSharedLinkResponse } from "@/lib/sharedLinkFormat";
 import { formatRecordResponse } from "@/lib/recordFormat";
@@ -17,6 +17,7 @@ export const POST = withAuth(async (req, { user }) => {
       password,
       include_attachments = true,
       expires_at,
+      auto_share_starred = false,
     } = body;
 
     if (!description || !entry_ids || !Array.isArray(entry_ids) || entry_ids.length === 0) {
@@ -45,12 +46,23 @@ export const POST = withAuth(async (req, { user }) => {
       );
     }
 
-    // Fetch and validate records belonging to user
+    const isAutoShare = Boolean(auto_share_starred);
+    const manualIds = entry_ids.map(Number);
+
+    // Fetch and validate records belonging to user (union with starred if auto_share_starred)
+    const recordsWhere = isAutoShare
+      ? and(
+          eq(fitdaysRecords.userId, user.id),
+          or(inArray(fitdaysRecords.id, manualIds), eq(fitdaysRecords.starred, true))
+        )
+      : and(
+          eq(fitdaysRecords.userId, user.id),
+          inArray(fitdaysRecords.id, manualIds)
+        );
+
     const records = await db.query.fitdaysRecords.findMany({
-      where: and(
-        eq(fitdaysRecords.userId, user.id),
-        inArray(fitdaysRecords.id, entry_ids.map(Number))
-      ),
+      where: recordsWhere,
+      orderBy: [asc(fitdaysRecords.date)],
       with: {
         report: true,
       },
@@ -85,6 +97,8 @@ export const POST = withAuth(async (req, { user }) => {
         description,
         passwordHash,
         includeAttachments: Boolean(include_attachments),
+        autoShareStarred: isAutoShare,
+        manualEntryIds: JSON.stringify(manualIds),
         expiresAt: expires_at ? new Date(expires_at) : null,
         snapshotData: JSON.stringify(serializedEntries),
         createdAt: new Date(),

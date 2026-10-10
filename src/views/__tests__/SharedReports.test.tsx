@@ -51,6 +51,7 @@ const mockLinks: SharedLink[] = [
     description: "Report for Dr. Gordon",
     has_password: true,
     include_attachments: true,
+    auto_share_starred: true,
     created_at: "2026-08-01T10:00:00Z",
     expires_at: "2026-08-30T23:59:59Z",
     last_accessed_at: "2026-08-05T14:30:00Z",
@@ -63,6 +64,7 @@ const mockLinks: SharedLink[] = [
     description: "Open Link for Coach",
     has_password: false,
     include_attachments: false,
+    auto_share_starred: false,
     created_at: "2026-07-01T10:00:00Z",
     expires_at: "2026-07-10T23:59:59Z", // Expired
     last_accessed_at: null,

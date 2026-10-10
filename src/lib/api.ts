@@ -65,6 +65,7 @@ export interface FitdaysRecord {
   id: number;
   user_id: number;
   date: string;
+  starred: boolean;
   weight: number;
   bmi: number;
   body_fat_pct: number;
@@ -170,6 +171,7 @@ export interface SharedLink {
   description: string;
   has_password: boolean;
   include_attachments: boolean;
+  auto_share_starred: boolean;
   expires_at: string | null;
   created_at: string;
   entry_count: number;
@@ -476,12 +478,26 @@ export const api = {
     });
   },
 
+  async toggleRecordStar(
+    recordId: number,
+    starred?: boolean
+  ): Promise<{ success: boolean; id: number; starred: boolean }> {
+    return apiFetch<{ success: boolean; id: number; starred: boolean }>(
+      `/api/records/${recordId}/star`,
+      {
+        method: "POST",
+        json: starred !== undefined ? { starred } : undefined,
+      }
+    );
+  },
+
   async createSharedLink(
     description: string,
     password: string | null,
     include_attachments: boolean,
     expires_at: string | null,
-    entry_ids: number[]
+    entry_ids: number[],
+    auto_share_starred: boolean = false
   ): Promise<SharedLink> {
     return apiFetch<SharedLink>("/api/shared-links", {
       method: "POST",
@@ -491,6 +507,7 @@ export const api = {
         include_attachments,
         expires_at,
         entry_ids,
+        auto_share_starred,
       },
     });
   },
@@ -514,6 +531,7 @@ export const api = {
       expires_at?: string | null;
       password?: string;
       clear_password?: boolean;
+      auto_share_starred?: boolean;
     }
   ): Promise<SharedLink> {
     return apiFetch<SharedLink>(`/api/shared-links/${linkId}`, {
