@@ -32,18 +32,18 @@ feat/* | fix/* | docs/* (Isolated feature branches)
 
 ## 2. Hard Autonomy Boundaries (The Approval Gates)
 
-| Action | Allowed Autonomously? | Protocol / Requirement |
-| :--- | :---: | :--- |
-| **Researching codebase / reading files** | 🟢 **YES** | Proactive exploration. |
-| **Editing code files locally** | 🟢 **YES** | Keep changes isolated and focused on the active task. |
-| **Running verification suite (`lint`, `test`, `build`)** | 🟢 **YES** | Always verify before declaring work complete. |
-| **Creating local feature branch (`fix/*`, `feat/*`)** | 🟢 **YES** | Always branch off latest `preview`. |
-| **Committing locally on feature branch** | 🟢 **YES** | Use Conventional Commits (`feat:`, `fix:`, `chore:`). |
-| **Merging feature branch locally into `preview` or `main`** | 🛑 **NEVER** | **Requires explicit written user approval after user testing.** |
-| **Pushing to remote repository (`git push`)** | 🛑 **NEVER** | **Requires explicit written user approval.** |
-| **Creating Pull Requests (`gh pr create`)** | 🛑 **NEVER** | **Requires explicit written user approval.** |
-| **Merging Pull Requests (`gh pr merge`)** | 🛑 **NEVER** | **Human-only. Merges are performed manually by the user — enforced as a hard rule, *not* as a permission limit (the App does hold `pull_requests: write`, which it needs in order to open PRs).** |
-| **Publishing Releases / Tags (`gh release create`)** | 🛑 **NEVER** | **Requires explicit written user approval.** |
+| Action                                                      | Allowed Autonomously? | Protocol / Requirement                                                                                                                                                                            |
+| :---------------------------------------------------------- | :-------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Researching codebase / reading files**                    |   **YES**       | Proactive exploration.                                                                                                                                                                            |
+| **Editing code files locally**                              |    **YES**       | Keep changes isolated and focused on the active task.                                                                                                                                             |
+| **Running verification suite (`lint`, `test`, `build`)**    |   **YES**       | Always verify before declaring work complete.                                                                                                                                                     |
+| **Creating local feature branch (`fix/*`, `feat/*`)**       |   **YES**       | Always branch off latest `preview`.                                                                                                                                                               |
+| **Committing locally on feature branch**                    |   **YES**       | Use Conventional Commits (`feat:`, `fix:`, `chore:`).                                                                                                                                             |
+| **Merging feature branch locally into `preview` or `main`** |  **NEVER**      | **Requires explicit written user approval after user testing.**                                                                                                                                   |
+| **Pushing to remote repository (`git push`)**               |  **NEVER**      | **Requires explicit written user approval.**                                                                                                                                                      |
+| **Creating Pull Requests (`gh pr create`)**                 |  **NEVER**      | **Requires explicit written user approval.**                                                                                                                                                      |
+| **Merging Pull Requests (`gh pr merge`)**                   |  **NEVER**      | **Human-only. Merges are performed manually by the user — enforced as a hard rule, _not_ as a permission limit (the App does hold `pull_requests: write`, which it needs in order to open PRs).** |
+| **Publishing Releases / Tags (`gh release create`)**        |  **NEVER**      | **Requires explicit written user approval.**                                                                                                                                                      |
 
 ---
 
@@ -78,7 +78,7 @@ feat/* | fix/* | docs/* (Isolated feature branches)
 
 - **GitHub App Authentication & Ephemeral Credentials**:
   - All remote Git operations (`fetch`, `push`, `pull`) and GitHub CLI (`gh`) commands must authenticate exclusively using ephemeral installation tokens derived from GitHub App credentials in `.env` (`GITHUB_APP_ID`, `GITHUB_INSTALLATION_ID`, `GITHUB_PRIVATE_KEY`).
-  - Use the harness-independent `github-app` CLI. After cloning, import the project's ignored `.env` settings once with `github-app profile import --name <profile> --env .env`, then run `github-app init --profile <profile>`. This registers the per-project App profile and credential helper.
+  - Use the harness-independent `github-app` CLI. After cloning, import the project's ignored `.env` settings once with `github-app profile import --name <profile> --env .env --git-name '<app>[bot]' --git-email '<app-id>+<app>[bot]@users.noreply.github.com'`, then run `github-app init --profile <profile>`. This registers the per-project App profile, credential helper, and local commit identity.
   - For a new private clone, use `github-app clone --profile <profile> <https-repo-url> [directory]`; clone cannot inherit destination-repository Git configuration because `.git/config` does not exist yet. Plain `git fetch` / `git push` / `git pull` then use the App helper.
   - `gh` does not read Git credential helpers; wrap it with `github-app run gh <args...>` (or `github-app run --profile <profile> gh <args...>` outside an initialized repo).
   - Never rely on personal host SSH keys, global Git credential helpers, or interactive login prompts.
@@ -87,7 +87,8 @@ feat/* | fix/* | docs/* (Isolated feature branches)
 
 ## 4. DOs and DON'Ts Reference Table
 
-### ✅ DOs
+### DOs
+
 - **DO** keep all active work isolated on dedicated `feat/*` or `fix/*` branches.
 - **DO** run and pass the full local verification suite (`npm run lint`, `npm test`, `npm run build`, `docker compose build`) before presenting completed work.
 - **DO** leave the testing and validation in the hands of the user before suggesting any branch merges or remote actions.
@@ -98,10 +99,11 @@ feat/* | fix/* | docs/* (Isolated feature branches)
 - **DO** write comprehensive unit/integration tests for every newly added feature or bug fix.
 - **DO** authenticate remote Git and GitHub CLI operations with ephemeral GitHub App installation tokens: `github-app clone` for private clones, the configured helper for `fetch`/`push`/`pull`, and `github-app run gh ...` for GitHub CLI.
 
-### ❌ DON'Ts
+### DON'Ts
+
 - **DON'T EVER** push to `origin` without explicit user permission.
 - **DON'T EVER** open or merge a Pull Request without explicit user permission.
-- **DON'T EVER** attempt automated PR merges via GitHub App — merges are strictly human. The App *does* hold `pull_requests: write` (required to open PRs), so this is a hard rule with no technical backstop; honour it unconditionally.
+- **DON'T EVER** attempt automated PR merges via GitHub App — merges are strictly human. The App _does_ hold `pull_requests: write` (required to open PRs), so this is a hard rule with no technical backstop; honour it unconditionally.
 - **DON'T EVER** rely on personal SSH keys or global host credentials for remote Git/GitHub operations.
 - **DON'T EVER** merge a feature branch into local `preview` or `main` before the user has finished testing on the feature branch.
 - **DON'T EVER** target `main` directly for feature PRs (all feature PRs must target `preview`).
