@@ -496,7 +496,7 @@ export const api = {
     password: string | null,
     include_attachments: boolean,
     expires_at: string | null,
-    entry_ids: number[],
+    entry_ids: number[] = [],
     auto_share_starred: boolean = false
   ): Promise<SharedLink> {
     return apiFetch<SharedLink>("/api/shared-links", {

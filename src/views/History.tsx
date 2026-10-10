@@ -100,6 +100,11 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
       return;
     }
 
+    if (selectedIds.length === 0 && !shareAutoShareStarred) {
+      setShareError(t("sharing.noRecordsSelectedError"));
+      return;
+    }
+
     try {
       setIsCreatingShare(true);
       setShareError(null);
@@ -499,6 +504,33 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
                 {filterStarredOnly ? t("history.filterStarred") : t("history.filterStarred")}
               </span>
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (selectedIds.length === 0) {
+                  setShareAutoShareStarred(true);
+                }
+                setIsShareModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground hover:bg-primary/95 rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer shrink-0"
+              style={{ height: "38px" }}
+              title={
+                selectedIds.length > 0
+                  ? t("sharing.shareSelectedCount", { count: selectedIds.length })
+                  : t("sharing.shareAction")
+              }
+              aria-label={t("sharing.shareAction")}
+            >
+              <Share2 className="h-4 w-4" />
+              <span className="hidden sm:inline">
+                {selectedIds.length > 0
+                  ? `${t("sharing.shareAction")} (${selectedIds.length})`
+                  : t("sharing.shareAction")}
+              </span>
+              {selectedIds.length > 0 && (
+                <span className="sm:hidden text-xs">({selectedIds.length})</span>
+              )}
+            </button>
           </div>
           {selectedIds.length > 0 && (
             <div className="flex gap-2">
@@ -510,16 +542,9 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
                 className="flex items-center justify-center bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-lg transition-all cursor-pointer shadow-sm animate-in fade-in zoom-in-95 duration-250 shrink-0"
                 style={{ height: "38px", width: "38px" }}
                 title={t("history.deleteSelected", { count: selectedIds.length })}
+                aria-label={t("history.deleteSelected", { count: selectedIds.length })}
               >
                 <Trash2 className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => setIsShareModalOpen(true)}
-                className="flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/95 rounded-lg transition-all cursor-pointer shadow-sm animate-in fade-in zoom-in-95 duration-250 shrink-0"
-                style={{ height: "38px", width: "38px" }}
-                title={t("sharing.shareButton")}
-              >
-                <Share2 className="h-5 w-5" />
               </button>
             </div>
           )}
@@ -1226,7 +1251,14 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
           <div className="relative w-full max-w-lg bg-card border border-border rounded-xl shadow-2xl flex flex-col p-6 overflow-hidden animate-in zoom-in-95 duration-200 z-10 text-foreground">
             {/* Header */}
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-border">
-              <h2 className="text-xl font-bold tracking-tight m-0">{t("sharing.modalTitle")}</h2>
+              <h2 className="text-xl font-bold tracking-tight m-0">
+                {t("sharing.modalTitle")}
+                {selectedIds.length > 0 && (
+                  <span className="text-sm font-normal text-muted-foreground ml-2">
+                    ({t("sharing.recordCount", { count: selectedIds.length })})
+                  </span>
+                )}
+              </h2>
               <button
                 disabled={isCreatingShare}
                 onClick={handleCloseShareModal}
@@ -1244,6 +1276,18 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
                   <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                   <span>{t("sharing.warningDataPrivacy")}</span>
                 </div>
+
+                {/* Empty selection notice or selected records count */}
+                {selectedIds.length === 0 ? (
+                  <div className="p-3 rounded-lg border border-primary/20 bg-primary/10 text-primary text-xs flex items-start gap-2 leading-relaxed">
+                    <Star className="h-4 w-4 shrink-0 mt-0.5 fill-amber-400 text-amber-400" />
+                    <span>{t("sharing.autoShareEmptySelectionNotice")}</span>
+                  </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground font-medium px-1">
+                    {t("sharing.selectedRecordsCount", { count: selectedIds.length })}
+                  </div>
+                )}
 
                 {/* Description Input */}
                 <div>
@@ -1359,7 +1403,7 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
                     {t("common.cancel")}
                   </button>
                   <button
-                    disabled={isCreatingShare}
+                    disabled={isCreatingShare || (selectedIds.length === 0 && !shareAutoShareStarred)}
                     onClick={handleCreateShareSubmit}
                     className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/95 text-sm font-semibold rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                   >
@@ -1369,7 +1413,11 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
                         <span>{t("common.loading")}</span>
                       </>
                     ) : (
-                      <span>{t("sharing.shareButton")}</span>
+                      <span>
+                        {selectedIds.length > 0
+                          ? t("sharing.shareButton")
+                          : t("sharing.shareAction")}
+                      </span>
                     )}
                   </button>
                 </div>

@@ -370,4 +370,116 @@ describe("Starred History and Auto-Sharing Integration", () => {
       expect(entry.starred).toBeUndefined();
     }
   });
+
+  it("POST /api/shared-links should reject empty entry_ids when auto_share_starred is false", async () => {
+    const emptyReq = new NextRequest("http://localhost:3000/api/shared-links", {
+      method: "POST",
+      body: JSON.stringify({
+        description: "Empty Invalid Link",
+        entry_ids: [],
+        auto_share_starred: false,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+    const emptyRes = await createSharedLinkHandler(emptyReq);
+    expect(emptyRes.status).toBe(400);
+    const emptyData = await emptyRes.json();
+    expect(emptyData.detail).toContain("Description and at least one entry_id are required");
+  });
+
+  it("POST /api/shared-links should allow empty entry_ids when auto_share_starred is true (Option A)", async () => {
+    // Create link with empty entry_ids and auto_share_starred true
+    const autoEmptyReq = new NextRequest("http://localhost:3000/api/shared-links", {
+      method: "POST",
+      body: JSON.stringify({
+        description: "Auto-share only link",
+        entry_ids: [],
+        auto_share_starred: true,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+    const autoEmptyRes = await createSharedLinkHandler(autoEmptyReq);
+    expect(autoEmptyRes.status).toBe(201);
+    const autoEmptyData = await autoEmptyRes.json();
+    expect(autoEmptyData.auto_share_starred).toBe(true);
+    // User already has recordIds[2] starred from previous tests => entry_count is 1
+    expect(autoEmptyData.entry_count).toBe(1);
+
+    // Fetch public data for this link
+    const publicReq = new NextRequest(`http://localhost:3000/api/shared-links/public/${autoEmptyData.token}/data`, {
+      method: "GET",
+    });
+    const publicRes = await getPublicDataHandler(publicReq, { params: { token: autoEmptyData.token } });
+    expect(publicRes.status).toBe(200);
+    const publicData = await publicRes.json();
+    expect(publicData.entries.length).toBe(1);
+    expect(publicData.entries[0].id).toBe(recordIds[2]);
+  });
+
+  it("POST /api/shared-links should allow auto_share_starred link creation even with 0 starred scans (Option A)", async () => {
+    // Register fresh user with 0 scans
+    const emptyUserEmail = `empty_user_${Date.now()}@example.com`;
+    const regReq = new NextRequest("http://localhost:3000/api/users/register", {
+      method: "POST",
+      body: JSON.stringify({
+        email: emptyUserEmail,
+        password: userPassword,
+        display_name: "Empty User",
+        gender: "female",
+        birthday: "1995-05-05",
+        height_cm: 165,
+        target_weight_kg: 60,
+        preferred_language: "en",
+      }),
+      headers: { "Content-Type": "application/json" },
+    });
+    const regRes = await registerHandler(regReq);
+    expect(regRes.status).toBe(201);
+
+    await db.update(users).set({ emailConfirmed: true }).where(eq(users.email, emptyUserEmail));
+
+    const loginReq = new NextRequest("http://localhost:3000/api/users/login", {
+      method: "POST",
+      body: JSON.stringify({ email: emptyUserEmail, password: userPassword }),
+      headers: { "Content-Type": "application/json" },
+    });
+    const loginRes = await loginHandler(loginReq);
+    const loginData = await loginRes.json();
+    const emptyUserToken = loginData.access_token;
+
+    // Create auto-share link with 0 entries
+    const createReq = new NextRequest("http://localhost:3000/api/shared-links", {
+      method: "POST",
+      body: JSON.stringify({
+        description: "Zero records auto-share link",
+        entry_ids: [],
+        auto_share_starred: true,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${emptyUserToken}`,
+      },
+    });
+    const createRes = await createSharedLinkHandler(createReq);
+    expect(createRes.status).toBe(201);
+    const createData = await createRes.json();
+    expect(createData.entry_count).toBe(0);
+    expect(createData.auto_share_starred).toBe(true);
+
+    // Verify public endpoint returns empty array without error
+    const publicReq = new NextRequest(`http://localhost:3000/api/shared-links/public/${createData.token}/data`, {
+      method: "GET",
+    });
+    const publicRes = await getPublicDataHandler(publicReq, { params: { token: createData.token } });
+    expect(publicRes.status).toBe(200);
+    const publicData = await publicRes.json();
+    expect(publicData.entries.length).toBe(0);
+    expect(publicData.dashboard.total_records).toBe(0);
+  });
 });

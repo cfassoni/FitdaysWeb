@@ -20,7 +20,10 @@ export const POST = withAuth(async (req, { user }) => {
       auto_share_starred = false,
     } = body;
 
-    if (!description || !entry_ids || !Array.isArray(entry_ids) || entry_ids.length === 0) {
+    const isAutoShare = Boolean(auto_share_starred);
+    const manualIds = Array.isArray(entry_ids) ? entry_ids.map(Number) : [];
+
+    if (!description || (!isAutoShare && manualIds.length === 0)) {
       return NextResponse.json(
         { detail: "Description and at least one entry_id are required" },
         { status: 400 }
@@ -46,19 +49,26 @@ export const POST = withAuth(async (req, { user }) => {
       );
     }
 
-    const isAutoShare = Boolean(auto_share_starred);
-    const manualIds = entry_ids.map(Number);
-
     // Fetch and validate records belonging to user (union with starred if auto_share_starred)
-    const recordsWhere = isAutoShare
-      ? and(
+    let recordsWhere;
+    if (isAutoShare) {
+      if (manualIds.length > 0) {
+        recordsWhere = and(
           eq(fitdaysRecords.userId, user.id),
           or(inArray(fitdaysRecords.id, manualIds), eq(fitdaysRecords.starred, true))
-        )
-      : and(
-          eq(fitdaysRecords.userId, user.id),
-          inArray(fitdaysRecords.id, manualIds)
         );
+      } else {
+        recordsWhere = and(
+          eq(fitdaysRecords.userId, user.id),
+          eq(fitdaysRecords.starred, true)
+        );
+      }
+    } else {
+      recordsWhere = and(
+        eq(fitdaysRecords.userId, user.id),
+        inArray(fitdaysRecords.id, manualIds)
+      );
+    }
 
     const records = await db.query.fitdaysRecords.findMany({
       where: recordsWhere,
@@ -68,7 +78,7 @@ export const POST = withAuth(async (req, { user }) => {
       },
     });
 
-    if (!records || records.length === 0) {
+    if (!isAutoShare && (!records || records.length === 0)) {
       return NextResponse.json(
         { detail: "No valid records selected for sharing" },
         { status: 400 }
