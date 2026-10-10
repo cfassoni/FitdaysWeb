@@ -21,6 +21,7 @@ export async function register() {
       const path = await import("path");
       const { migrate } = await import("drizzle-orm/libsql/migrator");
       const { db } = await import("@/db/client");
+      const { normalizeFitdaysRecordDates } = await import("@/db/initDb");
 
       if (process.env.DOCKER_MODE === "true") {
         const dataDir = path.resolve("/app/data");
@@ -33,6 +34,7 @@ export async function register() {
       if (fs.existsSync(migrationsFolder)) {
         console.log("Checking and applying Drizzle database migrations...");
         await migrate(db, { migrationsFolder: "./src/db/migrations" });
+        await normalizeFitdaysRecordDates();
         console.log("Drizzle migrations verified successfully.");
       }
     } catch (err) {

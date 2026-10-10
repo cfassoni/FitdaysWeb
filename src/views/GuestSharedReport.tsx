@@ -286,14 +286,36 @@ export default function GuestSharedReport({ token }: GuestSharedReportProps) {
     return 0;
   });
 
-  const formattedChartData = summary.weight_history.map((point) => ({
-    ...point,
-    displayDate: formatDate(point.date, {
+  const dateDayCounts = new Map<string, number>();
+  for (const point of summary.weight_history) {
+    const dayLabel = formatDate(point.date, {
       month: "short",
       day: "numeric",
       year: "2-digit",
-    }),
-  }));
+    });
+    dateDayCounts.set(dayLabel, (dateDayCounts.get(dayLabel) ?? 0) + 1);
+  }
+
+  const formattedChartData = summary.weight_history.map((point) => {
+    const dayLabel = formatDate(point.date, {
+      month: "short",
+      day: "numeric",
+      year: "2-digit",
+    });
+    const hasSameDayMultiple = (dateDayCounts.get(dayLabel) ?? 0) > 1;
+    return {
+      ...point,
+      displayDate: hasSameDayMultiple
+        ? formatDateTime(point.date, {
+            month: "short",
+            day: "numeric",
+            year: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : dayLabel,
+    };
+  });
 
   const getAttachmentUrl = (url: string) => {
     const guestToken = sessionStorage.getItem(`guest_token_${token}`);

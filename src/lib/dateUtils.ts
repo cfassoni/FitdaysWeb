@@ -58,3 +58,39 @@ export function formatSQLiteDateTime(date: Date): string {
   // Format as standard ISO / SQLite datetime: YYYY-MM-DD HH:MM:SS
   return date.toISOString().replace("T", " ").substring(0, 19);
 }
+
+/**
+ * Normalizes a Date instance to UTC minute precision (seconds = 0, ms = 0).
+ */
+export function normalizeToMinute(date: Date): Date {
+  return new Date(
+    Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      date.getUTCHours(),
+      date.getUTCMinutes(),
+      0,
+      0
+    )
+  );
+}
+
+/**
+ * Parses any flexible date representation (integer epoch, SQLite string, ISO string, Date)
+ * and normalizes it to UTC minute precision.
+ */
+export function normalizeRecordDate(val: unknown): Date | null {
+  const parsed = parseFlexibleDate(val);
+  if (!parsed) return null;
+  return normalizeToMinute(parsed);
+}
+
+/**
+ * Returns the canonical SQLite datetime string ("YYYY-MM-DD HH:MM:00") for record matching and deduplication.
+ */
+export function formatRecordDateKey(val: unknown): string | null {
+  const normalized = normalizeRecordDate(val);
+  if (!normalized) return null;
+  return formatSQLiteDateTime(normalized);
+}
