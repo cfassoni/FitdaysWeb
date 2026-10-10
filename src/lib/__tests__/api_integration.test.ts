@@ -331,6 +331,9 @@ describe("API Route Handlers Integration", () => {
     expect(res.status).toBe(201);
     const linkData = await res.json();
     expect(linkData.token).toBeDefined();
+    expect(linkData.token).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+    );
     expect(linkData.has_password).toBe(true);
     expect(linkData.entry_count).toBe(1);
     sharedLinkToken = linkData.token;

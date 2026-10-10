@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import LocalizedDatePicker from "@/components/LocalizedDatePicker";
 import type { FitdaysRecord } from "@/lib/api";
 import { formatDate, formatDateTime } from "@/lib/i18n";
+import { copyTextToClipboard } from "@/lib/clipboard";
 import {
   Loader2,
   Search,
@@ -81,6 +82,15 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
   const [createdShareLink, setCreatedShareLink] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
 
+  const handleCopyCreatedShareLink = async () => {
+    if (!createdShareLink) return;
+    const copied = await copyTextToClipboard(createdShareLink);
+    if (copied) {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
+
   const handleCreateShareSubmit = async () => {
     if (!shareDescription.trim()) {
       setShareError(t("common.required"));
@@ -122,15 +132,6 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
 
       const linkUrl = `${window.location.origin}/shared/${response.token}`;
       setCreatedShareLink(linkUrl);
-
-      // Auto-copy to clipboard
-      try {
-        await navigator.clipboard.writeText(linkUrl);
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
-      } catch (err) {
-        console.error("Clipboard copy failed:", err);
-      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "";
       setShareError(msg || t("sharing.limitError"));
@@ -1284,7 +1285,7 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
 
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-                    {t("sharing.copied")}
+                    {isCopied ? t("sharing.copied") : t("sharing.copyUrlBtn")}
                   </p>
                   <div className="flex gap-2">
                     <input
@@ -1295,13 +1296,8 @@ export default function History({ onLinksUpdated }: { onLinksUpdated?: (count: n
                       onClick={(e) => (e.target as HTMLInputElement).select()}
                     />
                     <button
-                      onClick={async () => {
-                        if (createdShareLink) {
-                          await navigator.clipboard.writeText(createdShareLink);
-                          setIsCopied(true);
-                          setTimeout(() => setIsCopied(false), 2000);
-                        }
-                      }}
+                      type="button"
+                      onClick={handleCopyCreatedShareLink}
                       className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground hover:bg-primary/95 text-sm font-semibold rounded-lg transition-colors cursor-pointer"
                     >
                       {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}

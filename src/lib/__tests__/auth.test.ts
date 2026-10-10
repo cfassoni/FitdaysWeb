@@ -6,6 +6,7 @@ import {
   verifyAccessToken,
   generateVerificationCode,
   generateResetToken,
+  generateSharedLinkToken,
   getVerificationExpiry,
   getResetExpiry,
   extractTokenFromHeader,
@@ -49,6 +50,13 @@ describe("Auth Utilities", () => {
     const token = generateResetToken();
     expect(typeof token).toBe("string");
     expect(token.length).toBeGreaterThanOrEqual(32);
+  });
+
+  it("should generate standard lowercase UUIDv4 shared link tokens", () => {
+    const token = generateSharedLinkToken();
+    expect(token).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+    );
   });
 
   it("should calculate correct verification and reset expiration dates", () => {

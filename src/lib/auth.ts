@@ -44,6 +44,10 @@ export function generateResetToken(): string {
   return crypto.randomBytes(32).toString("base64url");
 }
 
+export function generateSharedLinkToken(): string {
+  return crypto.randomUUID().toLowerCase();
+}
+
 export function getVerificationExpiry(): Date {
   const d = new Date();
   d.setHours(d.getHours() + VERIFICATION_CODE_EXPIRE_HOURS);
