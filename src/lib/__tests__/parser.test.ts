@@ -1,5 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { cleanFloat, parseSegmental, parseImpedance, parseDate, parseFitdaysFile, classifyColumn } from "../parser";
+import {
+  cleanFloat,
+  parseSegmental,
+  parseImpedance,
+  parseDate,
+  parseFitdaysFile,
+  classifyColumn,
+  deduplicateParsedRecords,
+} from "../parser";
+import { formatRecordDateKey } from "../dateUtils";
 import * as XLSX from "xlsx";
 import fs from "fs";
 import path from "path";
@@ -26,14 +35,24 @@ describe("Parser Utilities", () => {
     expect(parseImpedance("-")).toEqual([null, null]);
   });
 
-  it("parseDate should handle HH:mm dd/MM/yyyy and ISO strings", () => {
+  it("parseDate should handle multiple date formats and normalize to UTC minute precision", () => {
     const d1 = parseDate("06:37 20/03/2026");
     expect(d1).not.toBeNull();
-    expect(d1?.getFullYear()).toBe(2026);
-    expect(d1?.getMonth()).toBe(2); // 0-indexed March
-    expect(d1?.getDate()).toBe(20);
-    expect(d1?.getHours()).toBe(6);
-    expect(d1?.getMinutes()).toBe(37);
+    expect(d1?.getUTCFullYear()).toBe(2026);
+    expect(d1?.getUTCMonth()).toBe(2); // 0-indexed March
+    expect(d1?.getUTCDate()).toBe(20);
+    expect(d1?.getUTCHours()).toBe(6);
+    expect(d1?.getUTCMinutes()).toBe(37);
+    expect(d1?.getUTCSeconds()).toBe(0);
+
+    // Different formats and seconds precision for the same minute should produce the exact same timestamp
+    const d2 = parseDate("06:37:45 20/03/2026");
+    const d3 = parseDate("20/03/2026 06:37:12");
+    const d4 = parseDate("2026-03-20 06:37:59");
+    expect(formatRecordDateKey(d1)).toBe("2026-03-20 06:37:00");
+    expect(formatRecordDateKey(d2)).toBe("2026-03-20 06:37:00");
+    expect(formatRecordDateKey(d3)).toBe("2026-03-20 06:37:00");
+    expect(formatRecordDateKey(d4)).toBe("2026-03-20 06:37:00");
   });
 
   it("classifyColumn accurately identifies muscle, fat, and vital headers in PT and EN", () => {
@@ -223,4 +242,40 @@ describe("Parser Utilities", () => {
     expect(r.rightArmMusclePct).toBe(92.5);
     expect(r.rightArmMuscleLevel).toBe("Padrão");
   });
+
+  it("parseFitdaysFile and deduplicateParsedRecords should deduplicate rows sharing the same normalized minute timestamp", () => {
+    const data = [
+      {
+        "Hora/Data": "06:37 20/03/2026",
+        "Peso(kg)": "78.5",
+        "IMC": "24.2",
+      },
+      {
+        "Hora/Data": "2026-03-20 06:37:45",
+        "Peso(kg)": "79.0",
+        "IMC": "24.4",
+      },
+      {
+        "Hora/Data": "19:15 20/03/2026",
+        "Peso(kg)": "79.3",
+        "IMC": "24.5",
+      },
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+    const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+
+    const records = parseFitdaysFile(buf);
+    // Two rows at 06:37 on 20/03/2026 should merge into 1, leaving 2 total records for the day
+    expect(records.length).toBe(2);
+    expect(records[0].weight).toBe(79.0);
+    expect(records[0].bmi).toBe(24.4);
+    expect(records[1].weight).toBe(79.3);
+
+    // Direct call to deduplicateParsedRecords is also idempotent
+    expect(deduplicateParsedRecords(records).length).toBe(2);
+  });
 });
+

@@ -22,7 +22,7 @@ import { POST as verifyPublicLinkHandler } from "../../app/api/shared-links/publ
 import { GET as getPublicDataHandler } from "../../app/api/shared-links/public/[token]/data/route";
 import { db } from "@/db/client";
 import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 const SAMPLE_CSV = `Time of Measurement,Weight(kg),BMI,Body Fat(%),Subcutaneous Fat(%),Heart Rate(bpm),Cardiac Index(L/min/m2),Visceral Fat,Body Water(%),Skeletal Muscle(%),Muscle Mass(kg),Bone Mass(kg),Protein(%),BMR(kcal),Metabolic Age,Fat Mass(kg),Water Content(kg),Skeletal Muscle Mass(kg),Muscle Rate(%),Protein Mass(kg),Obesity Level,Fat-free Weight(kg),SMI(kg/m2),Body Score,Target Weight(kg),Weight Control(kg),Fat Control(kg),Muscle Control(kg),Right Upper Extremity Fat Mass(kg),Right Upper Extremity Fat Rate(%),Right Upper Extremity Fat Level,Right Upper Extremity Muscle Mass(kg),Right Upper Extremity Muscle Rate(%),Right Upper Extremity Muscle Level,Right Upper Extremity High Frequency Resistance,Right Upper Extremity Low Frequency Resistance,Left Upper Extremity Fat Mass(kg),Left Upper Extremity Fat Rate(%),Left Upper Extremity Fat Level,Left Upper Extremity Muscle Mass(kg),Left Upper Extremity Muscle Rate(%),Left Upper Extremity Muscle Level,Left Upper Extremity High Frequency Resistance,Left Upper Extremity Low Frequency Resistance,Trunk Fat Mass(kg),Trunk Fat Rate(%),Trunk Fat Level,Trunk Muscle Mass(kg),Trunk Muscle Rate(%),Trunk Muscle Level,Trunk High Frequency Resistance,Trunk Low Frequency Resistance,Right Lower Extremity Fat Mass(kg),Right Lower Extremity Fat Rate(%),Right Lower Extremity Fat Level,Right Lower Extremity Muscle Mass(kg),Right Lower Extremity Muscle Rate(%),Right Lower Extremity Muscle Level,Right Lower Extremity High Frequency Resistance,Right Lower Extremity Low Frequency Resistance,Left Lower Extremity Fat Mass(kg),Left Lower Extremity Fat Rate(%),Left Lower Extremity Fat Level,Left Lower Extremity Muscle Mass(kg),Left Lower Extremity Muscle Rate(%),Left Lower Extremity Muscle Level,Left Lower Extremity High Frequency Resistance,Left Lower Extremity Low Frequency Resistance
 2026-08-01 07:00:00,75.0,23.5,18.0,15.0,65,2.8,7,58.0,45.0,58.0,3.2,18.5,1650,28,13.5,43.5,33.8,77.3,13.9,0,61.5,8.2,85,72.0,-3.0,-2.0,1.0,1.2,16.0,Standard,3.5,75.0,Standard,320.0,360.0,1.2,16.0,Standard,3.5,75.0,Standard,320.0,360.0,7.0,19.0,Standard,28.0,76.0,Standard,30.0,35.0,2.1,17.0,Standard,9.5,78.0,Standard,260.0,300.0,2.0,16.5,Standard,9.6,78.5,Standard,260.0,300.0
@@ -248,6 +248,96 @@ describe("API Route Handlers Integration", () => {
     expect(res.status).toBe(201);
     expect(result.inserted).toBe(2);
     expect(result.total_processed).toBe(2);
+  });
+
+  it("POST /api/records/upload should update existing records without duplicating on re-upload or cross-format timestamps", async () => {
+    const reuploadData = [
+      {
+        // Same timestamp as "06:37 20/03/2026" but in ISO-like format with non-zero seconds
+        "Time of Measurement": "2026-03-20 06:37:45",
+        "Weight(kg)": "75.0",
+        "BMI": "23.5",
+        "Body Fat(%)": "18.0",
+      },
+      {
+        // Same timestamp as "07:15 25/03/2026" but in dd/MM/yyyy HH:mm:ss format
+        "Time of Measurement": "25/03/2026 07:15:19",
+        "Weight(kg)": "74.0",
+        "BMI": "23.1",
+        "Body Fat(%)": "17.0",
+      },
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(reuploadData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+    const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+
+    const formData = new FormData();
+    const file = new File([buf], "fitdays_reupload.xlsx", {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    formData.append("file", file);
+
+    const req = new NextRequest("http://localhost:3000/api/records/upload", {
+      method: "POST",
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+
+    const res = await uploadRecordsHandler(req);
+    const result = await res.json();
+    expect(res.status).toBe(201);
+    expect(result.inserted).toBe(0);
+    expect(result.updated).toBe(2);
+    expect(result.total_processed).toBe(2);
+  });
+
+  it("POST /api/records/upload should normalize legacy INTEGER epoch dates and update instead of duplicating", async () => {
+    const [userRow] = await db.select().from(users).where(eq(users.email, testEmail)).limit(1);
+    expect(userRow).toBeDefined();
+
+    // Simulate a legacy row storing an INTEGER Unix epoch timestamp for 2026-03-20 06:37:00 UTC
+    const legacyEpochSec = Math.floor(Date.UTC(2026, 2, 20, 6, 37, 0) / 1000);
+    await db.run(
+      sql`UPDATE fitdays_records SET date = ${legacyEpochSec} WHERE user_id = ${userRow.id} AND date = '2026-03-20 06:37:00'`
+    );
+
+    const data = [
+      {
+        "Hora/Data": "06:37 20/03/2026",
+        "Peso(kg)": "75.0",
+        "IMC": "23.5",
+        "Gordura Corporal(%)": "18.0",
+      },
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+    const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+
+    const formData = new FormData();
+    const file = new File([buf], "fitdays_legacy_match.xlsx", {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    formData.append("file", file);
+
+    const req = new NextRequest("http://localhost:3000/api/records/upload", {
+      method: "POST",
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+
+    const res = await uploadRecordsHandler(req);
+    const result = await res.json();
+    expect(res.status).toBe(201);
+    expect(result.inserted).toBe(0);
+    expect(result.updated).toBe(1);
   });
 
   it("GET /api/records should return parsed records", async () => {
