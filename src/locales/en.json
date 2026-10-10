@@ -491,6 +491,7 @@
     "errorIncorrectPassword": "Incorrect password.",
     "recordCount_one": "1 record",
     "recordCount_other": "{{count}} records",
-    "withFiles": " + files"
+    "withFiles": " + files",
+    "reviewingMeasurements": "Reviewing {{count}} measurements shared with you"
   }
 }
