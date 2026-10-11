@@ -523,8 +523,8 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
             {/* The Chart Container */}
             <div className="h-[360px] w-full">
               {!showWeight && !showBodyFat && !showMuscle ? (
-                <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                  Please select at least one metric above to display the chart lines.
+                <div className="h-full flex items-center justify-center text-sm text-muted-foreground text-center p-4">
+                  {t("dashboard.selectAtLeastOneMetric")}
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -678,15 +678,15 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
               </span>
               <ul className="space-y-2 text-xs">
                 <li className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/50">
-                  <span className="font-medium text-foreground">1. Incline DB Bench Press</span>
+                  <span className="font-medium text-foreground">{t("dashboard.workoutExercise1")}</span>
                   <span className="font-data-mono text-muted-foreground">4 × 8-10</span>
                 </li>
                 <li className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/50">
-                  <span className="font-medium text-foreground">2. Weighted Pull-ups</span>
+                  <span className="font-medium text-foreground">{t("dashboard.workoutExercise2")}</span>
                   <span className="font-data-mono text-muted-foreground">3 × 6-8</span>
                 </li>
                 <li className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/50">
-                  <span className="font-medium text-foreground">3. Chest-Supported Row</span>
+                  <span className="font-medium text-foreground">{t("dashboard.workoutExercise3")}</span>
                   <span className="font-data-mono text-muted-foreground">4 × 10-12</span>
                 </li>
               </ul>

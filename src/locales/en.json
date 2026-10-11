@@ -135,7 +135,8 @@
     "toggleTheme": "Toggle Theme",
     "sharedReports": "Shared Reports",
     "navigation": "Navigation",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "previewsWip": "Previews (WIP)"
   },
   "toolbar": {
     "toggleMenu": "Toggle navigation menu",
@@ -208,7 +209,11 @@
     "macroProtein": "Protein",
     "macroCarbs": "Carbs",
     "macroFats": "Fats",
-    "viewNutrition": "View Nutrition Plan"
+    "viewNutrition": "View Nutrition Plan",
+    "selectAtLeastOneMetric": "Please select at least one metric above to display the chart lines.",
+    "workoutExercise1": "1. Incline DB Bench Press",
+    "workoutExercise2": "2. Weighted Pull-ups",
+    "workoutExercise3": "3. Chest-Supported Row"
   },
   "biometrics": {
     "title": "Biometrics Analysis",
@@ -224,7 +229,8 @@
     "evolutionDesc": "Body recomp progress from initial baseline evaluation",
     "totalEvaluations": "evaluations",
     "baselineDate": "Baseline started on",
-    "activeRecomp": "Active Recomposition"
+    "activeRecomp": "Active Recomposition",
+    "kcalDay": "kcal/day"
   },
   "history": {
     "title": "Body Composition History",
@@ -249,7 +255,8 @@
       "visceralFat": "Visceral Fat",
       "bodyScore": "Body Score",
       "report": "Report",
-      "actions": "Actions"
+      "actions": "Actions",
+      "details": "Details"
     },
     "report": {
       "view": "View",
@@ -325,7 +332,9 @@
         "trunk": "Trunk",
         "rightLeg": "Right Leg",
         "leftLeg": "Left Leg"
-      }
+      },
+      "fatUnit": "kg fat",
+      "muscleUnit": "kg muscle"
     },
     "noMatch": "No measurements match your criteria.",
     "deleteTooltip": "Delete measurement",
@@ -335,7 +344,9 @@
     "filterAll": "All records",
     "starTooltip": "Mark as starred",
     "unstarTooltip": "Remove from starred",
-    "starError": "Failed to update star"
+    "starError": "Failed to update star",
+    "reportAttached": "Report attached",
+    "noReportAttached": "No report attached"
   },
   "import": {
     "title": "Import CSV Data",
@@ -550,6 +561,10 @@
     "recordCount_one": "1 record",
     "recordCount_other": "{{count}} records",
     "withFiles": " + files",
-    "reviewingMeasurements": "Reviewing {{count}} measurements shared with you"
+    "reviewingMeasurements": "Reviewing {{count}} measurements shared with you",
+    "shareableUrl": "Shareable Link URL",
+    "customDateLabel": "Expiry Date",
+    "recordCount": "{{count}} records",
+    "accessCount": "{{count}} accesses"
   }
 }

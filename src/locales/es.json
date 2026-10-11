@@ -135,7 +135,8 @@
     "toggleTheme": "Cambiar Tema",
     "sharedReports": "Informes Compartidos",
     "navigation": "Navegación",
-    "closeMenu": "Cerrar menú"
+    "closeMenu": "Cerrar menú",
+    "previewsWip": "Vistas previas (En desarrollo)"
   },
   "toolbar": {
     "toggleMenu": "Alternar menú de navegación",
@@ -208,7 +209,11 @@
     "macroProtein": "Proteína",
     "macroCarbs": "Carbohidratos",
     "macroFats": "Grasas",
-    "viewNutrition": "Ver Plan de Nutrición"
+    "viewNutrition": "Ver Plan de Nutrición",
+    "selectAtLeastOneMetric": "Seleccione al menos una métrica arriba para mostrar las líneas del gráfico.",
+    "workoutExercise1": "1. Press Inclinado con Mancuernas",
+    "workoutExercise2": "2. Dominadas con Lastre",
+    "workoutExercise3": "3. Remo con Apoyo en Pecho"
   },
   "biometrics": {
     "title": "Bioimpedancia y Métricas",
@@ -224,7 +229,8 @@
     "evolutionDesc": "Evolución de la recomposición corporal respecto a la evaluación inicial",
     "totalEvaluations": "evaluaciones",
     "baselineDate": "Punto de partida el",
-    "activeRecomp": "Recomposición Activa"
+    "activeRecomp": "Recomposición Activa",
+    "kcalDay": "kcal/día"
   },
   "history": {
     "title": "Historial de Composición Corporal",
@@ -249,7 +255,8 @@
       "visceralFat": "Grasa Visceral",
       "bodyScore": "Puntuación Corporal",
       "report": "Informe",
-      "actions": "Acciones"
+      "actions": "Acciones",
+      "details": "Detalles"
     },
     "report": {
       "view": "Ver",
@@ -325,7 +332,9 @@
         "trunk": "Tronco",
         "rightLeg": "Pierna Derecha",
         "leftLeg": "Pierna Izquierda"
-      }
+      },
+      "fatUnit": "kg grasa",
+      "muscleUnit": "kg músculo"
     },
     "noMatch": "Ninguna medición coincide con sus criterios.",
     "deleteTooltip": "Eliminar medición",
@@ -335,7 +344,9 @@
     "filterAll": "Todos los registros",
     "starTooltip": "Marcar como favorito",
     "unstarTooltip": "Quitar de favoritos",
-    "starError": "Error al actualizar favorito"
+    "starError": "Error al actualizar favorito",
+    "reportAttached": "Informe adjunto",
+    "noReportAttached": "Sin informe adjunto"
   },
   "import": {
     "title": "Importar Datos CSV",
@@ -550,6 +561,10 @@
     "recordCount_one": "1 registro",
     "recordCount_other": "{{count}} registros",
     "withFiles": " + archivos",
-    "reviewingMeasurements": "Revisando {{count}} mediciones compartidas con usted"
+    "reviewingMeasurements": "Revisando {{count}} mediciones compartidas con usted",
+    "shareableUrl": "URL del Enlace Compartido",
+    "customDateLabel": "Fecha de Vencimiento",
+    "recordCount": "{{count}} registros",
+    "accessCount": "{{count}} accesos"
   }
 }

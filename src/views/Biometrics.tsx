@@ -565,7 +565,9 @@ export default function Biometrics({
               <div className="my-3">
                 <div className="font-display-metrics text-foreground tracking-tight">
                   {bmrValue ? bmrValue.toLocaleString() : "—"}
-                  <span className="text-lg font-normal text-muted-foreground ml-2">kcal/day</span>
+                  <span className="text-lg font-normal text-muted-foreground ml-2">
+                    {t("biometrics.kcalDay")}
+                  </span>
                 </div>
               </div>
 
@@ -948,8 +950,16 @@ export default function Biometrics({
                                 ? "text-primary"
                                 : "text-muted-foreground/35 hover:text-muted-foreground"
                             }`}
-                            title={record.report ? "Report attached" : "No report attached"}
-                            aria-label={record.report ? "report attached" : "no report attached"}
+                            title={
+                              record.report
+                                ? t("history.reportAttached")
+                                : t("history.noReportAttached")
+                            }
+                            aria-label={
+                              record.report
+                                ? t("history.reportAttached")
+                                : t("history.noReportAttached")
+                            }
                           >
                             <Paperclip className="h-4 w-4" />
                           </button>
@@ -1086,7 +1096,9 @@ export default function Biometrics({
                   {t("sharing.modalTitle")}
                 </h2>
                 <p className="text-xs text-muted-foreground">
-                  {t("sharing.modalSubtitle")}
+                  {selectedIds.length > 0
+                    ? t("sharing.selectedRecordsCount", { count: selectedIds.length })
+                    : t("sharing.autoShareEmptySelectionNotice")}
                 </p>
               </div>
             </div>
@@ -1095,7 +1107,7 @@ export default function Biometrics({
               <div className="space-y-4">
                 <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-300 flex items-center gap-3">
                   <Check className="h-5 w-5 shrink-0" />
-                  <p className="text-sm font-semibold">{t("sharing.linkCreatedSuccess")}</p>
+                  <p className="text-sm font-semibold">{t("sharing.createSuccess")}</p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -1122,7 +1134,7 @@ export default function Biometrics({
                       ) : (
                         <>
                           <Copy className="h-4 w-4" />
-                          <span>{t("sharing.copyLink")}</span>
+                          <span>{t("sharing.copiedBtn")}</span>
                         </>
                       )}
                     </button>
@@ -1162,7 +1174,7 @@ export default function Biometrics({
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-muted-foreground">
-                    {t("sharing.passwordProtectionLabel")} ({t("common.optional")})
+                    {t("sharing.passwordLabel")}
                   </label>
                   <input
                     type="password"
@@ -1175,18 +1187,18 @@ export default function Biometrics({
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-muted-foreground">
-                    {t("sharing.expirationLabel")}
+                    {t("sharing.expiresLabel")}
                   </label>
                   <select
                     value={shareExpiration}
                     onChange={(e) => setShareExpiration(e.target.value as never)}
                     className="w-full px-3 py-2 bg-card border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent cursor-pointer"
                   >
-                    <option value="never">{t("sharing.neverExpires")}</option>
+                    <option value="never">{t("sharing.expiresNever")}</option>
                     <option value="1d">{t("sharing.expires1d")}</option>
                     <option value="7d">{t("sharing.expires7d")}</option>
                     <option value="30d">{t("sharing.expires30d")}</option>
-                    <option value="custom">{t("sharing.customExpiration")}</option>
+                    <option value="custom">{t("sharing.expiresCustom")}</option>
                   </select>
                 </div>
 
@@ -1252,7 +1264,7 @@ export default function Biometrics({
                     ) : (
                       <>
                         <Share2 className="h-4 w-4" />
-                        <span>{t("sharing.createLinkBtn")}</span>
+                        <span>{t("sharing.shareButton")}</span>
                       </>
                     )}
                   </button>
@@ -1275,14 +1287,14 @@ export default function Biometrics({
                 <Trash2 className="h-5 w-5" />
               </div>
               <h3 className="text-lg font-bold text-foreground">
-                {t("history.deletePrompt.confirmTitle")}
+                {t("history.deletePrompt.title")}
               </h3>
             </div>
 
             <p className="text-xs text-muted-foreground leading-relaxed mb-6">
               {idsToDelete.length === 1
-                ? t("history.deletePrompt.confirmMessageSingle")
-                : t("history.deletePrompt.confirmMessageMultiple", { count: idsToDelete.length })}
+                ? t("history.deletePrompt.confirmSingle")
+                : t("history.deletePrompt.confirmMultiple", { count: idsToDelete.length })}
             </p>
 
             <div className="flex justify-end gap-2">
@@ -1305,12 +1317,12 @@ export default function Biometrics({
                 {isDeleting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>{t("common.deleting")}</span>
+                    <span>{t("history.deleting")}</span>
                   </>
                 ) : (
                   <>
                     <Trash2 className="h-4 w-4" />
-                    <span>{t("common.confirm")}</span>
+                    <span>{t("history.deletePrompt.deleteBtn")}</span>
                   </>
                 )}
               </button>
@@ -1347,7 +1359,7 @@ export default function Biometrics({
                   {t("history.report.modalTitle")}
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  {t("history.report.modalSubtitle")}
+                  {t("history.report.allowedTypes")}
                 </p>
               </div>
             </div>
@@ -1371,13 +1383,13 @@ export default function Biometrics({
             >
               <Paperclip className="h-8 w-8 text-muted-foreground mb-2" />
               <p className="text-xs font-medium text-foreground mb-1">
-                {t("history.report.dropPrompt")}
+                {t("history.report.dragDrop")}
               </p>
               <p className="text-[10px] text-muted-foreground mb-3">
-                {t("history.report.acceptedFormats")}
+                {t("history.report.allowedTypes")}
               </p>
               <label className="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg cursor-pointer transition-colors border border-primary/20">
-                <span>{t("history.report.browse")}</span>
+                <span>{t("history.report.browseDevice")}</span>
                 <input
                   type="file"
                   accept="image/png,image/jpeg,application/pdf"
@@ -1424,7 +1436,7 @@ export default function Biometrics({
                 ) : (
                   <>
                     <FileUp className="h-4 w-4" />
-                    <span>{t("history.report.uploadBtn")}</span>
+                    <span>{t("history.report.upload")}</span>
                   </>
                 )}
               </button>
@@ -1444,7 +1456,7 @@ export default function Biometrics({
             <div className="p-6 border-b border-border flex items-center justify-between bg-muted/20">
               <div>
                 <h3 className="text-lg font-bold text-foreground">
-                  {t("history.drawer.title")}
+                  {t("history.drawer.reportTitle")}
                 </h3>
                 <p className="text-xs text-muted-foreground font-data-mono">
                   {formatDateTime(selectedRecord.date)}
@@ -1500,7 +1512,7 @@ export default function Biometrics({
               {/* Comprehensive Bioimpedance Grid */}
               <div className="space-y-3">
                 <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  {t("history.drawer.comprehensiveMetrics")}
+                  {t("history.drawer.bodyCompositionDetails")}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="p-3 bg-card border border-border rounded-lg flex items-center justify-between">
@@ -1510,13 +1522,13 @@ export default function Biometrics({
                     </span>
                   </div>
                   <div className="p-3 bg-card border border-border rounded-lg flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">{t("history.drawer.visceralFat")}</span>
+                    <span className="text-xs text-muted-foreground">{t("history.drawer.visceralFatLevel")}</span>
                     <span className="font-data-mono font-bold text-xs text-foreground">
                       {selectedRecord.visceral_fat || "-"}
                     </span>
                   </div>
                   <div className="p-3 bg-card border border-border rounded-lg flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">{t("history.drawer.bodyWater")}</span>
+                    <span className="text-xs text-muted-foreground">{t("history.drawer.moistureContent")}</span>
                     <span className="font-data-mono font-bold text-xs text-foreground">
                       {formatSegmentValue(selectedRecord.moisture_content, " kg")}
                     </span>
@@ -1528,7 +1540,7 @@ export default function Biometrics({
                     </span>
                   </div>
                   <div className="p-3 bg-card border border-border rounded-lg flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">{t("history.drawer.protein")}</span>
+                    <span className="text-xs text-muted-foreground">{t("history.drawer.proteinPct")}</span>
                     <span className="font-data-mono font-bold text-xs text-foreground">
                       {formatSegmentValue(selectedRecord.protein_mass, " kg")}
                     </span>
@@ -1562,42 +1574,42 @@ export default function Biometrics({
                 selectedRecord.right_leg_fat_mass) && (
                 <div className="space-y-3">
                   <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                    {t("history.drawer.segmentalAnalysis")}
+                    {t("history.drawer.segmentalTitle")}
                   </h4>
                   <div className="bg-card border border-border rounded-xl p-4 space-y-2 text-xs">
                     <div className="flex justify-between py-1 border-b border-border/50">
-                      <span className="text-muted-foreground">{t("history.drawer.trunk")}</span>
+                      <span className="text-muted-foreground">{t("history.drawer.segments.trunk")}</span>
                       <span className="font-data-mono font-bold">
-                        {formatSegmentValue(selectedRecord.trunk_fat_mass, " kg fat")} /{" "}
-                        {formatSegmentValue(selectedRecord.trunk_muscle_mass, " kg muscle")}
+                        {formatSegmentValue(selectedRecord.trunk_fat_mass, ` ${t("history.drawer.fatUnit")}`)} /{" "}
+                        {formatSegmentValue(selectedRecord.trunk_muscle_mass, ` ${t("history.drawer.muscleUnit")}`)}
                       </span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-border/50">
-                      <span className="text-muted-foreground">{t("history.drawer.leftArm")}</span>
+                      <span className="text-muted-foreground">{t("history.drawer.segments.leftArm")}</span>
                       <span className="font-data-mono font-bold">
-                        {formatSegmentValue(selectedRecord.left_arm_fat_mass, " kg fat")} /{" "}
-                        {formatSegmentValue(selectedRecord.left_arm_muscle_mass, " kg muscle")}
+                        {formatSegmentValue(selectedRecord.left_arm_fat_mass, ` ${t("history.drawer.fatUnit")}`)} /{" "}
+                        {formatSegmentValue(selectedRecord.left_arm_muscle_mass, ` ${t("history.drawer.muscleUnit")}`)}
                       </span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-border/50">
-                      <span className="text-muted-foreground">{t("history.drawer.rightArm")}</span>
+                      <span className="text-muted-foreground">{t("history.drawer.segments.rightArm")}</span>
                       <span className="font-data-mono font-bold">
-                        {formatSegmentValue(selectedRecord.right_arm_fat_mass, " kg fat")} /{" "}
-                        {formatSegmentValue(selectedRecord.right_arm_muscle_mass, " kg muscle")}
+                        {formatSegmentValue(selectedRecord.right_arm_fat_mass, ` ${t("history.drawer.fatUnit")}`)} /{" "}
+                        {formatSegmentValue(selectedRecord.right_arm_muscle_mass, ` ${t("history.drawer.muscleUnit")}`)}
                       </span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-border/50">
-                      <span className="text-muted-foreground">{t("history.drawer.leftLeg")}</span>
+                      <span className="text-muted-foreground">{t("history.drawer.segments.leftLeg")}</span>
                       <span className="font-data-mono font-bold">
-                        {formatSegmentValue(selectedRecord.left_leg_fat_mass, " kg fat")} /{" "}
-                        {formatSegmentValue(selectedRecord.left_leg_muscle_mass, " kg muscle")}
+                        {formatSegmentValue(selectedRecord.left_leg_fat_mass, ` ${t("history.drawer.fatUnit")}`)} /{" "}
+                        {formatSegmentValue(selectedRecord.left_leg_muscle_mass, ` ${t("history.drawer.muscleUnit")}`)}
                       </span>
                     </div>
                     <div className="flex justify-between py-1">
-                      <span className="text-muted-foreground">{t("history.drawer.rightLeg")}</span>
+                      <span className="text-muted-foreground">{t("history.drawer.segments.rightLeg")}</span>
                       <span className="font-data-mono font-bold">
-                        {formatSegmentValue(selectedRecord.right_leg_fat_mass, " kg fat")} /{" "}
-                        {formatSegmentValue(selectedRecord.right_leg_muscle_mass, " kg muscle")}
+                        {formatSegmentValue(selectedRecord.right_leg_fat_mass, ` ${t("history.drawer.fatUnit")}`)} /{" "}
+                        {formatSegmentValue(selectedRecord.right_leg_muscle_mass, ` ${t("history.drawer.muscleUnit")}`)}
                       </span>
                     </div>
                   </div>
