@@ -1,9 +1,5 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import Import from "@/views/Import";
+import { redirect } from "next/navigation";
 
 export default function ImportPage() {
-  const router = useRouter();
-  return <Import onImportSuccess={() => router.push("/dashboard")} />;
+  redirect("/biometrics?import=open");
 }

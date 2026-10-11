@@ -5,5 +5,5 @@ import Dashboard from "@/views/Dashboard";
 
 export default function RootPage() {
   const router = useRouter();
-  return <Dashboard onNavigateToImport={() => router.push("/import")} />;
+  return <Dashboard onNavigateToImport={() => router.push("/biometrics?import=open")} />;
 }
