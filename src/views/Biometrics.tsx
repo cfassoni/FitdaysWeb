@@ -1163,11 +1163,11 @@ export default function Biometrics({
                         <button
                           type="button"
                           onClick={() => setSelectedRecord(record)}
-                          className="p-1.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-medium transition-colors cursor-pointer shadow-xs group-hover:border-primary/40"
+                          className="p-1.5 rounded-lg hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
                           title={t("history.table.details")}
                           aria-label={t("history.table.details")}
                         >
-                          <Eye className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                          <Eye className="h-4 w-4" />
                         </button>
                       </div>
                     </td>
