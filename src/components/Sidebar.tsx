@@ -6,8 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  History,
-  Upload,
+  Activity,
   X,
   ChevronLeft,
   ChevronRight,
@@ -38,8 +37,7 @@ export default function Sidebar({
 
   const navItems = [
     { id: "dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { id: "history", href: "/history", icon: History },
-    { id: "import", href: "/import", icon: Upload },
+    { id: "biometrics", href: "/biometrics", icon: Activity },
   ];
 
   const wipItems = [

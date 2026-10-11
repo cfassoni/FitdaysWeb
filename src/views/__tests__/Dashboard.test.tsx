@@ -1,0 +1,196 @@
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { vi, describe, it, expect, beforeEach } from "vitest";
+import Dashboard from "../Dashboard";
+import { api } from "@/lib/api";
+import type { DashboardSummary } from "@/lib/api";
+import enTranslations from "@/locales/en.json";
+
+function getTranslation(obj: unknown, path: string): string {
+  const parts = path.split(".");
+  let current: unknown = obj;
+  for (const part of parts) {
+    if (current === undefined || current === null) return path;
+    current = (current as Record<string, unknown>)[part];
+  }
+  return typeof current === "string" ? current : path;
+}
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>();
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string, options?: Record<string, unknown>) => {
+        let val = getTranslation(enTranslations, key);
+        if (options) {
+          Object.entries(options).forEach(([k, v]) => {
+            val = val.replace(`{{${k}}}`, String(v));
+          });
+        }
+        return val || key;
+      },
+      i18n: {
+        language: "en",
+      },
+    }),
+  };
+});
+
+vi.mock("@/lib/api", () => ({
+  api: {
+    getSummary: vi.fn(),
+  },
+}));
+
+// Mock recharts responsive container to render children
+vi.mock("recharts", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("recharts")>();
+  return {
+    ...actual,
+    ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
+      <div style={{ width: 800, height: 400 }}>{children}</div>
+    ),
+  };
+});
+
+const mockSummary: DashboardSummary = {
+  total_records: 12,
+  first_record_date: "2026-06-01T08:00:00Z",
+  latest_record_date: "2026-08-15T08:00:00Z",
+  current_weight: 78.4,
+  starting_weight: 81.2,
+  weight_change: -2.8,
+  current_body_fat: 16.2,
+  starting_body_fat: 19.6,
+  body_fat_change: -3.4,
+  current_body_fat_mass: 12.7,
+  starting_body_fat_mass: 15.9,
+  body_fat_mass_change: -3.2,
+  starting_muscle_mass: 65.3,
+  current_muscle_mass: 65.7,
+  muscle_mass_change: 0.4,
+  current_skeletal_muscle_mass: 38.2,
+  starting_skeletal_muscle_mass: 36.6,
+  skeletal_muscle_mass_change: 1.6,
+  current_skeletal_muscle_mass_pct: 48.7,
+  starting_skeletal_muscle_mass_pct: 45.1,
+  skeletal_muscle_mass_pct_change: 3.6,
+  weight_history: [
+    {
+      date: "2026-06-01T08:00:00Z",
+      weight: 81.2,
+      body_fat_pct: 19.6,
+      body_fat_mass: 15.9,
+      muscle_mass: 65.3,
+      skeletal_muscle_mass: 36.6,
+      skeletal_muscle_mass_pct: 45.1,
+    },
+    {
+      date: "2026-08-15T08:00:00Z",
+      weight: 78.4,
+      body_fat_pct: 16.2,
+      body_fat_mass: 12.7,
+      muscle_mass: 65.7,
+      skeletal_muscle_mass: 38.2,
+      skeletal_muscle_mass_pct: 48.7,
+    },
+  ],
+};
+
+describe("Dashboard View Component", () => {
+  const mockNavigateToImport = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (api.getSummary as ReturnType<typeof vi.fn>).mockResolvedValue(mockSummary);
+  });
+
+  it("renders 3 Hero cards: Weight, Body Fat, Skeletal Muscle", async () => {
+    render(<Dashboard onNavigateToImport={mockNavigateToImport} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("78.4")).toBeInTheDocument();
+      expect(screen.getByText("16.2")).toBeInTheDocument();
+      expect(screen.getByText("38.2")).toBeInTheDocument();
+    });
+  });
+
+  it("renders period filter pills: 7D, 30D, 3M, All", async () => {
+    render(<Dashboard onNavigateToImport={mockNavigateToImport} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "7D" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "30D" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "3M" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "All" })).toBeInTheDocument();
+    });
+
+    const button7D = screen.getByRole("button", { name: "7D" });
+    fireEvent.click(button7D);
+    expect(button7D).toHaveClass("bg-card");
+  });
+
+  it("renders Up Next Workout mockup card linking to /activities", async () => {
+    render(<Dashboard onNavigateToImport={mockNavigateToImport} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Up Next Workout/i)).toBeInTheDocument();
+      expect(screen.getByText(/Hypertrophy Upper A/i)).toBeInTheDocument();
+      expect(screen.getByText(/Incline DB Bench Press/i)).toBeInTheDocument();
+    });
+
+    const startWorkoutLink = screen.getByRole("link", { name: /Start Workout/i });
+    expect(startWorkoutLink).toHaveAttribute("href", "/activities");
+  });
+
+  it("renders Nutrition Today mockup card linking to /nutrition", async () => {
+    render(<Dashboard onNavigateToImport={mockNavigateToImport} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("78.4")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Nutrition Today/i)).toBeInTheDocument();
+    expect(screen.getByText("Caloric Budget")).toBeInTheDocument();
+    expect(screen.getByText(/Protein/i)).toBeInTheDocument();
+    expect(screen.getByText(/Carbs/i)).toBeInTheDocument();
+    expect(screen.getByText(/Fats/i)).toBeInTheDocument();
+
+    const viewNutritionLink = screen.getByRole("link", { name: /View Nutrition Plan/i });
+    expect(viewNutritionLink).toHaveAttribute("href", "/nutrition");
+  });
+
+  it("renders empty state when total_records is 0 and handles import click", async () => {
+    (api.getSummary as ReturnType<typeof vi.fn>).mockResolvedValue({
+      total_records: 0,
+      first_record_date: null,
+      latest_record_date: null,
+      current_weight: null,
+      starting_weight: null,
+      weight_change: null,
+      current_body_fat: null,
+      starting_body_fat: null,
+      body_fat_change: null,
+      current_body_fat_mass: null,
+      starting_body_fat_mass: null,
+      body_fat_mass_change: null,
+      current_skeletal_muscle_mass: null,
+      starting_skeletal_muscle_mass: null,
+      skeletal_muscle_mass_change: null,
+      current_skeletal_muscle_mass_pct: null,
+      starting_skeletal_muscle_mass_pct: null,
+      skeletal_muscle_mass_pct_change: null,
+      weight_history: [],
+    });
+
+    render(<Dashboard onNavigateToImport={mockNavigateToImport} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/No data imported yet/i)).toBeInTheDocument();
+    });
+
+    const importBtn = screen.getByRole("button", { name: /Import CSV Data/i });
+    fireEvent.click(importBtn);
+    expect(mockNavigateToImport).toHaveBeenCalledTimes(1);
+  });
+});

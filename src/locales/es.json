@@ -30,7 +30,9 @@
     "close": "Cerrar",
     "closeModal": "Cerrar modal",
     "saveChanges": "Guardar Cambios",
-    "delete": "Eliminar"
+    "delete": "Eliminar",
+    "done": "Listo",
+    "remove": "Eliminar"
   },
   "login": {
     "title": "Bienvenido de nuevo",
@@ -123,9 +125,12 @@
     "photoPreviewAlt": "Vista previa del perfil"
   },
   "sidebar": {
-    "dashboard": "Tablero",
+    "dashboard": "Panel",
+    "biometrics": "Biometría",
     "history": "Historial Detallado",
     "import": "Importar Datos CSV",
+    "nutrition": "Nutrición",
+    "activities": "Actividades",
     "editProfile": "Editar Perfil",
     "toggleTheme": "Cambiar Tema",
     "sharedReports": "Informes Compartidos",
@@ -184,7 +189,42 @@
     "change": "Cambio",
     "target": "Meta",
     "unit": "Unidad",
-    "errorLoad": "Error al cargar el resumen del panel"
+    "errorLoad": "Error al cargar el resumen del panel",
+    "period7d": "7D",
+    "period30d": "30D",
+    "period3m": "3M",
+    "periodAll": "Todo",
+    "upNext": "Siguiente Entrenamiento",
+    "upNextSubtitle": "Basado en tu ciclo de hipertrofia",
+    "mockupBadge": "Vista Previa de Test Lab",
+    "routineCategory": "Superiores Hipertrofia A",
+    "intensity": "Intensidad",
+    "routinePreview": "Resumen de Rutina",
+    "startWorkout": "Iniciar Entrenamiento",
+    "nutritionToday": "Nutrición de Hoy",
+    "nutritionSubtitle": "Meta calórica y distribución de macronutrientes del día",
+    "caloricBudget": "Presupuesto Calórico",
+    "remainingCalories": "restantes",
+    "macroProtein": "Proteína",
+    "macroCarbs": "Carbohidratos",
+    "macroFats": "Grasas",
+    "viewNutrition": "Ver Plan de Nutrición"
+  },
+  "biometrics": {
+    "title": "Bioimpedancia y Métricas",
+    "activeTag": "Seguimiento Activo",
+    "subtitle": "Sigue la evolución de tu composición corporal y tasa metabólica.",
+    "importBtn": "Importar CSV",
+    "tmbLabel": "Tasa Metabólica Basal (TMB)",
+    "tmbSubtitle": "Gasto Energético en Reposo",
+    "tmbBadge": "Gasto en Reposo",
+    "tmbDesc": "Energía calórica mínima consumida por el organismo en reposo para mantener funciones vitales.",
+    "latestMeasurement": "Última evaluación",
+    "evolutionComparison": "Comparativa de Metas y Evolución",
+    "evolutionDesc": "Evolución de la recomposición corporal respecto a la evaluación inicial",
+    "totalEvaluations": "evaluaciones",
+    "baselineDate": "Punto de partida el",
+    "activeRecomp": "Recomposición Activa"
   },
   "history": {
     "title": "Historial de Composición Corporal",
@@ -317,7 +357,11 @@
     "importAnother": "Importar Otro Archivo",
     "invalidDrop": "Por favor, suelte un archivo CSV válido",
     "invalidSelect": "Por favor, seleccione un archivo CSV válido",
-    "uploadError": "Error al subir y analizar el archivo"
+    "uploadError": "Error al subir y analizar el archivo",
+    "csvFormatNote": "Compatible con archivos CSV exportados de Fitdays de hasta 5MB",
+    "browseBtn": "Seleccionar Archivo",
+    "dropActive": "Arrastra y suelta el archivo CSV de Fitdays aquí",
+    "btnUpload": "Cargar y Procesar"
   },
   "profile": {
     "title": "Configuración del Perfil",
@@ -383,6 +427,8 @@
       "deleteDataDesc": "Borra de forma permanente todas las mediciones corporales, reportes subidos y enlaces compartidos, conservando tu cuenta de usuario, credenciales de inicio de sesión y configuración de perfil.",
       "deleteDataBtn": "Eliminar Mis Datos",
       "deleteDataModalTitle": "Eliminar Todas las Mediciones y Datos de Salud",
+      "deleteDataModalDesc": "¿Estás seguro de que deseas eliminar todas las mediciones y reportes? Esta acción es permanente y no se puede deshacer.",
+      "deleteDataKeepNote": "Tu información de perfil y cuenta de acceso permanecerán intactas.",
       "deleteAccountTitle": "Eliminar Cuenta",
       "deleteAccountDesc": "Borra permanentemente toda tu cuenta de Recomp Pro y todos los datos asociados. Se cerrará tu sesión de inmediato.",
       "deleteAccountBtn": "Eliminar Cuenta",

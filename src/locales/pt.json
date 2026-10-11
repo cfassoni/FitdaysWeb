@@ -30,7 +30,9 @@
     "close": "Fechar",
     "closeModal": "Fechar modal",
     "saveChanges": "Salvar Alterações",
-    "delete": "Excluir"
+    "delete": "Excluir",
+    "done": "Concluir",
+    "remove": "Remover"
   },
   "login": {
     "title": "Bem-vindo de volta",
@@ -124,8 +126,11 @@
   },
   "sidebar": {
     "dashboard": "Painel",
+    "biometrics": "Biometria",
     "history": "Histórico Detalhado",
     "import": "Importar Dados CSV",
+    "nutrition": "Nutrição",
+    "activities": "Atividades",
     "editProfile": "Editar Perfil",
     "toggleTheme": "Alternar Tema",
     "sharedReports": "Relatórios Compartilhados",
@@ -184,7 +189,42 @@
     "change": "Alteração",
     "target": "Meta",
     "unit": "Unidade",
-    "errorLoad": "Falha ao carregar o resumo do painel"
+    "errorLoad": "Falha ao carregar o resumo do painel",
+    "period7d": "7D",
+    "period30d": "30D",
+    "period3m": "3M",
+    "periodAll": "Tudo",
+    "upNext": "Treino a Seguir",
+    "upNextSubtitle": "Baseado no seu ciclo de hipertrofia",
+    "mockupBadge": "Preview do Test Lab",
+    "routineCategory": "Superiores Hipertrofia A",
+    "intensity": "Intensidade",
+    "routinePreview": "Visão Geral da Rotina",
+    "startWorkout": "Iniciar Treino",
+    "nutritionToday": "Nutrição de Hoje",
+    "nutritionSubtitle": "Meta calórica e distribuição de macronutrientes do dia",
+    "caloricBudget": "Orçamento Calórico",
+    "remainingCalories": "restantes",
+    "macroProtein": "Proteína",
+    "macroCarbs": "Carboidratos",
+    "macroFats": "Gorduras",
+    "viewNutrition": "Ver Detalhes da Dieta"
+  },
+  "biometrics": {
+    "title": "Bioimpedância & Métricas",
+    "activeTag": "Em Acompanhamento",
+    "subtitle": "Acompanhe a evolução da sua composição corporal e taxa metabólica.",
+    "importBtn": "Importar CSV",
+    "tmbLabel": "Taxa Metabólica Basal (TMB)",
+    "tmbSubtitle": "Gasto Energético em Repouso",
+    "tmbBadge": "Gasto em Repouso",
+    "tmbDesc": "Energia calórica mínima consumida pelo organismo em repouso absoluto para manter as funções vitais.",
+    "latestMeasurement": "Última avaliação",
+    "evolutionComparison": "Comparativo de Metas & Evolução",
+    "evolutionDesc": "Evolução da recomposição corporal em relação à avaliação inicial",
+    "totalEvaluations": "avaliações",
+    "baselineDate": "Marco inicial em",
+    "activeRecomp": "Recomposição Ativa"
   },
   "history": {
     "title": "Histórico de Composição Corporal",
@@ -317,7 +357,11 @@
     "importAnother": "Importar Outro Arquivo",
     "invalidDrop": "Por favor, solte um arquivo CSV válido",
     "invalidSelect": "Por favor, selecione um arquivo CSV válido",
-    "uploadError": "Falha ao enviar e analisar o arquivo"
+    "uploadError": "Falha ao enviar e analisar o arquivo",
+    "csvFormatNote": "Compatível com arquivos CSV exportados do Fitdays até 5MB",
+    "browseBtn": "Selecionar Arquivo",
+    "dropActive": "Arraste e solte o arquivo CSV do Fitdays aqui",
+    "btnUpload": "Enviar e Processar"
   },
   "profile": {
     "title": "Configurações do Perfil",

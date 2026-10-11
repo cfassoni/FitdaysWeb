@@ -30,7 +30,9 @@
     "close": "Close",
     "closeModal": "Close modal",
     "saveChanges": "Save Changes",
-    "delete": "Delete"
+    "delete": "Delete",
+    "done": "Done",
+    "remove": "Remove"
   },
   "login": {
     "title": "Welcome back",
@@ -124,8 +126,11 @@
   },
   "sidebar": {
     "dashboard": "Dashboard",
+    "biometrics": "Biometrics",
     "history": "Detailed History",
     "import": "Import CSV Data",
+    "nutrition": "Nutrition",
+    "activities": "Activities",
     "editProfile": "Edit Profile",
     "toggleTheme": "Toggle Theme",
     "sharedReports": "Shared Reports",
@@ -184,7 +189,42 @@
     "change": "Change",
     "target": "Target",
     "unit": "Unit",
-    "errorLoad": "Failed to load dashboard summary"
+    "errorLoad": "Failed to load dashboard summary",
+    "period7d": "7D",
+    "period30d": "30D",
+    "period3m": "3M",
+    "periodAll": "All",
+    "upNext": "Up Next Workout",
+    "upNextSubtitle": "Based on your hypertrophy split",
+    "mockupBadge": "Test Lab Preview",
+    "routineCategory": "Hypertrophy Upper A",
+    "intensity": "Intensity",
+    "routinePreview": "Routine Preview",
+    "startWorkout": "Start Workout",
+    "nutritionToday": "Nutrition Today",
+    "nutritionSubtitle": "Daily caloric budget and macronutrient distribution",
+    "caloricBudget": "Caloric Budget",
+    "remainingCalories": "remaining",
+    "macroProtein": "Protein",
+    "macroCarbs": "Carbs",
+    "macroFats": "Fats",
+    "viewNutrition": "View Nutrition Plan"
+  },
+  "biometrics": {
+    "title": "Biometrics Analysis",
+    "activeTag": "Live Tracking",
+    "subtitle": "Track your body composition progress and metabolic rate.",
+    "importBtn": "Import CSV",
+    "tmbLabel": "Basal Metabolic Rate (BMR / TMB)",
+    "tmbSubtitle": "Daily Resting Energy",
+    "tmbBadge": "Active Resting",
+    "tmbDesc": "Minimum caloric energy expended by your body at rest to maintain essential vital organ functions.",
+    "latestMeasurement": "Latest evaluation",
+    "evolutionComparison": "Goals & Evolution Comparison",
+    "evolutionDesc": "Body recomp progress from initial baseline evaluation",
+    "totalEvaluations": "evaluations",
+    "baselineDate": "Baseline started on",
+    "activeRecomp": "Active Recomposition"
   },
   "history": {
     "title": "Body Composition History",
@@ -317,7 +357,11 @@
     "importAnother": "Import Another File",
     "invalidDrop": "Please drop a valid CSV file",
     "invalidSelect": "Please select a valid CSV file",
-    "uploadError": "Failed to upload and parse file"
+    "uploadError": "Failed to upload and parse file",
+    "csvFormatNote": "Compatible with Fitdays CSV exports up to 5MB",
+    "browseBtn": "Browse Files",
+    "dropActive": "Drop your Fitdays CSV file here",
+    "btnUpload": "Upload & Parse"
   },
   "profile": {
     "title": "User Profile Settings",

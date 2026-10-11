@@ -14,6 +14,7 @@ vi.mock("react-i18next", () => ({
       const translations: Record<string, string> = {
         "sidebar.navigation": "Navigation",
         "sidebar.dashboard": "Dashboard",
+        "sidebar.biometrics": "Biometrics",
         "sidebar.history": "Detailed History",
         "sidebar.import": "Import CSV Data",
         "sidebar.sharedReports": "Shared Reports",
@@ -50,12 +51,10 @@ describe("Sidebar Component", () => {
     render(<Sidebar {...mockProps} />);
 
     const dashboardLink = screen.getByRole("link", { name: /Dashboard/i });
-    const historyLink = screen.getByRole("link", { name: /Detailed History/i });
-    const importLink = screen.getByRole("link", { name: /Import CSV Data/i });
+    const biometricsLink = screen.getByRole("link", { name: /Biometrics/i });
 
     expect(dashboardLink).toHaveAttribute("href", "/dashboard");
-    expect(historyLink).toHaveAttribute("href", "/history");
-    expect(importLink).toHaveAttribute("href", "/import");
+    expect(biometricsLink).toHaveAttribute("href", "/biometrics");
   });
 
   it("shows shared reports link when sharedLinksCount > 0", () => {
