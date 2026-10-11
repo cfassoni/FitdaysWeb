@@ -83,6 +83,17 @@ feat/* | fix/* | docs/* (Isolated feature branches)
   - `gh` does not read Git credential helpers; wrap it with `github-app run gh <args...>` (or `github-app run --profile <profile> gh <args...>` outside an initialized repo).
   - Never rely on personal host SSH keys, global Git credential helpers, or interactive login prompts.
 
+- **Modal & Drawer Dismissal Ergonomics**:
+  - All dialogs, sheets, modals, and slide-over drawers must support dismissal via backdrop/overlay click and the `Escape` keyboard key (with cleaned-up event listeners in `useEffect`), in addition to explicit close buttons.
+
+- **Non-Destructive Background Revalidation**:
+  - Re-fetching or syncing data following user actions (e.g., CSV imports, form submissions) must use silent/background revalidation flags rather than setting page-level loading spinners that unmount active modal windows, feedback banners, or summary cards.
+
+- **Data Table Ergonomics & Action Icon Standards**:
+  - Table scrolling must be contained within the table container card (`max-h-[...] overflow-y-auto` with sticky headers `sticky top-0 bg-card z-10`) rather than forcing full-page scrolling.
+  - Row action icons must use consistent ghost button styling (`hover:bg-muted/80`, no mismatched borders or shadows), and table rows should trigger primary drill-downs on click.
+  - Analytical charts and tabular views must share uniform time-horizon filter presets (`All`, `1M`, `3M`, `6M`, `1Y`).
+
 ---
 
 ## 4. DOs and DON'Ts Reference Table
@@ -114,3 +125,4 @@ feat/* | fix/* | docs/* (Isolated feature branches)
 - **DON'T EVER** import `react-i18next` inside Next.js Server Components.
 - **DON'T EVER** delete Git branches without explicit user instruction.
 - **DON'T EVER** attempt large "big-bang" architectural changes in a single step; always deliver in testable, incremental milestones.
+- **DON'T EVER** run `curl` or probe commands against localhost after starting Docker containers; let the user test directly in their browser.
