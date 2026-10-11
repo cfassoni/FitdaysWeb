@@ -31,7 +31,7 @@ import {
   Legend,
 } from "recharts";
 
-type PeriodFilter = "7d" | "30d" | "3m" | "all";
+type PeriodFilter = "all" | "1m" | "3m" | "6m" | "1y";
 
 interface DashboardProps {
   onNavigateToImport: () => void;
@@ -123,9 +123,10 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
       : new Date(latestPoint.date).getTime();
 
     let days = 30;
-    if (selectedPeriod === "7d") days = 7;
-    else if (selectedPeriod === "30d") days = 30;
+    if (selectedPeriod === "1m") days = 30;
     else if (selectedPeriod === "3m") days = 90;
+    else if (selectedPeriod === "6m") days = 180;
+    else if (selectedPeriod === "1y") days = 365;
 
     const cutoffTs = latestTs - days * 24 * 60 * 60 * 1000;
     const filtered = summary.weight_history.filter(
@@ -445,7 +446,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
               <div className="flex flex-wrap items-center gap-2">
                 {/* Period filter pills */}
                 <div className="flex bg-muted p-0.5 rounded-lg border border-border text-xs font-semibold">
-                  {(["7d", "30d", "3m", "all"] as PeriodFilter[]).map((period) => (
+                  {(["all", "1m", "3m", "6m", "1y"] as PeriodFilter[]).map((period) => (
                     <button
                       key={period}
                       type="button"
@@ -456,10 +457,7 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
                           : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
-                      {period === "7d" && (t("dashboard.period7d") || "7D")}
-                      {period === "30d" && (t("dashboard.period30d") || "30D")}
-                      {period === "3m" && (t("dashboard.period3m") || "3M")}
-                      {period === "all" && (t("dashboard.periodAll") || "All")}
+                      {t(`history.period_${period}`) || period.toUpperCase()}
                     </button>
                   ))}
                 </div>

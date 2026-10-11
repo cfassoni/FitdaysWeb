@@ -115,19 +115,20 @@ describe("Dashboard View Component", () => {
     });
   });
 
-  it("renders period filter pills: 7D, 30D, 3M, All", async () => {
+  it("renders period filter pills: All, 1M, 3M, 6M, 1Y", async () => {
     render(<Dashboard onNavigateToImport={mockNavigateToImport} />);
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "7D" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "30D" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "3M" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "All" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "1M" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "3M" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "6M" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "1Y" })).toBeInTheDocument();
     });
 
-    const button7D = screen.getByRole("button", { name: "7D" });
-    fireEvent.click(button7D);
-    expect(button7D).toHaveClass("bg-card");
+    const button1M = screen.getByRole("button", { name: "1M" });
+    fireEvent.click(button1M);
+    expect(button1M).toHaveClass("bg-card");
   });
 
   it("renders Up Next Workout mockup card linking to /activities", async () => {
