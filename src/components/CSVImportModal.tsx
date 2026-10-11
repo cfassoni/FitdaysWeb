@@ -42,6 +42,14 @@ export default function CSVImportModal({
   }, [onClose]);
 
   useEffect(() => {
+    if (isOpen) {
+      setFile(null);
+      setError(null);
+      setResult(null);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -229,7 +237,7 @@ export default function CSVImportModal({
                 onClick={handleClose}
                 className="flex-1 py-2.5 bg-primary hover:bg-primary/95 text-primary-foreground font-semibold text-xs rounded-xl transition-colors shadow-sm cursor-pointer"
               >
-                {t("common.done")}
+                {t("common.close")}
               </button>
             </div>
           </div>

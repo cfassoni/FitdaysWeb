@@ -119,9 +119,11 @@ export default function Biometrics({
   const [createdShareLink, setCreatedShareLink] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
 
-  const fetchRecords = useCallback(async () => {
+  const fetchRecords = useCallback(async (showFullLoader = false) => {
     try {
-      setIsLoading(true);
+      if (showFullLoader) {
+        setIsLoading(true);
+      }
       setError(null);
       const data = await api.getRecords();
       setRecords(data);
@@ -129,12 +131,14 @@ export default function Biometrics({
       const msg = err instanceof Error ? err.message : "";
       setError(msg || "error");
     } finally {
-      setIsLoading(false);
+      if (showFullLoader) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
-    fetchRecords();
+    fetchRecords(true);
   }, [fetchRecords]);
 
   // Derived bioimpedance highlights for Stitch Bento cards
@@ -1252,9 +1256,12 @@ export default function Biometrics({
       {/* CSV Import Modal Component */}
       <CSVImportModal
         isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
+        onClose={() => {
+          setIsImportModalOpen(false);
+          fetchRecords(false);
+        }}
         onImportSuccess={() => {
-          fetchRecords();
+          fetchRecords(false);
         }}
       />
 

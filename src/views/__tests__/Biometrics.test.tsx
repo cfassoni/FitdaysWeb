@@ -285,4 +285,53 @@ describe("Biometrics View Component", () => {
       expect(screen.getByText(/Showing 4 of 4 records/i)).toBeInTheDocument();
     });
   });
+
+  it("displays CSV import summary card after upload and closes when close button is clicked", async () => {
+    (api.uploadCSV as ReturnType<typeof vi.fn>).mockResolvedValue({
+      message: "Uploaded",
+      total_processed: 12,
+      inserted: 10,
+      updated: 2,
+    });
+
+    render(<Biometrics />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Import CSV/i })).toBeInTheDocument();
+    });
+
+    // Open import modal
+    fireEvent.click(screen.getByRole("button", { name: /Import CSV/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Compatible with Fitdays CSV exports up to 5MB/i)).toBeInTheDocument();
+    });
+
+    const file = new File(["date,weight\n2026-08-01,75.0"], "fitdays.csv", { type: "text/csv" });
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText("fitdays.csv")).toBeInTheDocument();
+    });
+
+    // Click upload
+    fireEvent.click(screen.getByRole("button", { name: /Upload & Parse/i }));
+
+    // Verify summary is rendered
+    await waitFor(() => {
+      expect(screen.getByText(/Import Completed Successfully!/i)).toBeInTheDocument();
+      expect(screen.getByText("12")).toBeInTheDocument();
+      expect(screen.getAllByText("10").length).toBeGreaterThanOrEqual(2);
+      expect(screen.getByText("2")).toBeInTheDocument();
+    });
+
+    // Close via close button in summary
+    const closeBtns = screen.getAllByRole("button", { name: /^Close$/i });
+    fireEvent.click(closeBtns[1]);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Import Completed Successfully!/i)).not.toBeInTheDocument();
+    });
+  });
 });
