@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   Link as LinkIcon,
   X,
+  Star,
 } from "lucide-react";
 
 interface SharedReportsProps {
@@ -40,6 +41,7 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
   const [editCustomExpiryDate, setEditCustomExpiryDate] = useState("");
   const [editPasswordAction, setEditPasswordAction] = useState<"keep" | "clear" | "change">("keep");
   const [editPassword, setEditPassword] = useState("");
+  const [editAutoShareStarred, setEditAutoShareStarred] = useState(false);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
@@ -111,6 +113,7 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
 
     setEditPasswordAction("keep");
     setEditPassword("");
+    setEditAutoShareStarred(Boolean(link.auto_share_starred));
     setEditError(null);
   };
 
@@ -148,9 +151,11 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
         expires_at: string | null;
         password?: string;
         clear_password?: boolean;
+        auto_share_starred?: boolean;
       } = {
         description: editDescription,
         expires_at,
+        auto_share_starred: editAutoShareStarred,
       };
 
       if (editPasswordAction === "clear") {
@@ -285,8 +290,18 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
-                        {t("sharing.recordCount", { count: link.entry_count })}
-                        {link.include_attachments && t("sharing.withFiles")}
+                        <div className="flex flex-col gap-1 items-start">
+                          <span>
+                            {t("sharing.recordCount", { count: link.entry_count })}
+                            {link.include_attachments && t("sharing.withFiles")}
+                          </span>
+                          {link.auto_share_starred && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25">
+                              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                              <span>{t("sharing.autoShareBadge")}</span>
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
                         {formatDate(link.created_at)}
@@ -471,6 +486,25 @@ export default function SharedReports({ onLinksUpdated }: SharedReportsProps) {
                     />
                   </div>
                 )}
+              </div>
+
+              {/* Auto-share Starred Toggle */}
+              <div className="flex items-start justify-between py-3 border-t border-border gap-3">
+                <div className="flex flex-col gap-0.5">
+                  <label htmlFor="edit-auto-starred" className="text-sm font-medium text-foreground cursor-pointer">
+                    {t("sharing.autoShareStarredLabel")}
+                  </label>
+                  <span className="text-xs text-muted-foreground">
+                    {t("sharing.autoShareStarredDesc")}
+                  </span>
+                </div>
+                <input
+                  id="edit-auto-starred"
+                  type="checkbox"
+                  checked={editAutoShareStarred}
+                  onChange={(e) => setEditAutoShareStarred(e.target.checked)}
+                  className="mt-0.5 rounded border-border text-primary focus:ring-primary h-4 w-4 bg-card cursor-pointer shrink-0"
+                />
               </div>
 
               {editError && (

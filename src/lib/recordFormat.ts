@@ -27,6 +27,7 @@ export function formatRecordResponse(
     id: record.id,
     user_id: record.userId,
     date: safeToISOString(record.date, true),
+    starred: Boolean(record.starred),
     report: report !== undefined ? formatReportResponse(report) : undefined,
 
     // Core Weight / Body Metrics

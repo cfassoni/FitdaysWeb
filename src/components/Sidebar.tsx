@@ -6,8 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  History,
-  Upload,
+  Activity,
   X,
   ChevronLeft,
   ChevronRight,
@@ -38,8 +37,7 @@ export default function Sidebar({
 
   const navItems = [
     { id: "dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { id: "history", href: "/history", icon: History },
-    { id: "import", href: "/import", icon: Upload },
+    { id: "biometrics", href: "/biometrics", icon: Activity },
   ];
 
   const wipItems = [
@@ -114,7 +112,7 @@ export default function Sidebar({
               {showWipPages && (
                 <div className="pt-4 mt-4 border-t border-border/50">
                   <span className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70 mb-2 block">
-                    Previews (WIP)
+                    {t("sidebar.previewsWip")}
                   </span>
                   {wipItems.map((item) => {
                     const Icon = item.icon;
@@ -213,7 +211,7 @@ export default function Sidebar({
             <div className={`pt-4 mt-4 border-t border-border/50 ${isCollapsed ? "space-y-2" : "space-y-1"}`}>
               {!isCollapsed && (
                 <span className="px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-2 block">
-                  Previews (WIP)
+                  {t("sidebar.previewsWip")}
                 </span>
               )}
               {wipItems.map((item) => {

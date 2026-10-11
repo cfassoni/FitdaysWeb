@@ -98,6 +98,7 @@ export async function ensureTablesExist(): Promise<void> {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       date DATETIME NOT NULL,
+      starred INTEGER NOT NULL DEFAULT 0,
       weight REAL NOT NULL,
       bmi REAL NOT NULL,
       body_fat_pct REAL NOT NULL,
@@ -189,6 +190,8 @@ export async function ensureTablesExist(): Promise<void> {
       description TEXT NOT NULL,
       password_hash TEXT,
       include_attachments INTEGER NOT NULL DEFAULT 1,
+      auto_share_starred INTEGER NOT NULL DEFAULT 0,
+      manual_entry_ids TEXT,
       expires_at INTEGER,
       snapshot_data TEXT NOT NULL,
       created_at INTEGER NOT NULL
@@ -205,6 +208,25 @@ export async function ensureTablesExist(): Promise<void> {
       status TEXT NOT NULL
     );
   `);
+
+  // Defensive migrations for existing SQLite databases
+  try {
+    await db.run(sql`ALTER TABLE fitdays_records ADD COLUMN starred INTEGER NOT NULL DEFAULT 0`);
+  } catch {
+    // Column already exists
+  }
+
+  try {
+    await db.run(sql`ALTER TABLE shared_links ADD COLUMN auto_share_starred INTEGER NOT NULL DEFAULT 0`);
+  } catch {
+    // Column already exists
+  }
+
+  try {
+    await db.run(sql`ALTER TABLE shared_links ADD COLUMN manual_entry_ids TEXT`);
+  } catch {
+    // Column already exists
+  }
 
   await normalizeFitdaysRecordDates();
 }

@@ -108,9 +108,10 @@ export async function GET(
       } as unknown as typeof dashboardSummary;
     }
 
-    // Process attachment URLs for guests
+    // Process attachment URLs for guests and sanitize private fields
     const processedEntries = entries.map((entry) => {
       const entryCopy = { ...entry };
+      delete entryCopy.starred;
       const report = entryCopy.report as { id: number; url?: string } | null | undefined;
       if (link.includeAttachments && report && report.id) {
         entryCopy.report = {
