@@ -97,6 +97,44 @@ const mockRecords: FitdaysRecord[] = [
     starred: true,
     report: null,
   },
+  {
+    id: 3,
+    date: "2026-06-15T08:00:00Z",
+    weight: 82.0,
+    bmi: 25.0,
+    body_fat_pct: 19.5,
+    skeletal_muscle_mass: 37.0,
+    bmr: 1820,
+    visceral_fat: 7,
+    moisture_content: 47.0,
+    bone_mass: 3.1,
+    protein_mass: 11.5,
+    metabolic_age: 27,
+    fat_free_mass: 64.0,
+    subcutaneous_fat_pct: 15.0,
+    body_score: 82,
+    starred: false,
+    report: null,
+  },
+  {
+    id: 4,
+    date: "2026-01-15T08:00:00Z",
+    weight: 85.0,
+    bmi: 26.0,
+    body_fat_pct: 21.0,
+    skeletal_muscle_mass: 36.0,
+    bmr: 1800,
+    visceral_fat: 8,
+    moisture_content: 46.0,
+    bone_mass: 3.0,
+    protein_mass: 11.0,
+    metabolic_age: 29,
+    fat_free_mass: 63.0,
+    subcutaneous_fat_pct: 16.5,
+    body_score: 79,
+    starred: false,
+    report: null,
+  },
 ] as unknown as FitdaysRecord[];
 
 describe("Biometrics View Component", () => {
@@ -187,6 +225,64 @@ describe("Biometrics View Component", () => {
 
     await waitFor(() => {
       expect(screen.queryByText(/Body Composition Report/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("opens record details drawer when clicking directly on a table row", async () => {
+    render(<Biometrics />);
+
+    await waitFor(() => {
+      expect(screen.getByText("78.5")).toBeInTheDocument();
+    });
+
+    // Click directly on a cell in the row
+    fireEvent.click(screen.getByText("78.5"));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Body Composition Report/i)).toBeInTheDocument();
+    });
+  });
+
+  it("filters records when selecting time range filter pills (1M, 3M, All)", async () => {
+    render(<Biometrics />);
+
+    await waitFor(() => {
+      expect(screen.getByText("85.0")).toBeInTheDocument();
+      expect(screen.getByText("78.5")).toBeInTheDocument();
+    });
+
+    // Click "1M" pill
+    const btn1M = screen.getByRole("button", { name: "1M" });
+    fireEvent.click(btn1M);
+
+    // Records older than 30 days from Aug 15 (e.g. Jan 15 with weight 85.0) should be hidden
+    await waitFor(() => {
+      expect(screen.queryByText("85.0")).not.toBeInTheDocument();
+      expect(screen.getByText("78.5")).toBeInTheDocument();
+    });
+
+    // Click "All" pill to restore
+    const btnAll = screen.getByRole("button", { name: "All" });
+    fireEvent.click(btnAll);
+
+    await waitFor(() => {
+      expect(screen.getByText("85.0")).toBeInTheDocument();
+    });
+  });
+
+  it("changes page size and navigates pages with pagination controls", async () => {
+    render(<Biometrics />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("combobox")).toBeInTheDocument();
+    });
+
+    // Change per-page size to 5
+    const select = screen.getByRole("combobox");
+    fireEvent.change(select, { target: { value: "5" } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Showing 4 of 4 records/i)).toBeInTheDocument();
     });
   });
 });

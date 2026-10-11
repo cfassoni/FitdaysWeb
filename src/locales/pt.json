@@ -346,7 +346,19 @@
     "unstarTooltip": "Remover dos favoritos",
     "starError": "Falha ao atualizar favorito",
     "reportAttached": "Relatório anexado",
-    "noReportAttached": "Nenhum relatório anexado"
+    "noReportAttached": "Nenhum relatório anexado",
+    "period_all": "Todos",
+    "period_1m": "1M",
+    "period_3m": "3M",
+    "period_6m": "6M",
+    "period_1y": "1A",
+    "perPageLabel": "Por pág.:",
+    "selectAllPage": "Selecionar todos da página",
+    "pagination": {
+      "previous": "Anterior",
+      "next": "Próximo",
+      "showingRange": "Exibindo {{start}}–{{end}} de {{total}} registros"
+    }
   },
   "import": {
     "title": "Importar Dados CSV",

@@ -14,6 +14,8 @@ import {
   Search,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Eye,
   X,
   Trash2,
@@ -74,11 +76,21 @@ export default function Biometrics({
     };
   }, []);
 
-  // Table search, filter and sort states
+  // Table search, filter, period and sort states
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStarredOnly, setFilterStarredOnly] = useState(false);
+  const [timeRangeFilter, setTimeRangeFilter] = useState<"all" | "1m" | "3m" | "6m" | "1y">("all");
   const [sortField, setSortField] = useState<keyof FitdaysRecord>("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Reset pagination to page 1 whenever filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStarredOnly, timeRangeFilter, pageSize]);
 
   // Drawer state
   const [selectedRecord, setSelectedRecord] = useState<FitdaysRecord | null>(null);
@@ -452,11 +464,28 @@ export default function Biometrics({
   };
 
   const getSortedRecords = () => {
+    if (records.length === 0) return [];
+    const referenceTime = Math.max(...records.map((r) => new Date(r.date).getTime()));
+
     return [...records]
       .filter((record) => {
         if (filterStarredOnly && !record.starred) {
           return false;
         }
+
+        if (timeRangeFilter !== "all") {
+          let days = 30;
+          if (timeRangeFilter === "1m") days = 30;
+          else if (timeRangeFilter === "3m") days = 90;
+          else if (timeRangeFilter === "6m") days = 180;
+          else if (timeRangeFilter === "1y") days = 365;
+
+          const cutoffTime = referenceTime - days * 24 * 60 * 60 * 1000;
+          if (new Date(record.date).getTime() < cutoffTime) {
+            return false;
+          }
+        }
+
         const formattedDate = formatDate(record.date).toLowerCase();
         return formattedDate.includes(searchTerm.toLowerCase());
       })
@@ -521,6 +550,12 @@ export default function Biometrics({
   }
 
   const sortedRecords = getSortedRecords();
+  const totalPages = Math.max(1, Math.ceil(sortedRecords.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedRecords = sortedRecords.slice(
+    (safeCurrentPage - 1) * pageSize,
+    safeCurrentPage * pageSize
+  );
 
   return (
     <div className="flex-1 p-6 overflow-y-auto max-w-7xl mx-auto w-full space-y-6 animate-in fade-in duration-300">
@@ -775,85 +810,119 @@ export default function Biometrics({
       )}
 
       {/* Table Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-center">
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-muted-foreground flex items-center pointer-events-none" />
-              <input
-                type="text"
-                placeholder={t("history.searchPlaceholder")}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-card border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground transition-all"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => setFilterStarredOnly((prev) => !prev)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer shrink-0 ${
-                filterStarredOnly
-                  ? "bg-amber-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400 shadow-xs"
-                  : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              }`}
-              title={filterStarredOnly ? t("history.filterAll") : t("history.filterStarred")}
-              aria-label={filterStarredOnly ? t("history.filterAll") : t("history.filterStarred")}
-            >
-              <Star
-                className={`h-3.5 w-3.5 ${
-                  filterStarredOnly ? "fill-amber-400 text-amber-400" : ""
-                }`}
-              />
-              <span className="hidden sm:inline">
-                {filterStarredOnly ? t("history.filterStarred") : t("history.filterStarred")}
-              </span>
-            </button>
+      <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Search Input */}
+          <div className="relative w-full sm:w-60">
+            <Search className="absolute inset-y-0 left-0 pl-3 h-full w-4 text-muted-foreground flex items-center pointer-events-none" />
+            <input
+              type="text"
+              placeholder={t("history.searchPlaceholder")}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-card border border-border rounded-lg text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground transition-all"
+            />
           </div>
-          {selectedIds.length > 0 && (
-            <div className="flex gap-2">
+
+          {/* Star Filter Pill */}
+          <button
+            type="button"
+            onClick={() => setFilterStarredOnly((prev) => !prev)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer shrink-0 ${
+              filterStarredOnly
+                ? "bg-amber-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400 shadow-xs"
+                : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            }`}
+            title={filterStarredOnly ? t("history.filterAll") : t("history.filterStarred")}
+            aria-label={filterStarredOnly ? t("history.filterAll") : t("history.filterStarred")}
+          >
+            <Star
+              className={`h-3.5 w-3.5 ${
+                filterStarredOnly ? "fill-amber-400 text-amber-400" : ""
+              }`}
+            />
+            <span>{filterStarredOnly ? t("history.filterStarred") : t("history.filterStarred")}</span>
+          </button>
+
+          {/* Time Range Pills: Todos, 1M, 3M, 6M, 1A */}
+          <div className="flex bg-muted p-0.5 rounded-lg border border-border text-xs font-semibold shrink-0">
+            {(["all", "1m", "3m", "6m", "1y"] as const).map((period) => (
               <button
-                onClick={() => {
-                  setIdsToDelete(selectedIds);
-                  setIsDeleteConfirmOpen(true);
-                }}
-                className="flex items-center justify-center bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-lg transition-all cursor-pointer shadow-sm animate-in fade-in zoom-in-95 duration-250 shrink-0"
-                style={{ height: "38px", width: "38px" }}
-                title={t("history.deleteSelected", { count: selectedIds.length })}
-                aria-label={t("history.deleteSelected", { count: selectedIds.length })}
+                key={period}
+                type="button"
+                onClick={() => setTimeRangeFilter(period)}
+                className={`px-2.5 py-1.5 rounded-md transition-all cursor-pointer ${
+                  timeRangeFilter === period
+                    ? "bg-card text-foreground shadow-xs font-bold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
               >
-                <Trash2 className="h-5 w-5" />
+                {t(`history.period_${period}`) || period.toUpperCase()}
               </button>
-            </div>
+            ))}
+          </div>
+
+          {/* Selected Action: Delete */}
+          {selectedIds.length > 0 && (
+            <button
+              onClick={() => {
+                setIdsToDelete(selectedIds);
+                setIsDeleteConfirmOpen(true);
+              }}
+              className="flex items-center justify-center bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-lg transition-all cursor-pointer shadow-sm animate-in fade-in zoom-in-95 duration-250 shrink-0 h-[34px] w-[34px]"
+              title={t("history.deleteSelected", { count: selectedIds.length })}
+              aria-label={t("history.deleteSelected", { count: selectedIds.length })}
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
           )}
         </div>
-        <div className="text-xs text-muted-foreground font-medium self-end sm:self-center">
-          {t("history.showingRecords", {
-            count: sortedRecords.length,
-            total: records.length,
-          }) || `Showing ${sortedRecords.length} of ${records.length} records`}
+
+        {/* Right side of Toolbar: Items per page selector + Showing summary */}
+        <div className="flex items-center justify-between md:justify-end gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span>{t("history.perPageLabel")}</span>
+            <select
+              value={pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+              className="bg-card border border-border rounded-lg px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer font-medium"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+
+          <div className="text-xs text-muted-foreground font-medium">
+            {t("history.showingRecords", {
+              count: paginatedRecords.length,
+              total: sortedRecords.length,
+            }) || `Showing ${paginatedRecords.length} of ${sortedRecords.length} records`}
+          </div>
         </div>
       </div>
 
-      {/* Main Records Table */}
-      <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
+      {/* Main Records Table Card */}
+      <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden flex flex-col">
         {sortedRecords.length === 0 ? (
           <div className="p-12 text-center text-muted-foreground text-sm">
             {t("history.noMatch")}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[640px] overflow-y-auto">
             <table className="w-full border-collapse text-left text-sm text-foreground">
-              <thead className="bg-muted/50 border-b border-border text-muted-foreground font-semibold font-label-caps tracking-wider">
+              <thead className="bg-muted/95 backdrop-blur-xs sticky top-0 z-10 border-b border-border text-muted-foreground font-semibold font-label-caps tracking-wider">
                 <tr>
                   <th className="px-6 py-4 w-12 text-center">
                     <input
                       type="checkbox"
                       checked={
-                        sortedRecords.length > 0 &&
-                        sortedRecords.every((r) => selectedIds.includes(r.id))
+                        paginatedRecords.length > 0 &&
+                        paginatedRecords.every((r) => selectedIds.includes(r.id))
                       }
                       onChange={() => {
-                        const pageIds = sortedRecords.map((r) => r.id);
+                        const pageIds = paginatedRecords.map((r) => r.id);
                         const allSelected = pageIds.every((id) => selectedIds.includes(id));
                         if (allSelected) {
                           setSelectedIds((prev) => prev.filter((id) => !pageIds.includes(id)));
@@ -868,17 +937,9 @@ export default function Biometrics({
                         }
                       }}
                       className="rounded border-border text-primary focus:ring-primary h-4 w-4 bg-card cursor-pointer"
+                      title={t("history.selectAllPage")}
+                      aria-label={t("history.selectAllPage")}
                     />
-                  </th>
-                  <th
-                    onClick={() => handleSort("starred")}
-                    className="px-3 py-4 w-10 text-center cursor-pointer hover:bg-muted/80 transition-colors select-none"
-                    title={t("history.table.starred")}
-                  >
-                    <div className="flex items-center justify-center gap-1">
-                      <Star className="h-4 w-4" />
-                      {renderSortIcon("starred")}
-                    </div>
                   </th>
                   <th
                     onClick={() => handleSort("date")}
@@ -916,13 +977,20 @@ export default function Biometrics({
                   >
                     {t("history.table.bodyScore")} {renderSortIcon("body_score")}
                   </th>
-                  <th className="px-6 py-4 text-right">{t("history.table.actions")}</th>
+                  <th className="px-6 py-4 text-right pr-6">{t("history.table.actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {sortedRecords.map((record) => (
-                  <tr key={record.id} className="hover:bg-muted/20 transition-colors">
-                    <td className="px-6 py-4 text-center whitespace-nowrap w-12">
+                {paginatedRecords.map((record) => (
+                  <tr
+                    key={record.id}
+                    onClick={() => setSelectedRecord(record)}
+                    className="hover:bg-muted/30 transition-colors cursor-pointer group"
+                  >
+                    <td
+                      className="px-6 py-4 text-center whitespace-nowrap w-12"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <input
                         type="checkbox"
                         checked={selectedIds.includes(record.id)}
@@ -936,129 +1004,16 @@ export default function Biometrics({
                         className="rounded border-border text-primary focus:ring-primary h-4 w-4 bg-card cursor-pointer"
                       />
                     </td>
-                    <td className="px-3 py-4 text-center whitespace-nowrap w-10">
-                      <button
-                        type="button"
-                        onClick={(e) => handleToggleStar(record.id, e)}
-                        className="p-1 rounded-md hover:bg-muted/60 transition-all cursor-pointer group"
-                        title={
-                          record.starred
-                            ? t("history.unstarTooltip")
-                            : t("history.starTooltip")
-                        }
-                        aria-label={
-                          record.starred
-                            ? t("history.unstarTooltip")
-                            : t("history.starTooltip")
-                        }
-                      >
-                        <Star
-                          className={`h-4 w-4 transition-all ${
-                            record.starred
-                              ? "text-amber-400 fill-amber-400 scale-110"
-                              : "text-muted-foreground/30 hover:text-amber-400 hover:scale-110"
-                          }`}
-                        />
-                      </button>
-                    </td>
                     <td className="px-6 py-4 font-medium whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <span className="font-data-mono">
-                          {formatDateTime(record.date, {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                        <div className="relative inline-block text-left">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveMenuRecordId(
-                                activeMenuRecordId === record.id ? null : record.id
-                              );
-                            }}
-                            className={`p-1 rounded-md transition-colors hover:bg-muted cursor-pointer ${
-                              record.report
-                                ? "text-primary"
-                                : "text-muted-foreground/35 hover:text-muted-foreground"
-                            }`}
-                            title={
-                              record.report
-                                ? t("history.reportAttached")
-                                : t("history.noReportAttached")
-                            }
-                            aria-label={
-                              record.report
-                                ? t("history.reportAttached")
-                                : t("history.noReportAttached")
-                            }
-                          >
-                            <Paperclip className="h-4 w-4" />
-                          </button>
-
-                          {activeMenuRecordId === record.id && (
-                            <div
-                              className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-card border border-border ring-1 ring-black ring-opacity-5 focus:outline-none z-50 animate-in fade-in slide-in-from-top-1 duration-200"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <div className="py-1" role="menu" aria-orientation="vertical">
-                                {record.report ? (
-                                  <>
-                                    <a
-                                      href={record.report.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors cursor-pointer w-full text-left"
-                                      role="menuitem"
-                                      onClick={() => setActiveMenuRecordId(null)}
-                                    >
-                                      <ExternalLink className="h-3.5 w-3.5" />
-                                      <span>{t("history.report.view")}</span>
-                                    </a>
-                                    <button
-                                      onClick={() => {
-                                        setActiveMenuRecordId(null);
-                                        setUploadRecordId(record.id);
-                                      }}
-                                      className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors cursor-pointer w-full text-left"
-                                      role="menuitem"
-                                    >
-                                      <FileUp className="h-3.5 w-3.5" />
-                                      <span>{t("history.report.upload")}</span>
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        setActiveMenuRecordId(null);
-                                        handleDeleteReport(record.id);
-                                      }}
-                                      className="flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer w-full text-left"
-                                      role="menuitem"
-                                    >
-                                      <Trash2 className="h-3.5 w-3.5" />
-                                      <span>{t("history.report.delete")}</span>
-                                    </button>
-                                  </>
-                                ) : (
-                                  <button
-                                    onClick={() => {
-                                      setActiveMenuRecordId(null);
-                                      setUploadRecordId(record.id);
-                                    }}
-                                    className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors cursor-pointer w-full text-left"
-                                    role="menuitem"
-                                  >
-                                    <FileUp className="h-3.5 w-3.5" />
-                                    <span>{t("history.report.upload")}</span>
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                      <span className="font-data-mono">
+                        {formatDateTime(record.date, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap font-data-mono font-medium">
                       {record.weight.toFixed(1)}
@@ -1081,19 +1036,215 @@ export default function Biometrics({
                         <span className="font-data-mono text-muted-foreground">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <button
-                        onClick={() => setSelectedRecord(record)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-medium transition-colors cursor-pointer shadow-xs"
-                      >
-                        <Eye className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span>{t("history.table.details")}</span>
-                      </button>
+                    <td
+                      className="px-6 py-4 whitespace-nowrap text-right pr-6"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="inline-flex items-center gap-1">
+                        {/* 1. Star (Favorite) */}
+                        <button
+                          type="button"
+                          onClick={(e) => handleToggleStar(record.id, e)}
+                          className="p-1.5 rounded-lg hover:bg-muted/80 transition-all cursor-pointer"
+                          title={
+                            record.starred
+                              ? t("history.unstarTooltip")
+                              : t("history.starTooltip")
+                          }
+                          aria-label={
+                            record.starred
+                              ? t("history.unstarTooltip")
+                              : t("history.starTooltip")
+                          }
+                        >
+                          <Star
+                            className={`h-4 w-4 transition-all ${
+                              record.starred
+                                ? "text-amber-400 fill-amber-400 scale-110"
+                                : "text-muted-foreground/30 hover:text-amber-400 hover:scale-110"
+                            }`}
+                          />
+                        </button>
+
+                        {/* 2. Paperclip (Attachment) */}
+                        <div className="relative inline-block text-left">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenuRecordId(
+                                activeMenuRecordId === record.id ? null : record.id
+                              );
+                            }}
+                            className={`p-1.5 rounded-lg transition-colors hover:bg-muted cursor-pointer ${
+                              record.report
+                                ? "text-primary hover:text-primary/90"
+                                : "text-muted-foreground/35 hover:text-muted-foreground"
+                            }`}
+                            title={
+                              record.report
+                                ? t("history.reportAttached")
+                                : t("history.noReportAttached")
+                            }
+                            aria-label={
+                              record.report
+                                ? t("history.reportAttached")
+                                : t("history.noReportAttached")
+                            }
+                          >
+                            <Paperclip className="h-4 w-4" />
+                          </button>
+
+                          {activeMenuRecordId === record.id && (
+                            <div
+                              className="absolute right-0 mt-2 w-48 rounded-xl shadow-xl bg-card border border-border ring-1 ring-black/5 focus:outline-none z-50 animate-in fade-in slide-in-from-top-1 duration-200 text-left"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div className="py-1" role="menu" aria-orientation="vertical">
+                                {record.report ? (
+                                  <>
+                                    <a
+                                      href={record.report.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-2 px-4 py-2 text-xs text-foreground hover:bg-muted transition-colors cursor-pointer w-full text-left"
+                                      role="menuitem"
+                                      onClick={() => setActiveMenuRecordId(null)}
+                                    >
+                                      <ExternalLink className="h-3.5 w-3.5" />
+                                      <span>{t("history.report.view")}</span>
+                                    </a>
+                                    <button
+                                      onClick={() => {
+                                        setActiveMenuRecordId(null);
+                                        setUploadRecordId(record.id);
+                                      }}
+                                      className="flex items-center gap-2 px-4 py-2 text-xs text-foreground hover:bg-muted transition-colors cursor-pointer w-full text-left"
+                                      role="menuitem"
+                                    >
+                                      <FileUp className="h-3.5 w-3.5" />
+                                      <span>{t("history.report.upload")}</span>
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setActiveMenuRecordId(null);
+                                        handleDeleteReport(record.id);
+                                      }}
+                                      className="flex items-center gap-2 px-4 py-2 text-xs text-destructive hover:bg-destructive/10 transition-colors cursor-pointer w-full text-left"
+                                      role="menuitem"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                      <span>{t("history.report.delete")}</span>
+                                    </button>
+                                  </>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      setActiveMenuRecordId(null);
+                                      setUploadRecordId(record.id);
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 text-xs text-foreground hover:bg-muted transition-colors cursor-pointer w-full text-left"
+                                    role="menuitem"
+                                  >
+                                    <FileUp className="h-3.5 w-3.5" />
+                                    <span>{t("history.report.upload")}</span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 3. Eye (Details Drawer) */}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedRecord(record)}
+                          className="p-1.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-medium transition-colors cursor-pointer shadow-xs group-hover:border-primary/40"
+                          title={t("history.table.details")}
+                          aria-label={t("history.table.details")}
+                        >
+                          <Eye className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination Footer */}
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-3.5 border-t border-border bg-muted/20">
+            <div className="text-xs text-muted-foreground">
+              {t("history.pagination.showingRange", {
+                start: (safeCurrentPage - 1) * pageSize + 1,
+                end: Math.min(safeCurrentPage * pageSize, sortedRecords.length),
+                total: sortedRecords.length,
+              }) ||
+                `Showing ${(safeCurrentPage - 1) * pageSize + 1}–${Math.min(
+                  safeCurrentPage * pageSize,
+                  sortedRecords.length
+                )} of ${sortedRecords.length}`}
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                disabled={safeCurrentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="p-1.5 rounded-lg border border-border bg-card text-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                title={t("history.pagination.previous")}
+                aria-label={t("history.pagination.previous")}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                if (
+                  totalPages > 7 &&
+                  page !== 1 &&
+                  page !== totalPages &&
+                  Math.abs(page - safeCurrentPage) > 1
+                ) {
+                  if (page === 2 || page === totalPages - 1) {
+                    return (
+                      <span key={page} className="px-1.5 text-xs text-muted-foreground select-none">
+                        ...
+                      </span>
+                    );
+                  }
+                  return null;
+                }
+
+                return (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => setCurrentPage(page)}
+                    className={`min-w-8 h-8 px-2 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                      safeCurrentPage === page
+                        ? "bg-primary text-primary-foreground shadow-xs"
+                        : "border border-border bg-card hover:bg-muted text-foreground"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+
+              <button
+                type="button"
+                disabled={safeCurrentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="p-1.5 rounded-lg border border-border bg-card text-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                title={t("history.pagination.next")}
+                aria-label={t("history.pagination.next")}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         )}
       </div>
