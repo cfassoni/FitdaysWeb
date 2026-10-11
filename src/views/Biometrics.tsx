@@ -231,6 +231,41 @@ export default function Biometrics({
     setIsCopied(false);
   };
 
+  // Close drawer, modals or dropdown menus when pressing Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (selectedRecord) {
+          setSelectedRecord(null);
+        } else if (isImportModalOpen) {
+          setIsImportModalOpen(false);
+        } else if (isShareModalOpen) {
+          handleCloseShareModal();
+        } else if (isDeleteConfirmOpen) {
+          setIsDeleteConfirmOpen(false);
+          setIdsToDelete([]);
+        } else if (uploadRecordId) {
+          setUploadRecordId(null);
+          setSelectedFile(null);
+          setUploadError(null);
+        } else if (activeMenuRecordId) {
+          setActiveMenuRecordId(null);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [
+    selectedRecord,
+    isImportModalOpen,
+    isShareModalOpen,
+    isDeleteConfirmOpen,
+    uploadRecordId,
+    activeMenuRecordId,
+  ]);
+
   const handleDeleteConfirm = async () => {
     try {
       setIsDeleting(true);
@@ -1074,9 +1109,12 @@ export default function Biometrics({
 
       {/* Share Modal */}
       {isShareModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 cursor-pointer"
+          onClick={handleCloseShareModal}
+        >
           <div
-            className="relative w-full max-w-lg bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200"
+            className="relative w-full max-w-lg bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200 cursor-default"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -1277,9 +1315,15 @@ export default function Biometrics({
 
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 cursor-pointer"
+          onClick={() => {
+            setIsDeleteConfirmOpen(false);
+            setIdsToDelete([]);
+          }}
+        >
           <div
-            className="relative w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200"
+            className="relative w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 cursor-default"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 text-destructive mb-4">
@@ -1333,9 +1377,16 @@ export default function Biometrics({
 
       {/* Report Attachment Upload Modal */}
       {uploadRecordId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 cursor-pointer"
+          onClick={() => {
+            setUploadRecordId(null);
+            setSelectedFile(null);
+            setUploadError(null);
+          }}
+        >
           <div
-            className="relative w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200"
+            className="relative w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 cursor-default"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -1447,9 +1498,13 @@ export default function Biometrics({
 
       {/* Slide-over Drawer for Record Details */}
       {selectedRecord && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+          className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 cursor-pointer"
+          onClick={() => setSelectedRecord(null)}
+          data-testid="drawer-backdrop"
+        >
           <div
-            className="w-full max-w-xl bg-card border-l border-border h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-250"
+            className="w-full max-w-xl bg-card border-l border-border h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-250 cursor-default"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drawer Header */}

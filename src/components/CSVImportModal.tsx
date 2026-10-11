@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import type { DragEvent, ChangeEvent } from "react";
 import { api } from "@/lib/api";
@@ -34,6 +34,25 @@ export default function CSVImportModal({
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<UploadResponse | null>(null);
+  const handleClose = useCallback(() => {
+    setFile(null);
+    setError(null);
+    setResult(null);
+    onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, handleClose]);
 
   if (!isOpen) return null;
 
@@ -99,13 +118,6 @@ export default function CSVImportModal({
     }
   };
 
-  const handleClose = () => {
-    setFile(null);
-    setError(null);
-    setResult(null);
-    onClose();
-  };
-
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -115,9 +127,12 @@ export default function CSVImportModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 cursor-pointer"
+      onClick={handleClose}
+    >
       <div
-        className="relative w-full max-w-xl bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden"
+        className="relative w-full max-w-xl bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}

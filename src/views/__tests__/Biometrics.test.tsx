@@ -150,4 +150,43 @@ describe("Biometrics View Component", () => {
       expect(mockReplace).toHaveBeenCalledWith("/biometrics");
     });
   });
+
+  it("opens record details drawer and closes it when clicking outside on the backdrop", async () => {
+    render(<Biometrics />);
+
+    await waitFor(() => {
+      expect(screen.getAllByRole("button", { name: /Details/i })[0]).toBeInTheDocument();
+    });
+
+    const detailsBtn = screen.getAllByRole("button", { name: /Details/i })[0];
+    fireEvent.click(detailsBtn);
+
+    expect(screen.getByText(/Body Composition Report/i)).toBeInTheDocument();
+
+    const backdrop = screen.getByTestId("drawer-backdrop");
+    fireEvent.click(backdrop);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Body Composition Report/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("closes record details drawer when pressing Escape key", async () => {
+    render(<Biometrics />);
+
+    await waitFor(() => {
+      expect(screen.getAllByRole("button", { name: /Details/i })[0]).toBeInTheDocument();
+    });
+
+    const detailsBtn = screen.getAllByRole("button", { name: /Details/i })[0];
+    fireEvent.click(detailsBtn);
+
+    expect(screen.getByText(/Body Composition Report/i)).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Body Composition Report/i)).not.toBeInTheDocument();
+    });
+  });
 });
