@@ -27,6 +27,8 @@ jobs:
         run: |
           platform="${{ matrix.platform }}"
           echo "PLATFORM_PAIR=${platform//\//-}" >> "$GITHUB_ENV"
+          repo="${{ github.repository }}"
+          echo "IMAGE_NAME=ghcr.io/${repo,,}/app" >> "$GITHUB_ENV"
 
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -45,7 +47,7 @@ jobs:
         id: meta-app
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/app
+          images: ${{ env.IMAGE_NAME }}
 
       - name: Build and push by digest
         id: build
@@ -55,7 +57,7 @@ jobs:
           file: ./Dockerfile
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta-app.outputs.labels }}
-          outputs: type=image,name=ghcr.io/${{ github.repository }}/app,push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=${{ env.PLATFORM_PAIR }}
           cache-to: type=gha,mode=max,scope=${{ env.PLATFORM_PAIR }}
 
@@ -79,6 +81,11 @@ jobs:
     needs: build
     timeout-minutes: 10
     steps:
+      - name: Prepare env
+        run: |
+          repo="${{ github.repository }}"
+          echo "IMAGE_NAME=ghcr.io/${repo,,}/app" >> "$GITHUB_ENV"
+
       - name: Download digests
         uses: actions/download-artifact@v4
         with:
@@ -100,7 +107,7 @@ jobs:
         id: meta-app
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/app
+          images: ${{ env.IMAGE_NAME }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -111,8 +118,8 @@ jobs:
         working-directory: /tmp/digests
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf 'ghcr.io/${{ github.repository }}/app@sha256:%s ' *)
+            $(printf '${{ env.IMAGE_NAME }}@sha256:%s ' *)
 
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ghcr.io/${{ github.repository }}/app:${{ steps.meta-app.outputs.version }}
+          docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:${{ steps.meta-app.outputs.version }}
