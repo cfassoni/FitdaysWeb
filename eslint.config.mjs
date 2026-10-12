@@ -8,8 +8,6 @@ const eslintConfig = defineConfig([
       ".next/**",
       "out/**",
       "build/**",
-      "_legacy/**",
-      "nextjs/**",
       "next-env.d.ts",
       "src/app/api/openapi.json/route.ts"
     ]
