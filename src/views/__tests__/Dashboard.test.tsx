@@ -42,6 +42,14 @@ vi.mock("@/lib/api", () => ({
   },
 }));
 
+const mockUseAuth = vi.fn(() => ({
+  enableWipPages: false,
+}));
+
+vi.mock("@/context/AuthContext", () => ({
+  useAuth: () => mockUseAuth(),
+}));
+
 // Mock recharts responsive container to render children
 vi.mock("recharts", async (importOriginal) => {
   const actual = await importOriginal<typeof import("recharts")>();
@@ -102,6 +110,7 @@ describe("Dashboard View Component", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseAuth.mockReturnValue({ enableWipPages: false });
     (api.getSummary as ReturnType<typeof vi.fn>).mockResolvedValue(mockSummary);
   });
 
@@ -131,7 +140,24 @@ describe("Dashboard View Component", () => {
     expect(button1M).toHaveClass("bg-card");
   });
 
-  it("renders Up Next Workout mockup card linking to /activities", async () => {
+  it("hides Up Next Workout and Nutrition Today mockup cards and expands chart to full width when enableWipPages is false", async () => {
+    mockUseAuth.mockReturnValue({ enableWipPages: false });
+    render(<Dashboard onNavigateToImport={mockNavigateToImport} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("78.4")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText(/Up Next Workout/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Nutrition Today/i)).not.toBeInTheDocument();
+
+    const chartHeading = screen.getByText(enTranslations.dashboard.weightHistoryTitle);
+    const chartWidget = chartHeading.closest(".lg\\:col-span-12");
+    expect(chartWidget).toBeInTheDocument();
+  });
+
+  it("renders Up Next Workout mockup card linking to /activities when enableWipPages is true", async () => {
+    mockUseAuth.mockReturnValue({ enableWipPages: true });
     render(<Dashboard onNavigateToImport={mockNavigateToImport} />);
 
     await waitFor(() => {
@@ -142,9 +168,14 @@ describe("Dashboard View Component", () => {
 
     const startWorkoutLink = screen.getByRole("link", { name: /Start Workout/i });
     expect(startWorkoutLink).toHaveAttribute("href", "/activities");
+
+    const chartHeading = screen.getByText(enTranslations.dashboard.weightHistoryTitle);
+    const chartWidget = chartHeading.closest(".lg\\:col-span-8");
+    expect(chartWidget).toBeInTheDocument();
   });
 
-  it("renders Nutrition Today mockup card linking to /nutrition", async () => {
+  it("renders Nutrition Today mockup card linking to /nutrition when enableWipPages is true", async () => {
+    mockUseAuth.mockReturnValue({ enableWipPages: true });
     render(<Dashboard onNavigateToImport={mockNavigateToImport} />);
 
     await waitFor(() => {
