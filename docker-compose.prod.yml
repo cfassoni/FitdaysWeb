@@ -12,13 +12,14 @@ services:
       - DATABASE_URL=file:/app/data/recomp_pro.db
       - UPLOAD_DIR=/app/data/uploads/profile_pics
       - REPORTS_DIR=/app/data/uploads/reports
-      - JWT_SECRET=${SECRET_KEY}
+      - JWT_SECRET=${SECRET_KEY:-recomp_pro_super_secret_key_12345_change_in_production}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
       - MAILGUN_API_KEY=${MAILGUN_API_KEY:-}
       - MAILGUN_DOMAIN=${MAILGUN_DOMAIN:-}
       - MAILGUN_API_BASE_URL=${MAILGUN_API_BASE_URL:-https://api.mailgun.net/v3}
       - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-Recomp Pro <noreply@recomppro.local>}
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost}
+      - ENABLE_WIP_PAGES=${ENABLE_WIP_PAGES:-false}
     volumes:
       - recomp_pro_data:/app/data
     restart: unless-stopped
