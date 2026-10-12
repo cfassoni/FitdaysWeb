@@ -6,6 +6,7 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import type { DashboardSummary } from "@/lib/api";
 import { formatDate, formatDateTime } from "@/lib/i18n";
+import { useAuth } from "@/context/AuthContext";
 import {
   Scale,
   Activity,
@@ -39,6 +40,7 @@ interface DashboardProps {
 
 export default function Dashboard({ onNavigateToImport }: DashboardProps) {
   const { t } = useTranslation();
+  const { enableWipPages } = useAuth();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -426,10 +428,14 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
         </div>
       </div>
 
-      {/* Main Bento Grid: Weight Evolution (8 cols) + Up Next Workout (4 cols) */}
+      {/* Main Bento Grid: Weight Evolution (8 cols when WiP enabled, 12 cols otherwise) + Up Next Workout (4 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Weight Evolution Chart Widget (8 cols) */}
-        <div className="lg:col-span-8 bg-card border border-border rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+        {/* Weight Evolution Chart Widget */}
+        <div
+          className={`${
+            enableWipPages ? "lg:col-span-8" : "lg:col-span-12"
+          } bg-card border border-border rounded-2xl p-6 shadow-xs flex flex-col justify-between`}
+        >
           <div>
             {/* Chart Header + Controls */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -623,19 +629,103 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
         </div>
 
         {/* Up Next Workout Bento Card (4 cols) — [Interim Test Lab Mockup] */}
-        <div className="lg:col-span-4 bg-card border border-border rounded-2xl p-6 shadow-xs flex flex-col justify-between relative overflow-hidden">
+        {enableWipPages && (
+          <div className="lg:col-span-4 bg-card border border-border rounded-2xl p-6 shadow-xs flex flex-col justify-between relative overflow-hidden">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                    <Flame className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground">
+                      {t("dashboard.upNext")}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {t("dashboard.upNextSubtitle")}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">
+                  {t("dashboard.mockupBadge")}
+                </span>
+              </div>
+
+              {/* Routine summary */}
+              <div className="p-4 bg-muted/40 border border-border rounded-xl space-y-3 my-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-sm text-foreground">
+                    {t("dashboard.routineCategory")}
+                  </span>
+                  <span className="text-xs font-data-mono font-medium text-muted-foreground">
+                    65 min
+                  </span>
+                </div>
+                {/* Intensity indicator */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] text-muted-foreground font-medium">
+                    {t("dashboard.intensity")}:
+                  </span>
+                  <div className="flex gap-1">
+                    <span className="h-2 w-3 rounded-xs bg-emerald-500" />
+                    <span className="h-2 w-3 rounded-xs bg-emerald-500" />
+                    <span className="h-2 w-3 rounded-xs bg-emerald-500" />
+                    <span className="h-2 w-3 rounded-xs bg-emerald-500" />
+                    <span className="h-2 w-3 rounded-xs bg-muted border border-border" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Exercises list preview */}
+              <div className="space-y-2">
+                <span className="font-label-caps text-muted-foreground block text-[11px]">
+                  {t("dashboard.routinePreview")}
+                </span>
+                <ul className="space-y-2 text-xs">
+                  <li className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/50">
+                    <span className="font-medium text-foreground">{t("dashboard.workoutExercise1")}</span>
+                    <span className="font-data-mono text-muted-foreground">4 × 8-10</span>
+                  </li>
+                  <li className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/50">
+                    <span className="font-medium text-foreground">{t("dashboard.workoutExercise2")}</span>
+                    <span className="font-data-mono text-muted-foreground">3 × 6-8</span>
+                  </li>
+                  <li className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/50">
+                    <span className="font-medium text-foreground">{t("dashboard.workoutExercise3")}</span>
+                    <span className="font-data-mono text-muted-foreground">4 × 10-12</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="pt-4 mt-4 border-t border-border">
+              <Link
+                href="/activities"
+                className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-primary hover:bg-primary/95 text-primary-foreground font-semibold text-xs rounded-xl shadow-md shadow-primary/10 transition-colors"
+              >
+                <span>{t("dashboard.startWorkout")}</span>
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Nutrition Today Card (Bottom Wide Bento Card) — [Interim Test Lab Mockup] */}
+      {enableWipPages && (
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                  <Flame className="h-5 w-5" />
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  <UtensilsCrossed className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-foreground">
-                    {t("dashboard.upNext")}
+                  <h3 className="text-base font-bold text-foreground">
+                    {t("dashboard.nutritionToday")}
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    {t("dashboard.upNextSubtitle")}
+                    {t("dashboard.nutritionSubtitle")}
                   </p>
                 </div>
               </div>
@@ -644,177 +734,97 @@ export default function Dashboard({ onNavigateToImport }: DashboardProps) {
               </span>
             </div>
 
-            {/* Routine summary */}
-            <div className="p-4 bg-muted/40 border border-border rounded-xl space-y-3 my-4">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-sm text-foreground">
-                  {t("dashboard.routineCategory")}
+            {/* Calories summary & Macro bars */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+              {/* Calories circular/progress summary (4 cols) */}
+              <div className="md:col-span-4 p-5 bg-muted/30 border border-border rounded-xl text-center space-y-2">
+                <span className="font-label-caps text-muted-foreground block text-[11px]">
+                  {t("dashboard.caloricBudget")}
                 </span>
-                <span className="text-xs font-data-mono font-medium text-muted-foreground">
-                  65 min
-                </span>
+                <div className="font-display-metrics text-foreground text-3xl">
+                  2,150 <span className="text-sm font-normal text-muted-foreground">/ 2,500 kcal</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                  <div
+                    className="bg-emerald-500 h-2.5 rounded-full"
+                    style={{ width: "86%" }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  350 kcal {t("dashboard.remainingCalories")}
+                </p>
               </div>
-              {/* Intensity indicator */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-[11px] text-muted-foreground font-medium">
-                  {t("dashboard.intensity")}:
-                </span>
-                <div className="flex gap-1">
-                  <span className="h-2 w-3 rounded-xs bg-emerald-500" />
-                  <span className="h-2 w-3 rounded-xs bg-emerald-500" />
-                  <span className="h-2 w-3 rounded-xs bg-emerald-500" />
-                  <span className="h-2 w-3 rounded-xs bg-emerald-500" />
-                  <span className="h-2 w-3 rounded-xs bg-muted border border-border" />
+
+              {/* Macros breakdown bars (8 cols) */}
+              <div className="md:col-span-8 space-y-3">
+                {/* Protein */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium text-foreground">
+                      {t("dashboard.macroProtein")} (89%)
+                    </span>
+                    <span className="font-data-mono font-semibold text-emerald-600 dark:text-emerald-400">
+                      160g / 180g
+                    </span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-emerald-500 h-2 rounded-full"
+                      style={{ width: "89%" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Carbs */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium text-foreground">
+                      {t("dashboard.macroCarbs")} (70%)
+                    </span>
+                    <span className="font-data-mono font-semibold text-indigo-600 dark:text-indigo-400">
+                      210g / 300g
+                    </span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-indigo-500 h-2 rounded-full"
+                      style={{ width: "70%" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Fats */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium text-foreground">
+                      {t("dashboard.macroFats")} (80%)
+                    </span>
+                    <span className="font-data-mono font-semibold text-amber-600 dark:text-amber-500">
+                      52g / 65g
+                    </span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-amber-500 h-2 rounded-full"
+                      style={{ width: "80%" }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-
-            {/* Exercises list preview */}
-            <div className="space-y-2">
-              <span className="font-label-caps text-muted-foreground block text-[11px]">
-                {t("dashboard.routinePreview")}
-              </span>
-              <ul className="space-y-2 text-xs">
-                <li className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/50">
-                  <span className="font-medium text-foreground">{t("dashboard.workoutExercise1")}</span>
-                  <span className="font-data-mono text-muted-foreground">4 × 8-10</span>
-                </li>
-                <li className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/50">
-                  <span className="font-medium text-foreground">{t("dashboard.workoutExercise2")}</span>
-                  <span className="font-data-mono text-muted-foreground">3 × 6-8</span>
-                </li>
-                <li className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/50">
-                  <span className="font-medium text-foreground">{t("dashboard.workoutExercise3")}</span>
-                  <span className="font-data-mono text-muted-foreground">4 × 10-12</span>
-                </li>
-              </ul>
-            </div>
           </div>
 
-          <div className="pt-4 mt-4 border-t border-border">
+          <div className="pt-4 mt-6 border-t border-border flex justify-end">
             <Link
-              href="/activities"
-              className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-primary hover:bg-primary/95 text-primary-foreground font-semibold text-xs rounded-xl shadow-md shadow-primary/10 transition-colors"
+              href="/nutrition"
+              className="flex items-center gap-2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
             >
-              <span>{t("dashboard.startWorkout")}</span>
-              <ChevronRight className="h-4 w-4" />
+              <span>{t("dashboard.viewNutrition")}</span>
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         </div>
-      </div>
-
-      {/* Nutrition Today Card (Bottom Wide Bento Card) — [Interim Test Lab Mockup] */}
-      <div className="bg-card border border-border rounded-2xl p-6 shadow-xs flex flex-col justify-between">
-        <div>
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                <UtensilsCrossed className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-foreground">
-                  {t("dashboard.nutritionToday")}
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  {t("dashboard.nutritionSubtitle")}
-                </p>
-              </div>
-            </div>
-            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">
-              {t("dashboard.mockupBadge")}
-            </span>
-          </div>
-
-          {/* Calories summary & Macro bars */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-            {/* Calories circular/progress summary (4 cols) */}
-            <div className="md:col-span-4 p-5 bg-muted/30 border border-border rounded-xl text-center space-y-2">
-              <span className="font-label-caps text-muted-foreground block text-[11px]">
-                {t("dashboard.caloricBudget")}
-              </span>
-              <div className="font-display-metrics text-foreground text-3xl">
-                2,150 <span className="text-sm font-normal text-muted-foreground">/ 2,500 kcal</span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
-                <div
-                  className="bg-emerald-500 h-2.5 rounded-full"
-                  style={{ width: "86%" }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                350 kcal {t("dashboard.remainingCalories")}
-              </p>
-            </div>
-
-            {/* Macros breakdown bars (8 cols) */}
-            <div className="md:col-span-8 space-y-3">
-              {/* Protein */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-foreground">
-                    {t("dashboard.macroProtein")} (89%)
-                  </span>
-                  <span className="font-data-mono font-semibold text-emerald-600 dark:text-emerald-400">
-                    160g / 180g
-                  </span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                  <div
-                    className="bg-emerald-500 h-2 rounded-full"
-                    style={{ width: "89%" }}
-                  />
-                </div>
-              </div>
-
-              {/* Carbs */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-foreground">
-                    {t("dashboard.macroCarbs")} (70%)
-                  </span>
-                  <span className="font-data-mono font-semibold text-indigo-600 dark:text-indigo-400">
-                    210g / 300g
-                  </span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                  <div
-                    className="bg-indigo-500 h-2 rounded-full"
-                    style={{ width: "70%" }}
-                  />
-                </div>
-              </div>
-
-              {/* Fats */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-foreground">
-                    {t("dashboard.macroFats")} (80%)
-                  </span>
-                  <span className="font-data-mono font-semibold text-amber-600 dark:text-amber-500">
-                    52g / 65g
-                  </span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                  <div
-                    className="bg-amber-500 h-2 rounded-full"
-                    style={{ width: "80%" }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="pt-4 mt-6 border-t border-border flex justify-end">
-          <Link
-            href="/nutrition"
-            className="flex items-center gap-2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-          >
-            <span>{t("dashboard.viewNutrition")}</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
