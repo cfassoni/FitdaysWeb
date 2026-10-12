@@ -131,4 +131,76 @@ describe("GuestSharedReport View - i18n", () => {
       ).toBeInTheDocument();
     });
   });
+
+  it("displays localized incorrect password error and stays on password gate when verification fails", async () => {
+    const { fireEvent } = await import("@testing-library/react");
+    vi.mocked(api.getPublicSharedLinkMetadata).mockResolvedValue({
+      ...mockMetadata,
+      has_password: true,
+    });
+    vi.mocked(api.verifyPublicSharedLinkPassword).mockRejectedValue(
+      new Error("Incorrect password")
+    );
+
+    render(<GuestSharedReport token="token-protected" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Password Required")).toBeInTheDocument();
+    });
+
+    const input = screen.getByLabelText("Password");
+    fireEvent.change(input, { target: { value: "wrong-pass" } });
+
+    const submitBtn = screen.getByRole("button", { name: /unlock report/i });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText("Incorrect password.")).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      await i18n.changeLanguage("pt");
+    });
+    fireEvent.click(screen.getByRole("button", { name: /desbloquear relatório/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Senha incorreta.")).toBeInTheDocument();
+    });
+  });
 });
+
+describe("api.verifyPublicSharedLinkPassword 401 handling", () => {
+  it("does not clear user auth token or dispatch auth-session-expired when public shared link verify returns 401", async () => {
+    const store = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => store.set(k, v),
+      removeItem: (k: string) => store.delete(k),
+    });
+
+    const actualApiModule = await vi.importActual<typeof import("@/lib/api")>("@/lib/api");
+    actualApiModule.setAuthToken("valid-user-session-jwt");
+
+    const expiredListener = vi.fn();
+    window.addEventListener("auth-session-expired", expiredListener);
+
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify({ detail: "Incorrect password" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+
+    await expect(
+      actualApiModule.api.verifyPublicSharedLinkPassword("token-123", "bad-pass")
+    ).rejects.toThrow("Incorrect password");
+
+    expect(expiredListener).not.toHaveBeenCalled();
+    expect(actualApiModule.getAuthToken()).toBe("valid-user-session-jwt");
+
+    window.removeEventListener("auth-session-expired", expiredListener);
+    fetchSpy.mockRestore();
+    vi.unstubAllGlobals();
+  });
+});
+
