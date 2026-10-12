@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import Biometrics from "../Biometrics";
 import { api } from "@/lib/api";
-import type { FitdaysRecord } from "@/lib/api";
+import type { RecompRecord } from "@/lib/api";
 import enTranslations from "@/locales/en.json";
 
 function getTranslation(obj: unknown, path: string): string {
@@ -58,7 +58,7 @@ vi.mock("@/lib/api", () => ({
   },
 }));
 
-const mockRecords: FitdaysRecord[] = [
+const mockRecords: RecompRecord[] = [
   {
     id: 1,
     date: "2026-08-01T08:00:00Z",
@@ -135,7 +135,7 @@ const mockRecords: FitdaysRecord[] = [
     starred: false,
     report: null,
   },
-] as unknown as FitdaysRecord[];
+] as unknown as RecompRecord[];
 
 describe("Biometrics View Component", () => {
   beforeEach(() => {
@@ -307,12 +307,12 @@ describe("Biometrics View Component", () => {
       expect(screen.getByText(/Compatible with Fitdays CSV exports up to 5MB/i)).toBeInTheDocument();
     });
 
-    const file = new File(["date,weight\n2026-08-01,75.0"], "fitdays.csv", { type: "text/csv" });
+    const file = new File(["date,weight\n2026-08-01,75.0"], "recomp.csv", { type: "text/csv" });
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     fireEvent.change(fileInput, { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(screen.getByText("fitdays.csv")).toBeInTheDocument();
+      expect(screen.getByText("recomp.csv")).toBeInTheDocument();
     });
 
     // Click upload

@@ -8,8 +8,8 @@ export function isSwaggerEnabled(): boolean {
 export const openApiSpec = {
   openapi: "3.0.3",
   info: {
-    title: "FitdaysWeb / Recomp Pro API",
-    version: "0.4.0",
+    title: "Recomp Pro API",
+    version: "0.6.1",
     description: "Interactive Swagger API documentation for Next.js 16 Route Handlers and Drizzle ORM backend. Available in development & testing environments.",
   },
   servers: [
@@ -71,7 +71,7 @@ export const openApiSpec = {
           url: { type: "string" },
         },
       },
-      FitdaysRecord: {
+      RecompRecord: {
         type: "object",
         properties: {
           id: { type: "integer" },
@@ -561,7 +561,7 @@ export const openApiSpec = {
       },
     },
 
-    // ----------------- Fitdays Records -----------------
+    // ----------------- Recomp Records -----------------
     "/api/records": {
       get: {
         tags: ["Records"],
@@ -570,7 +570,7 @@ export const openApiSpec = {
         responses: {
           200: {
             description: "List of records",
-            content: { "application/json": { schema: { type: "array", items: { $ref: "#/components/schemas/FitdaysRecord" } } } },
+            content: { "application/json": { schema: { type: "array", items: { $ref: "#/components/schemas/RecompRecord" } } } },
           },
         },
       },
@@ -591,7 +591,7 @@ export const openApiSpec = {
     "/api/records/upload": {
       post: {
         tags: ["Records"],
-        summary: "Upload Fitdays Excel (.xlsx) or CSV export file",
+        summary: "Upload smart scale Excel (.xlsx) or CSV export file",
         security: [{ BearerAuth: [] }],
         requestBody: {
           required: true,

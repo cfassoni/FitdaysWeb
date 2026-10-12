@@ -1,35 +1,15 @@
 name: recomp-pro
 
 services:
-  data-migrator:
-    image: alpine
-    volumes:
-      - fitdays-db-data-legacy:/from
-      - recomp_pro_data:/to
-    command: >
-      /bin/sh -c "
-        log() { echo \"[$$(date '+%Y-%m-%d %H:%M:%S')] $$1\"; };
-        if [ ! -f /to/fitdays.db ] && [ -f /from/fitdays.db ]; then
-          log 'Migrating legacy data to new volume...';
-          cp -av /from/. /to/;
-          log 'Migration complete.';
-        else
-          log 'No migration needed.';
-        fi
-      "
-
   app:
-    depends_on:
-      data-migrator:
-        condition: service_completed_successfully
-    image: ghcr.io/cfassoni/fitdaysweb/app:latest
+    image: ghcr.io/cfassoni/recomppro-core/app:latest
     container_name: recomp-pro-app
     ports:
       - "80:3000"
     environment:
       - NODE_ENV=production
       - DOCKER_MODE=true
-      - DATABASE_URL=file:/app/data/fitdays.db
+      - DATABASE_URL=file:/app/data/recomp_pro.db
       - UPLOAD_DIR=/app/data/uploads/profile_pics
       - REPORTS_DIR=/app/data/uploads/reports
       - JWT_SECRET=${SECRET_KEY}
@@ -44,7 +24,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  fitdays-db-data-legacy:
-    name: fitdaysweb_fitdays-db-data
   recomp_pro_data:
     name: recomp_pro_data

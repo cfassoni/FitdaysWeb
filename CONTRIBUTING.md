@@ -6,7 +6,7 @@ Thank you for contributing!
 
 1. **Install Node.js 22**
 2. **Install dependencies**: `npm install`
-3. **Database**: A local SQLite file `fitdays.db` will be created automatically.
+3. **Database**: A local SQLite file `recomp_pro.db` will be created automatically.
 4. **Run development server**: `npm run dev`
 
 ## Verification Checks

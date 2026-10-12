@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
 function getSecretKey(): Uint8Array {
-  const secret = process.env.JWT_SECRET || process.env.SECRET_KEY || "fitdays_super_secret_key_12345_change_in_production";
+  const secret = process.env.JWT_SECRET || process.env.SECRET_KEY || "recomp_pro_super_secret_key_12345_change_in_production";
   return new Uint8Array(Buffer.from(secret, "utf-8"));
 }
 const ALGORITHM = "HS256";

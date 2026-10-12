@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
 import { db } from "@/db/client";
-import { fitdaysRecords } from "@/db/schema";
+import { recompRecords } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { syncAutoShareLinksForUser } from "@/lib/sharedLinkFormat";
 
@@ -12,10 +12,10 @@ export const POST = withAuth(async (req, { user, params }) => {
       return NextResponse.json({ detail: "Invalid record ID" }, { status: 400 });
     }
 
-    const record = await db.query.fitdaysRecords.findFirst({
+    const record = await db.query.recompRecords.findFirst({
       where: and(
-        eq(fitdaysRecords.id, recordId),
-        eq(fitdaysRecords.userId, user.id)
+        eq(recompRecords.id, recordId),
+        eq(recompRecords.userId, user.id)
       ),
     });
 
@@ -36,9 +36,9 @@ export const POST = withAuth(async (req, { user, params }) => {
     }
 
     const [updated] = await db
-      .update(fitdaysRecords)
+      .update(recompRecords)
       .set({ starred: targetStarred })
-      .where(and(eq(fitdaysRecords.id, recordId), eq(fitdaysRecords.userId, user.id)))
+      .where(and(eq(recompRecords.id, recordId), eq(recompRecords.userId, user.id)))
       .returning();
 
     // Sincroniza links compartilhados com auto-share ativo

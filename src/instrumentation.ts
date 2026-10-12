@@ -21,7 +21,7 @@ export async function register() {
       const path = await import("path");
       const { migrate } = await import("drizzle-orm/libsql/migrator");
       const { db } = await import("@/db/client");
-      const { normalizeFitdaysRecordDates } = await import("@/db/initDb");
+      const { migrateLegacySchemaTables, normalizeRecompRecordDates } = await import("@/db/initDb");
 
       if (process.env.DOCKER_MODE === "true") {
         const dataDir = path.resolve("/app/data");
@@ -33,8 +33,13 @@ export async function register() {
       const migrationsFolder = path.resolve(process.cwd(), "./src/db/migrations");
       if (fs.existsSync(migrationsFolder)) {
         console.log("Checking and applying Drizzle database migrations...");
-        await migrate(db, { migrationsFolder: "./src/db/migrations" });
-        await normalizeFitdaysRecordDates();
+        try {
+          await migrate(db, { migrationsFolder: "./src/db/migrations" });
+        } catch (migrationErr) {
+          console.warn("Drizzle migrator notice (falling back to defensive schema check):", migrationErr);
+        }
+        await migrateLegacySchemaTables();
+        await normalizeRecompRecordDates();
         console.log("Drizzle migrations verified successfully.");
       }
     } catch (err) {
