@@ -99,12 +99,12 @@ describe("CSVImportModal Component", () => {
       />
     );
 
-    const file = new File(["date,weight\n2026-08-01,75.0"], "fitdays.csv", { type: "text/csv" });
+    const file = new File(["date,weight\n2026-08-01,75.0"], "recomp.csv", { type: "text/csv" });
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
 
     fireEvent.change(input, { target: { files: [file] } });
 
-    expect(screen.getByText("fitdays.csv")).toBeInTheDocument();
+    expect(screen.getByText("recomp.csv")).toBeInTheDocument();
 
     const uploadBtn = screen.getByRole("button", { name: /Upload & Parse/i });
     fireEvent.click(uploadBtn);

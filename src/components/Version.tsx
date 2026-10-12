@@ -21,10 +21,10 @@ interface VersionProps {
   isCollapsed?: boolean;
 }
 
-const VERSION = "0.6.1";
-const GITHUB_REPO = "https://github.com/cfassoni/FitdaysWeb";
-const GITHUB_ISSUES = "https://github.com/cfassoni/FitdaysWeb/issues";
-const RELEASE_URL = `https://github.com/cfassoni/FitdaysWeb/releases/tag/v${VERSION}`;
+const VERSION = "0.7.0";
+const GITHUB_REPO = "https://github.com/cfassoni/RecompPro-core";
+const GITHUB_ISSUES = "https://github.com/cfassoni/RecompPro-core/issues";
+const RELEASE_URL = `https://github.com/cfassoni/RecompPro-core/releases/tag/v${VERSION}`;
 
 export default function Version({ isCollapsed = false }: VersionProps) {
   const { t } = useTranslation();

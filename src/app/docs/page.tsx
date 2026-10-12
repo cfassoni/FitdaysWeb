@@ -5,7 +5,7 @@ import SwaggerDocsClient from "./SwaggerDocsClient";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "API Documentation | FitdaysWeb / Recomp Pro",
+  title: "API Documentation | Recomp Pro",
   description: "Interactive Swagger API documentation for development and testing",
 };
 

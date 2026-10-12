@@ -1,9 +1,9 @@
-import { fitdaysRecords, fitdaysReports } from "@/db/schema";
+import { recompRecords, recompReports } from "@/db/schema";
 import { safeToISOString } from "./dateUtils";
 import path from "path";
 
-export type RecordSelect = typeof fitdaysRecords.$inferSelect;
-export type ReportSelect = typeof fitdaysReports.$inferSelect;
+export type RecordSelect = typeof recompRecords.$inferSelect;
+export type ReportSelect = typeof recompReports.$inferSelect;
 
 export function formatReportResponse(report: ReportSelect | null | undefined) {
   if (!report) return null;

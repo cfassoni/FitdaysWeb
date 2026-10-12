@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
 import { db } from "@/db/client";
-import { sharedLinks, fitdaysRecords } from "@/db/schema";
+import { sharedLinks, recompRecords } from "@/db/schema";
 import { eq, and, gt, isNull, or, inArray, desc, asc } from "drizzle-orm";
 import { hashPassword, generateSharedLinkToken } from "@/lib/auth";
 import { formatSharedLinkResponse } from "@/lib/sharedLinkFormat";
@@ -54,25 +54,25 @@ export const POST = withAuth(async (req, { user }) => {
     if (isAutoShare) {
       if (manualIds.length > 0) {
         recordsWhere = and(
-          eq(fitdaysRecords.userId, user.id),
-          or(inArray(fitdaysRecords.id, manualIds), eq(fitdaysRecords.starred, true))
+          eq(recompRecords.userId, user.id),
+          or(inArray(recompRecords.id, manualIds), eq(recompRecords.starred, true))
         );
       } else {
         recordsWhere = and(
-          eq(fitdaysRecords.userId, user.id),
-          eq(fitdaysRecords.starred, true)
+          eq(recompRecords.userId, user.id),
+          eq(recompRecords.starred, true)
         );
       }
     } else {
       recordsWhere = and(
-        eq(fitdaysRecords.userId, user.id),
-        inArray(fitdaysRecords.id, manualIds)
+        eq(recompRecords.userId, user.id),
+        inArray(recompRecords.id, manualIds)
       );
     }
 
-    const records = await db.query.fitdaysRecords.findMany({
+    const records = await db.query.recompRecords.findMany({
       where: recordsWhere,
-      orderBy: [asc(fitdaysRecords.date)],
+      orderBy: [asc(recompRecords.date)],
       with: {
         report: true,
       },

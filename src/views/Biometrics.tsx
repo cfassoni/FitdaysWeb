@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import LocalizedDatePicker from "@/components/LocalizedDatePicker";
 import CSVImportModal from "@/components/CSVImportModal";
-import type { FitdaysRecord } from "@/lib/api";
+import type { RecompRecord } from "@/lib/api";
 import { formatDate, formatDateTime } from "@/lib/i18n";
 import { copyTextToClipboard } from "@/lib/clipboard";
 import {
@@ -42,7 +42,7 @@ export default function Biometrics({
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [records, setRecords] = useState<FitdaysRecord[]>([]);
+  const [records, setRecords] = useState<RecompRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,7 +80,7 @@ export default function Biometrics({
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStarredOnly, setFilterStarredOnly] = useState(false);
   const [timeRangeFilter, setTimeRangeFilter] = useState<"all" | "1m" | "3m" | "6m" | "1y">("all");
-  const [sortField, setSortField] = useState<keyof FitdaysRecord>("date");
+  const [sortField, setSortField] = useState<keyof RecompRecord>("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   // Pagination states
@@ -93,7 +93,7 @@ export default function Biometrics({
   }, [searchTerm, filterStarredOnly, timeRangeFilter, pageSize]);
 
   // Drawer state
-  const [selectedRecord, setSelectedRecord] = useState<FitdaysRecord | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<RecompRecord | null>(null);
 
   // Deletion States
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -458,7 +458,7 @@ export default function Biometrics({
     }
   };
 
-  const handleSort = (field: keyof FitdaysRecord) => {
+  const handleSort = (field: keyof RecompRecord) => {
     if (sortField === field) {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
@@ -514,7 +514,7 @@ export default function Biometrics({
       });
   };
 
-  const renderSortIcon = (field: keyof FitdaysRecord) => {
+  const renderSortIcon = (field: keyof RecompRecord) => {
     if (sortField !== field) return null;
     return sortDirection === "asc" ? (
       <ChevronUp className="h-4 w-4 inline ml-1 text-primary" />

@@ -54,9 +54,9 @@ export const users = sqliteTable("users", {
 });
 
 // -----------------------------------------------------------------------------
-// Table: Fitdays Records (compatible with existing SQLite database)
+// Table: Recomp Records
 // -----------------------------------------------------------------------------
-export const fitdaysRecords = sqliteTable("fitdays_records", {
+export const recompRecords = sqliteTable("recomp_records", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   date: sqliteDateTime("date").notNull(),
@@ -145,11 +145,11 @@ export const fitdaysRecords = sqliteTable("fitdays_records", {
 ]);
 
 // -----------------------------------------------------------------------------
-// Table: Fitdays Reports (compatible with existing SQLite database)
+// Table: Recomp Reports
 // -----------------------------------------------------------------------------
-export const fitdaysReports = sqliteTable("fitdays_reports", {
+export const recompReports = sqliteTable("recomp_reports", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  recordId: integer("record_id").notNull().unique().references(() => fitdaysRecords.id, { onDelete: "cascade" }),
+  recordId: integer("record_id").notNull().unique().references(() => recompRecords.id, { onDelete: "cascade" }),
   filePath: text("file_path").notNull(),
   filename: text("filename").notNull(),
   mimeType: text("mime_type").notNull(),
@@ -190,22 +190,22 @@ export const sharedLinkAuditLogs = sqliteTable("shared_link_audit_logs", {
 // Relations (Declared strictly after all table definitions)
 // -----------------------------------------------------------------------------
 export const usersRelations = relations(users, ({ many }) => ({
-  records: many(fitdaysRecords),
+  records: many(recompRecords),
   sharedLinks: many(sharedLinks),
 }));
 
-export const fitdaysRecordsRelations = relations(fitdaysRecords, ({ one }) => ({
+export const recompRecordsRelations = relations(recompRecords, ({ one }) => ({
   user: one(users, {
-    fields: [fitdaysRecords.userId],
+    fields: [recompRecords.userId],
     references: [users.id],
   }),
-  report: one(fitdaysReports),
+  report: one(recompReports),
 }));
 
-export const fitdaysReportsRelations = relations(fitdaysReports, ({ one }) => ({
-  record: one(fitdaysRecords, {
-    fields: [fitdaysReports.recordId],
-    references: [fitdaysRecords.id],
+export const recompReportsRelations = relations(recompReports, ({ one }) => ({
+  record: one(recompRecords, {
+    fields: [recompReports.recordId],
+    references: [recompRecords.id],
   }),
 }));
 

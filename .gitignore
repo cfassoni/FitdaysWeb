@@ -6,22 +6,17 @@ Thumbs.db
 
 # Database files
 *.db
+*.db-wal
+*.db-shm
 *.sqlite
 *.sqlite3
 
-# Python / Backend
-.venv/
-__pycache__/
-*.pyc
-.pytest_cache/
-.tox/
-.coverage
-htmlcov/
-
-# Node / Frontend
+# Node / Next.js
 node_modules/
 dist/
 dist-ssr/
+.next/
+next-env.d.ts
 *.local
 .eslintcache
 
@@ -42,16 +37,9 @@ pnpm-debug.log*
 *.sln
 *.sw?
 
-# User Uploads
-backend/uploads/
-nextjs/uploads/
-/uploads/
+# User Uploads & Data
+uploads/
+data/
 specs/
-
-# Next.js
-.next/
-next-env.d.ts
-/data/
-nextjs/data/
 test-mailgun.env
 scratch/

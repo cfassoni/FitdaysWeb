@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
-import type { SharedLinkPublicMetadata, SharedLinkPublicData, FitdaysRecord } from "@/lib/api";
+import type { SharedLinkPublicMetadata, SharedLinkPublicData, RecompRecord } from "@/lib/api";
 import { formatDate, formatDateTime } from "@/lib/i18n";
 import LanguageMenu from "@/components/LanguageMenu";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -60,7 +60,7 @@ export default function GuestSharedReport({ token }: GuestSharedReportProps) {
   const [muscleUnit, setMuscleUnit] = useState<"kg" | "pct">("kg");
 
   // Record details drawer state
-  const [selectedRecord, setSelectedRecord] = useState<FitdaysRecord | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<RecompRecord | null>(null);
 
   // Sorting state for table
   const [sortField, setSortField] = useState<"date" | "weight" | "bmi" | "body_fat_pct" | "skeletal_muscle_mass" | "body_score">("date");

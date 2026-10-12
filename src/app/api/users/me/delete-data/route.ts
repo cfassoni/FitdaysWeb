@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
 import { verifyPassword } from "@/lib/auth";
 import { db } from "@/db/client";
-import { fitdaysRecords, sharedLinks } from "@/db/schema";
+import { recompRecords, sharedLinks } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { sendDataDeletedEmail } from "@/lib/email";
 
@@ -22,8 +22,8 @@ export const POST = withAuth(async (req, { user }) => {
 
     // Delete records and shared links belonging to user
     const deletedRecords = await db
-      .delete(fitdaysRecords)
-      .where(eq(fitdaysRecords.userId, user.id))
+      .delete(recompRecords)
+      .where(eq(recompRecords.userId, user.id))
       .returning();
 
     const deletedLinks = await db

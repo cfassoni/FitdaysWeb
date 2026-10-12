@@ -2,15 +2,50 @@ import { sql } from "drizzle-orm";
 import { db } from "./client";
 import { formatRecordDateKey } from "@/lib/dateUtils";
 
-export async function normalizeFitdaysRecordDates(): Promise<void> {
+/**
+ * Idempotently migrates legacy `fitdays_records` and `fitdays_reports` tables
+ * to `recomp_records` and `recomp_reports` without data loss.
+ */
+export async function migrateLegacySchemaTables(targetDb: typeof db = db): Promise<void> {
+  const tables = await targetDb.all<{ name: string }>(
+    sql`SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('fitdays_records', 'recomp_records', 'fitdays_reports', 'recomp_reports')`
+  );
+  const tableSet = new Set(tables.map((t) => t.name));
+
+  if (tableSet.has("fitdays_records") && !tableSet.has("recomp_records")) {
+    await targetDb.run(sql`ALTER TABLE fitdays_records RENAME TO recomp_records`);
+    tableSet.delete("fitdays_records");
+    tableSet.add("recomp_records");
+  }
+
+  if (tableSet.has("fitdays_reports") && !tableSet.has("recomp_reports")) {
+    await targetDb.run(sql`ALTER TABLE fitdays_reports RENAME TO recomp_reports`);
+    await targetDb.run(sql`DROP INDEX IF EXISTS fitdays_reports_record_id_unique`);
+    await targetDb.run(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS recomp_reports_record_id_unique ON recomp_reports (record_id)`
+    );
+    tableSet.delete("fitdays_reports");
+    tableSet.add("recomp_reports");
+  }
+
+  if (tableSet.has("recomp_records")) {
+    try {
+      await targetDb.run(sql`ALTER TABLE recomp_records ADD COLUMN starred INTEGER NOT NULL DEFAULT 0`);
+    } catch {
+      // Column already exists
+    }
+  }
+}
+
+export async function normalizeRecompRecordDates(): Promise<void> {
   const rows = await db.all<{ id: number; user_id: number; date: string | number | null }>(
-    sql`SELECT id, user_id, date FROM fitdays_records ORDER BY id ASC`
+    sql`SELECT id, user_id, date FROM recomp_records ORDER BY id ASC`
   );
 
   if (rows.length === 0) return;
 
   const reports = await db.all<{ id: number; record_id: number }>(
-    sql`SELECT id, record_id FROM fitdays_reports`
+    sql`SELECT id, record_id FROM recomp_reports`
   );
   const reportByRecordId = new Map<number, number>();
   for (const r of reports) {
@@ -36,7 +71,7 @@ export async function normalizeFitdaysRecordDates(): Promise<void> {
       const item = group[0];
       if (typeof item.date !== "string" || item.date !== item.canonical) {
         await db.run(
-          sql`UPDATE fitdays_records SET date = ${item.canonical} WHERE id = ${item.id}`
+          sql`UPDATE recomp_records SET date = ${item.canonical} WHERE id = ${item.id}`
         );
       }
       continue;
@@ -52,22 +87,24 @@ export async function normalizeFitdaysRecordDates(): Promise<void> {
       const dupReportId = reportByRecordId.get(dup.id);
       if (dupReportId !== undefined && !keeperHasReport) {
         await db.run(
-          sql`UPDATE fitdays_reports SET record_id = ${keeper.id} WHERE id = ${dupReportId}`
+          sql`UPDATE recomp_reports SET record_id = ${keeper.id} WHERE id = ${dupReportId}`
         );
         keeperHasReport = true;
       }
-      await db.run(sql`DELETE FROM fitdays_records WHERE id = ${dup.id}`);
+      await db.run(sql`DELETE FROM recomp_records WHERE id = ${dup.id}`);
     }
 
     if (typeof keeper.date !== "string" || keeper.date !== keeper.canonical) {
       await db.run(
-        sql`UPDATE fitdays_records SET date = ${keeper.canonical} WHERE id = ${keeper.id}`
+        sql`UPDATE recomp_records SET date = ${keeper.canonical} WHERE id = ${keeper.id}`
       );
     }
   }
 }
 
 export async function ensureTablesExist(): Promise<void> {
+  await migrateLegacySchemaTables();
+
   await db.run(sql`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -94,7 +131,7 @@ export async function ensureTablesExist(): Promise<void> {
   `);
 
   await db.run(sql`
-    CREATE TABLE IF NOT EXISTS fitdays_records (
+    CREATE TABLE IF NOT EXISTS recomp_records (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       date DATETIME NOT NULL,
@@ -171,9 +208,9 @@ export async function ensureTablesExist(): Promise<void> {
   `);
 
   await db.run(sql`
-    CREATE TABLE IF NOT EXISTS fitdays_reports (
+    CREATE TABLE IF NOT EXISTS recomp_reports (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      record_id INTEGER NOT NULL UNIQUE REFERENCES fitdays_records(id) ON DELETE CASCADE,
+      record_id INTEGER NOT NULL UNIQUE REFERENCES recomp_records(id) ON DELETE CASCADE,
       file_path TEXT NOT NULL,
       filename TEXT NOT NULL,
       mime_type TEXT NOT NULL,
@@ -211,7 +248,7 @@ export async function ensureTablesExist(): Promise<void> {
 
   // Defensive migrations for existing SQLite databases
   try {
-    await db.run(sql`ALTER TABLE fitdays_records ADD COLUMN starred INTEGER NOT NULL DEFAULT 0`);
+    await db.run(sql`ALTER TABLE recomp_records ADD COLUMN starred INTEGER NOT NULL DEFAULT 0`);
   } catch {
     // Column already exists
   }
@@ -228,5 +265,5 @@ export async function ensureTablesExist(): Promise<void> {
     // Column already exists
   }
 
-  await normalizeFitdaysRecordDates();
+  await normalizeRecompRecordDates();
 }
