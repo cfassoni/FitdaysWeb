@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
 import { db } from "@/db/client";
-import { fitdaysRecords } from "@/db/schema";
+import { recompRecords } from "@/db/schema";
 import { eq, inArray, and } from "drizzle-orm";
 
 export const POST = withAuth(async (req, { user }) => {
@@ -18,8 +18,8 @@ export const POST = withAuth(async (req, { user }) => {
 
     for (const rawId of ids) {
       const recId = Number(rawId);
-      const record = await db.query.fitdaysRecords.findFirst({
-        where: eq(fitdaysRecords.id, recId),
+      const record = await db.query.recompRecords.findFirst({
+        where: eq(recompRecords.id, recId),
       });
 
       if (!record) {
@@ -27,7 +27,7 @@ export const POST = withAuth(async (req, { user }) => {
       } else if (record.userId !== user.id) {
         failedDeletions.push({ id: recId, reason: "unauthorized" });
       } else {
-        await db.delete(fitdaysRecords).where(eq(fitdaysRecords.id, recId));
+        await db.delete(recompRecords).where(eq(recompRecords.id, recId));
         deletedIds.push(recId);
       }
     }

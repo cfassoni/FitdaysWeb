@@ -15,6 +15,13 @@
       "when": 1791643484275,
       "tag": "0001_gorgeous_silverclaw",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791810420000,
+      "tag": "0002_recomp_schema_rebrand",
+      "breakpoints": true
     }
   ]
 }

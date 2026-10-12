@@ -378,7 +378,7 @@ export function classifyColumn(col: string, sampleVal?: unknown): string | null 
   return null;
 }
 
-export function parseFitdaysFile(buffer: Buffer | Uint8Array | ArrayBuffer): ParsedRecompRecord[] {
+export function parseRecompFile(buffer: Buffer | Uint8Array | ArrayBuffer): ParsedRecompRecord[] {
   const workbook = XLSX.read(buffer, { type: "buffer", cellDates: false });
   const firstSheetName = workbook.SheetNames[0];
   if (!firstSheetName) {

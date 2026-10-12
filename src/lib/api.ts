@@ -1,6 +1,6 @@
-// API Client and Interfaces for FitdaysWeb / Recomp Pro
+// API Client and Interfaces for Recomp Pro
 
-export interface FitdaysReport {
+export interface RecompReport {
   id: number;
   record_id: number;
   filename: string;
@@ -61,7 +61,7 @@ export interface DashboardSummary {
   weight_history: WeightHistoryPoint[];
 }
 
-export interface FitdaysRecord {
+export interface RecompRecord {
   id: number;
   user_id: number;
   date: string;
@@ -139,7 +139,7 @@ export interface FitdaysRecord {
   left_leg_muscle_level: string | null;
   left_leg_impedance_high: number | null;
   left_leg_impedance_low: number | null;
-  report: FitdaysReport | null;
+  report: RecompReport | null;
 }
 
 export interface UploadResponse {
@@ -192,7 +192,7 @@ export interface SharedLinkPublicMetadata {
 
 export interface SharedLinkPublicData {
   dashboard: DashboardSummary;
-  entries: FitdaysRecord[];
+  entries: RecompRecord[];
 }
 
 const TOKEN_KEY = "recomp_pro_token";
@@ -450,8 +450,8 @@ export const api = {
     });
   },
 
-  async getRecords(): Promise<FitdaysRecord[]> {
-    return apiFetch<FitdaysRecord[]>("/api/records", {
+  async getRecords(): Promise<RecompRecord[]> {
+    return apiFetch<RecompRecord[]>("/api/records", {
       method: "GET",
     });
   },
@@ -472,10 +472,10 @@ export const api = {
     });
   },
 
-  async uploadReport(recordId: number, file: File): Promise<FitdaysReport> {
+  async uploadReport(recordId: number, file: File): Promise<RecompReport> {
     const formData = new FormData();
     formData.append("file", file);
-    return apiFetch<FitdaysReport>(`/api/records/${recordId}/report`, {
+    return apiFetch<RecompReport>(`/api/records/${recordId}/report`, {
       method: "POST",
       formData,
     });

@@ -4,7 +4,7 @@ import {
   parseSegmental,
   parseImpedance,
   parseDate,
-  parseFitdaysFile,
+  parseRecompFile,
   classifyColumn,
   deduplicateParsedRecords,
 } from "../parser";
@@ -92,7 +92,7 @@ describe("Parser Utilities", () => {
     expect(classifyColumn("Músculo esquelético")).toBe("skeletalMuscleMass");
   });
 
-  it("parseFitdaysFile should correctly parse a Portuguese spreadsheet buffer with correct skeletal muscle mappings", () => {
+  it("parseRecompFile should correctly parse a Portuguese spreadsheet buffer with correct skeletal muscle mappings", () => {
     const data = [
       {
         "Hora/Data": "06:37 20/03/2026",
@@ -132,7 +132,7 @@ describe("Parser Utilities", () => {
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
     const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
-    const records = parseFitdaysFile(buf);
+    const records = parseRecompFile(buf);
     expect(records.length).toBe(1);
     const r = records[0];
     expect(r.weight).toBe(78.5);
@@ -155,7 +155,7 @@ describe("Parser Utilities", () => {
     expect(r.rightArmImpedanceLow).toBe(310);
   });
 
-  it("parseFitdaysFile should correctly parse an English spreadsheet buffer with distinct skeletal muscle % and kg", () => {
+  it("parseRecompFile should correctly parse an English spreadsheet buffer with distinct skeletal muscle % and kg", () => {
     const data = [
       {
         "Time of measurement": "2026-03-20 06:37:00",
@@ -192,7 +192,7 @@ describe("Parser Utilities", () => {
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
     const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
-    const records = parseFitdaysFile(buf);
+    const records = parseRecompFile(buf);
     expect(records.length).toBe(1);
     const r = records[0];
     expect(r.weight).toBe(82.0);
@@ -207,13 +207,13 @@ describe("Parser Utilities", () => {
     expect(r.proteinMass).toBe(16.0);
   });
 
-  it("parseFitdaysFile should correctly parse actual Fitdays-test-data.csv without swapping skeletal muscle % and kg", () => {
-    const filePath = path.resolve(process.cwd(), "test-data/Fitdays-test-data.csv");
+  it("parseRecompFile should correctly parse actual recomp-test-data.csv without swapping skeletal muscle % and kg", () => {
+    const filePath = path.resolve(process.cwd(), "test-data/recomp-test-data.csv");
     if (!fs.existsSync(filePath)) {
       return;
     }
     const buf = fs.readFileSync(filePath);
-    const records = parseFitdaysFile(buf);
+    const records = parseRecompFile(buf);
 
     expect(records.length).toBe(4);
     const r = records[0];
@@ -243,7 +243,7 @@ describe("Parser Utilities", () => {
     expect(r.rightArmMuscleLevel).toBe("Padrão");
   });
 
-  it("parseFitdaysFile and deduplicateParsedRecords should deduplicate rows sharing the same normalized minute timestamp", () => {
+  it("parseRecompFile and deduplicateParsedRecords should deduplicate rows sharing the same normalized minute timestamp", () => {
     const data = [
       {
         "Hora/Data": "06:37 20/03/2026",
@@ -267,7 +267,7 @@ describe("Parser Utilities", () => {
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
     const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
-    const records = parseFitdaysFile(buf);
+    const records = parseRecompFile(buf);
     // Two rows at 06:37 on 20/03/2026 should merge into 1, leaving 2 total records for the day
     expect(records.length).toBe(2);
     expect(records[0].weight).toBe(79.0);

@@ -159,7 +159,7 @@ describe("Starred History and Auto-Sharing Integration", () => {
     const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
     const formData = new FormData();
-    const file = new File([buf], "fitdays_export.xlsx", {
+    const file = new File([buf], "recomp_export.xlsx", {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
     formData.append("file", file);

@@ -1,4 +1,4 @@
-import { sharedLinks, sharedLinkAuditLogs, fitdaysRecords } from "@/db/schema";
+import { sharedLinks, sharedLinkAuditLogs, recompRecords } from "@/db/schema";
 import { and, eq, or, inArray, isNull, gt, asc } from "drizzle-orm";
 import { verifyAccessToken } from "./auth";
 import { safeToISOString } from "./dateUtils";
@@ -112,32 +112,32 @@ export async function recomputeSharedLinkSnapshot(link: SharedLinkSelect) {
   if (link.autoShareStarred) {
     if (manualIds.length > 0) {
       recordsWhere = and(
-        eq(fitdaysRecords.userId, link.ownerId),
-        or(eq(fitdaysRecords.starred, true), inArray(fitdaysRecords.id, manualIds))
+        eq(recompRecords.userId, link.ownerId),
+        or(eq(recompRecords.starred, true), inArray(recompRecords.id, manualIds))
       );
     } else {
       recordsWhere = and(
-        eq(fitdaysRecords.userId, link.ownerId),
-        eq(fitdaysRecords.starred, true)
+        eq(recompRecords.userId, link.ownerId),
+        eq(recompRecords.starred, true)
       );
     }
   } else {
     if (manualIds.length > 0) {
       recordsWhere = and(
-        eq(fitdaysRecords.userId, link.ownerId),
-        inArray(fitdaysRecords.id, manualIds)
+        eq(recompRecords.userId, link.ownerId),
+        inArray(recompRecords.id, manualIds)
       );
     } else {
       recordsWhere = and(
-        eq(fitdaysRecords.userId, link.ownerId),
-        inArray(fitdaysRecords.id, [-1])
+        eq(recompRecords.userId, link.ownerId),
+        inArray(recompRecords.id, [-1])
       );
     }
   }
 
-  const records = await db.query.fitdaysRecords.findMany({
+  const records = await db.query.recompRecords.findMany({
     where: recordsWhere,
-    orderBy: [asc(fitdaysRecords.date)],
+    orderBy: [asc(recompRecords.date)],
     with: {
       report: true,
     },

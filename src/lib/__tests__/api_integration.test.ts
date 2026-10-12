@@ -230,7 +230,7 @@ describe("API Route Handlers Integration", () => {
     const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
     const formData = new FormData();
-    const file = new File([buf], "fitdays_export.xlsx", {
+    const file = new File([buf], "recomp_export.xlsx", {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
     formData.append("file", file);
@@ -274,7 +274,7 @@ describe("API Route Handlers Integration", () => {
     const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
     const formData = new FormData();
-    const file = new File([buf], "fitdays_reupload.xlsx", {
+    const file = new File([buf], "recomp_reupload.xlsx", {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
     formData.append("file", file);
@@ -302,7 +302,7 @@ describe("API Route Handlers Integration", () => {
     // Simulate a legacy row storing an INTEGER Unix epoch timestamp for 2026-03-20 06:37:00 UTC
     const legacyEpochSec = Math.floor(Date.UTC(2026, 2, 20, 6, 37, 0) / 1000);
     await db.run(
-      sql`UPDATE fitdays_records SET date = ${legacyEpochSec} WHERE user_id = ${userRow.id} AND date = '2026-03-20 06:37:00'`
+      sql`UPDATE recomp_records SET date = ${legacyEpochSec} WHERE user_id = ${userRow.id} AND date = '2026-03-20 06:37:00'`
     );
 
     const data = [
@@ -320,7 +320,7 @@ describe("API Route Handlers Integration", () => {
     const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
     const formData = new FormData();
-    const file = new File([buf], "fitdays_legacy_match.xlsx", {
+    const file = new File([buf], "recomp_legacy_match.xlsx", {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
     formData.append("file", file);

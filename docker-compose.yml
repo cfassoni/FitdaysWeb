@@ -1,27 +1,7 @@
 name: recomp-pro
 
 services:
-  data-migrator:
-    image: alpine
-    volumes:
-      - fitdays-db-data-legacy:/from
-      - recomp_pro_data:/to
-    command: >
-      /bin/sh -c "
-        log() { echo \"[$$(date '+%Y-%m-%d %H:%M:%S')] $$1\"; };
-        if [ ! -f /to/fitdays.db ] && [ -f /from/fitdays.db ]; then
-          log 'Migrating legacy data to new volume...';
-          cp -av /from/. /to/;
-          log 'Migration complete.';
-        else
-          log 'No migration needed.';
-        fi
-      "
-
   app:
-    depends_on:
-      data-migrator:
-        condition: service_completed_successfully
     image: recomp-pro:latest
     build:
       context: .
@@ -31,10 +11,10 @@ services:
       - "3000:3000"
     environment:
       - DOCKER_MODE=true
-      - DATABASE_URL=file:/app/data/fitdays.db
+      - DATABASE_URL=file:/app/data/recomp_pro.db
       - UPLOAD_DIR=/app/data/uploads/profile_pics
       - REPORTS_DIR=/app/data/uploads/reports
-      - JWT_SECRET=${SECRET_KEY:-fitdays_super_secret_key_12345_change_in_production}
+      - JWT_SECRET=${SECRET_KEY:-recomp_pro_super_secret_key_12345_change_in_production}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
       - MAILGUN_API_KEY=${MAILGUN_API_KEY:-}
       - MAILGUN_DOMAIN=${MAILGUN_DOMAIN:-}
@@ -48,7 +28,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  fitdays-db-data-legacy:
-    name: fitdaysweb_fitdays-db-data
   recomp_pro_data:
     name: recomp_pro_data

@@ -11,14 +11,14 @@ Recomp Pro is optimized for self-hosting via Docker and Portainer with native mu
    ```yaml
    services:
      app:
-       image: ghcr.io/cfassoni/fitdaysweb/app:latest
+       image: ghcr.io/cfassoni/recomppro-core/app:latest
        container_name: recomp-pro-app
        ports:
          - "80:3000"
        environment:
          - NODE_ENV=production
          - DOCKER_MODE=true
-         - DATABASE_URL=file:/app/data/fitdays.db
+         - DATABASE_URL=file:/app/data/recomp_pro.db
          - UPLOAD_DIR=/app/data/uploads/profile_pics
          - REPORTS_DIR=/app/data/uploads/reports
          - JWT_SECRET=${SECRET_KEY:-default_secret_key_change_in_production}
@@ -44,9 +44,9 @@ Recomp Pro is optimized for self-hosting via Docker and Portainer with native mu
 
 ---
 
-## 2. Upgrading from v0.3.0 to v0.4.0 (Volume Migration Procedure)
+## 2. Upgrading from v0.3.0 to v0.4.0+ (Volume Migration Procedure)
 
-Upgrading from the legacy Python/FastAPI multi-container architecture (v0.3.0) to the single-container Next.js monolith (v0.4.0) involves moving your existing SQLite database (`fitdays.db`) and uploaded media from the legacy volume to the new `recomp_pro_data` volume.
+Upgrading from the legacy Python/FastAPI multi-container architecture (v0.3.0) to the single-container Next.js monolith involves moving your existing SQLite database (`fitdays.db`, automatically renamed to `recomp_pro.db` on startup) and uploaded media from the legacy volume to the new `recomp_pro_data` volume.
 
 Follow this 3-step transition procedure:
 
@@ -62,19 +62,19 @@ services:
     volumes:
       - fitdays-db-data-legacy:/from
       - recomp_pro_data:/to
-    command: sh -c "if [ ! -f /to/fitdays.db ] && [ -f /from/fitdays.db ]; then echo '[Migration] Migrating legacy data to new volume...'; cp -av /from/. /to/; echo '[Migration] Migration complete.'; else echo '[Migration] No migration needed.'; fi"
+    command: sh -c "if [ ! -f /to/recomp_pro.db ] && [ ! -f /to/fitdays.db ] && [ -f /from/fitdays.db ]; then echo '[Migration] Migrating legacy data to new volume...'; cp -av /from/. /to/; echo '[Migration] Migration complete.'; else echo '[Migration] No migration needed.'; fi"
 
   app:
     depends_on:
       - data-migrator
-    image: ghcr.io/cfassoni/fitdaysweb/app:latest
+    image: ghcr.io/cfassoni/recomppro-core/app:latest
     container_name: recomp-pro-app
     ports:
       - "80:3000"
     environment:
       - NODE_ENV=production
       - DOCKER_MODE=true
-      - DATABASE_URL=file:/app/data/fitdays.db
+      - DATABASE_URL=file:/app/data/recomp_pro.db
       - UPLOAD_DIR=/app/data/uploads/profile_pics
       - REPORTS_DIR=/app/data/uploads/reports
       - JWT_SECRET=${SECRET_KEY:-default_secret_key_change_in_production}
@@ -98,7 +98,7 @@ volumes:
 
 > **Note for Portainer Users:** If your legacy stack was named `fitdaysweb` instead of `fitdays-web`, check the volume name in Portainer (**Volumes** tab) and update the `name:` property under `fitdays-db-data-legacy` accordingly.
 
-Deploy/update the stack. The `data-migrator` will execute automatically once, copy the files to `recomp_pro_data`, and exit cleanly.
+Deploy/update the stack. The `data-migrator` will execute automatically once, copy the files to `recomp_pro_data`, and exit cleanly. On startup, `recomp-pro-app` automatically renames `fitdays.db` to `recomp_pro.db` and migrates the database tables.
 
 ### Step 2: Verification
 
@@ -114,9 +114,4 @@ Once your data is verified:
 2. Redeploy the stack.
 3. *(Optional)* The legacy volume (`fitdays-web_fitdays-db-data`) can now be kept as an offline backup or safely removed.
 
----
-
-## 3. Future Deployments: Cloudflare Pages
-
-Cloudflare Pages deployment (with D1 SQLite database and R2 object storage) is scheduled for Phase 5.
 

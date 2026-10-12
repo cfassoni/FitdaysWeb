@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
 import { db } from "@/db/client";
-import { fitdaysRecords, fitdaysReports } from "@/db/schema";
+import { recompRecords, recompReports } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { formatReportResponse } from "@/lib/recordFormat";
 import fs from "fs";
@@ -15,10 +15,10 @@ export const GET = withAuth(async (req, { user, params }) => {
       return NextResponse.json({ detail: "Invalid record ID" }, { status: 400 });
     }
 
-    const record = await db.query.fitdaysRecords.findFirst({
+    const record = await db.query.recompRecords.findFirst({
       where: and(
-        eq(fitdaysRecords.id, recordId),
-        eq(fitdaysRecords.userId, user.id)
+        eq(recompRecords.id, recordId),
+        eq(recompRecords.userId, user.id)
       ),
       with: {
         report: true,
@@ -50,10 +50,10 @@ export const POST = withAuth(async (req, { user, params }) => {
       return NextResponse.json({ detail: "Invalid record ID" }, { status: 400 });
     }
 
-    const record = await db.query.fitdaysRecords.findFirst({
+    const record = await db.query.recompRecords.findFirst({
       where: and(
-        eq(fitdaysRecords.id, recordId),
-        eq(fitdaysRecords.userId, user.id)
+        eq(recompRecords.id, recordId),
+        eq(recompRecords.userId, user.id)
       ),
       with: {
         report: true,
@@ -113,13 +113,13 @@ export const POST = withAuth(async (req, { user, params }) => {
           console.warn("Failed to delete previous report file:", err);
         }
       }
-      await db.delete(fitdaysReports).where(eq(fitdaysReports.recordId, recordId));
+      await db.delete(recompReports).where(eq(recompReports.recordId, recordId));
     }
 
     fs.writeFileSync(filepath, buffer);
 
     const [newReport] = await db
-      .insert(fitdaysReports)
+      .insert(recompReports)
       .values({
         recordId: recordId,
         filePath: filepath,
@@ -147,10 +147,10 @@ export const DELETE = withAuth(async (req, { user, params }) => {
       return NextResponse.json({ detail: "Invalid record ID" }, { status: 400 });
     }
 
-    const record = await db.query.fitdaysRecords.findFirst({
+    const record = await db.query.recompRecords.findFirst({
       where: and(
-        eq(fitdaysRecords.id, recordId),
-        eq(fitdaysRecords.userId, user.id)
+        eq(recompRecords.id, recordId),
+        eq(recompRecords.userId, user.id)
       ),
       with: {
         report: true,
@@ -176,7 +176,7 @@ export const DELETE = withAuth(async (req, { user, params }) => {
       }
     }
 
-    await db.delete(fitdaysReports).where(eq(fitdaysReports.recordId, recordId));
+    await db.delete(recompReports).where(eq(recompReports.recordId, recordId));
 
     return new NextResponse(null, { status: 204 });
   } catch (err) {

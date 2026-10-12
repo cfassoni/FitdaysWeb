@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
-import { parseFitdaysFile, deduplicateParsedRecords } from "@/lib/parser";
+import { parseRecompFile, deduplicateParsedRecords } from "@/lib/parser";
 import { formatRecordDateKey, normalizeToMinute } from "@/lib/dateUtils";
 import { db } from "@/db/client";
-import { normalizeFitdaysRecordDates } from "@/db/initDb";
-import { fitdaysRecords } from "@/db/schema";
+import { normalizeRecompRecordDates } from "@/db/initDb";
+import { recompRecords } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export const POST = withAuth(async (req, { user }) => {
@@ -21,11 +21,11 @@ export const POST = withAuth(async (req, { user }) => {
 
     let parsedRecords;
     try {
-      parsedRecords = parseFitdaysFile(buffer);
+      parsedRecords = parseRecompFile(buffer);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       return NextResponse.json(
-        { detail: `Failed to parse Fitdays file: ${message}` },
+        { detail: `Failed to parse file: ${message}` },
         { status: 400 }
       );
     }
@@ -34,23 +34,23 @@ export const POST = withAuth(async (req, { user }) => {
 
     if (deduplicatedRecords.length === 0) {
       return NextResponse.json(
-        { detail: "No valid Fitdays records found in the uploaded file" },
+        { detail: "No valid records found in the uploaded file" },
         { status: 400 }
       );
     }
 
     // Ensure any legacy integer or unnormalized dates in SQLite are canonicalized
-    await normalizeFitdaysRecordDates();
+    await normalizeRecompRecordDates();
 
     let insertedCount = 0;
     let updatedCount = 0;
 
     await db.transaction(async (tx) => {
-      const existingRecords = await tx.query.fitdaysRecords.findMany({
-        where: eq(fitdaysRecords.userId, user.id),
+      const existingRecords = await tx.query.recompRecords.findMany({
+        where: eq(recompRecords.userId, user.id),
       });
 
-      const existingByDateKey = new Map<string, typeof fitdaysRecords.$inferSelect>();
+      const existingByDateKey = new Map<string, typeof recompRecords.$inferSelect>();
       for (const existing of existingRecords) {
         const key = formatRecordDateKey(existing.date);
         if (key) {
@@ -142,24 +142,24 @@ export const POST = withAuth(async (req, { user }) => {
 
         if (existing) {
           await tx
-            .update(fitdaysRecords)
+            .update(recompRecords)
             .set({
               date: normalizedDate,
               ...recordPayload,
             })
-            .where(eq(fitdaysRecords.id, existing.id));
+            .where(eq(recompRecords.id, existing.id));
 
           updatedCount += 1;
         } else {
           const [inserted] = await tx
-            .insert(fitdaysRecords)
+            .insert(recompRecords)
             .values({
               userId: user.id,
               date: normalizedDate,
               ...recordPayload,
             })
             .onConflictDoUpdate({
-              target: [fitdaysRecords.userId, fitdaysRecords.date],
+              target: [recompRecords.userId, recompRecords.date],
               set: recordPayload,
             })
             .returning();
