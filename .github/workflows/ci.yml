@@ -9,6 +9,8 @@ on:
     branches:
       - main
       - preview
+  schedule:
+    - cron: '0 9 * * 1'
 
 jobs:
   nextjs:
@@ -27,6 +29,9 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Security Audit (Production Dependencies)
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Lint
         run: npm run lint
