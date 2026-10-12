@@ -217,13 +217,17 @@ export const removeAuthToken = (): void => {
 interface FetchOptions extends RequestInit {
   json?: unknown;
   formData?: FormData;
+  skipAuthExpire?: boolean;
 }
 
 async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
   const token = getAuthToken();
   const headers = new Headers(options.headers || {});
+  const isPublicEndpoint =
+    endpoint.startsWith("/api/shared-links/public/") ||
+    endpoint === "/api/users/login";
 
-  if (token && !headers.has("Authorization")) {
+  if (token && !headers.has("Authorization") && !isPublicEndpoint) {
     headers.set("Authorization", `Bearer ${token}`);
   }
 
@@ -242,7 +246,12 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
   const response = await fetch(endpoint, fetchOptions);
 
   if (!response.ok) {
-    if (response.status === 401 && typeof window !== "undefined") {
+    if (
+      response.status === 401 &&
+      typeof window !== "undefined" &&
+      !options.skipAuthExpire &&
+      !isPublicEndpoint
+    ) {
       removeAuthToken();
       window.dispatchEvent(new Event("auth-session-expired"));
     }
@@ -549,6 +558,7 @@ export const api = {
   async getPublicSharedLinkMetadata(token: string): Promise<SharedLinkPublicMetadata> {
     return apiFetch<SharedLinkPublicMetadata>(`/api/shared-links/public/${token}`, {
       method: "GET",
+      skipAuthExpire: true,
     });
   },
 
@@ -556,6 +566,7 @@ export const api = {
     return apiFetch<{ guest_token: string }>(`/api/shared-links/public/${token}/verify`, {
       method: "POST",
       json: { password },
+      skipAuthExpire: true,
     });
   },
 
@@ -567,6 +578,7 @@ export const api = {
     return apiFetch<SharedLinkPublicData>(`/api/shared-links/public/${token}/data`, {
       method: "GET",
       headers,
+      skipAuthExpire: true,
     });
   },
 };

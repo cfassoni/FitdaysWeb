@@ -144,7 +144,11 @@ export default function GuestSharedReport({ token }: GuestSharedReportProps) {
       await fetchReportData(res.guest_token);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "";
-      setVerificationError(msg || t("sharing.errorIncorrectPassword"));
+      if (!msg || msg.toLowerCase().includes("incorrect password")) {
+        setVerificationError(t("sharing.errorIncorrectPassword"));
+      } else {
+        setVerificationError(msg);
+      }
     } finally {
       setIsVerifying(false);
     }
