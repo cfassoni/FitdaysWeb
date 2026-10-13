@@ -246,6 +246,26 @@ export async function ensureTablesExist(): Promise<void> {
     );
   `);
 
+  await db.run(sql`
+    CREATE TABLE IF NOT EXISTS user_integrations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      provider TEXT NOT NULL,
+      account_identifier TEXT NOT NULL,
+      encrypted_credentials TEXT NOT NULL,
+      config_json TEXT,
+      status TEXT NOT NULL DEFAULT 'connected',
+      last_synced_at DATETIME,
+      last_sync_error TEXT,
+      created_at DATETIME NOT NULL,
+      updated_at DATETIME NOT NULL
+    );
+  `);
+
+  await db.run(sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS _user_provider_uc ON user_integrations (user_id, provider);
+  `);
+
   // Defensive migrations for existing SQLite databases
   try {
     await db.run(sql`ALTER TABLE recomp_records ADD COLUMN starred INTEGER NOT NULL DEFAULT 0`);

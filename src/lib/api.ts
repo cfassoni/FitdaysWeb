@@ -26,6 +26,62 @@ export interface User {
   created_at: string;
 }
 
+export interface IntegrationProfile {
+  suid: number;
+  nickname: string;
+  height: number;
+  birthday: string;
+  target_weight: number;
+  sex: number;
+}
+
+export interface IntegrationDevice {
+  name: string;
+  model: string;
+  mac: string;
+}
+
+export interface UserIntegrationConfig {
+  baseUrl?: string;
+  country?: string;
+  selectedSuid?: number;
+  selectedProfileName?: string;
+  skipWeightOnly?: boolean;
+  profiles?: IntegrationProfile[];
+  devices?: IntegrationDevice[];
+}
+
+export interface UserIntegration {
+  id: number;
+  provider: string;
+  accountIdentifier: string;
+  status: "connected" | "error" | "disconnected";
+  lastSyncedAt: string | null;
+  lastSyncError: string | null;
+  config: UserIntegrationConfig;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ConnectFitdaysResponse {
+  success: boolean;
+  activeSuid?: number;
+  profiles: IntegrationProfile[];
+  devices: IntegrationDevice[];
+}
+
+export interface FitdaysSyncResult {
+  inserted: number;
+  updated: number;
+  totalProcessed: number;
+}
+
+export interface FitdaysSyncResponse {
+  success: boolean;
+  result: FitdaysSyncResult;
+  lastSyncedAt?: string;
+}
+
 export interface WeightHistoryPoint {
   date: string;
   weight: number;
@@ -579,6 +635,62 @@ export const api = {
       method: "GET",
       headers,
       skipAuthExpire: true,
+    });
+  },
+
+  // ---------------------------------------------------------------------------
+  // External Provider Integrations
+  // ---------------------------------------------------------------------------
+  async getIntegrations(): Promise<UserIntegration[]> {
+    return apiFetch<UserIntegration[]>("/api/integrations", {
+      method: "GET",
+    });
+  },
+
+  async connectFitdays(data: {
+    email: string;
+    password: string;
+    country?: string;
+    region?: string;
+  }): Promise<ConnectFitdaysResponse> {
+    return apiFetch<ConnectFitdaysResponse>("/api/integrations/fitdays/connect", {
+      method: "POST",
+      json: data,
+    });
+  },
+
+  async selectFitdaysProfile(
+    suid: number,
+    syncNow = true
+  ): Promise<{ success: boolean; selectedSuid: number; selectedProfileName?: string; result: FitdaysSyncResult }> {
+    return apiFetch<{ success: boolean; selectedSuid: number; selectedProfileName?: string; result: FitdaysSyncResult }>(
+      "/api/integrations/fitdays/select-profile",
+      {
+        method: "POST",
+        json: { suid, syncNow },
+      }
+    );
+  },
+
+  async syncFitdays(forceFull = false): Promise<FitdaysSyncResponse> {
+    return apiFetch<FitdaysSyncResponse>("/api/integrations/fitdays/sync", {
+      method: "POST",
+      json: { forceFull },
+    });
+  },
+
+  async disconnectFitdays(): Promise<{ success: boolean; message: string }> {
+    return apiFetch<{ success: boolean; message: string }>("/api/integrations/fitdays", {
+      method: "DELETE",
+    });
+  },
+
+  async updateFitdaysConfig(config: {
+    skipWeightOnly?: boolean;
+  }): Promise<{ success: boolean; config: UserIntegrationConfig }> {
+    return apiFetch<{ success: boolean; config: UserIntegrationConfig }>("/api/integrations/fitdays", {
+      method: "PATCH",
+      json: config,
     });
   },
 };
