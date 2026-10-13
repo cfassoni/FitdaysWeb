@@ -14,17 +14,17 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
-    "@libsql/client": "^0.17.4",
+    "@libsql/client": "^0.18.0",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.4",
     "i18next": "^26.4.4",
     "i18next-browser-languagedetector": "^8.2.1",
     "jose": "^6.2.12",
-    "lucide-react": "^1.33.0",
+    "lucide-react": "^1.55.0",
     "next": "16.4.0",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "react-i18next": "^17.0.16",
     "recharts": "^3.10.1",
     "xlsx": "npm:@e965/xlsx@^0.20.3"
