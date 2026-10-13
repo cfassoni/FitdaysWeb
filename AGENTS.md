@@ -18,11 +18,20 @@ feat/* | fix/* | docs/* (Isolated feature branches)
   - Direct pushes to `main` or `preview` are strictly forbidden.
   - The `main` branch is strictly reserved for release cutovers promoted from `preview`.
 
-- **Semantic Pull Request Titles**:
+- **Semantic Pull Request & Release Titles**:
   - All Pull Request titles must strictly follow Conventional Commits format (`feat:`, `fix:`, `chore:`, `docs:`, `style:`, `refactor:`, `perf:`, `test:`, `build:`, `ci:`, `revert:`).
   - For Release Pull Requests from `preview` to `main`, always use: `chore(release): v<version> — <summary>` so that PR title semantic validation passes.
+  - For GitHub Releases (`gh release create`), the release `--title` must be **strictly the version code** (e.g., `v0.7.0`), with **no descriptive text or subtitle**.
 
-- **Link and Close GitHub Issues**: When creating a Pull Request, always include closing keywords (e.g., `Closes #<issue_number>` or `Fixes #<issue_number>`) in the Pull Request description so that the associated issue is automatically closed when the PR is merged.
+- **Link and Close GitHub Issues**:
+  - When creating a feature Pull Request targeting `preview`, include closing keywords (`Closes #<issue_number>`) in the PR description for traceability.
+  - Because GitHub only auto-closes issues when a PR targets the default branch (`main`), **every Release Pull Request (`preview` ➔ `main`) must also explicitly list `Closes #<issue_number>` in its body for all issues delivered in that release cycle**.
+
+- **Streamlined Release Cutover Workflow**:
+  - Once the user initiates a release and confirms the target version (`vX.Y.Z`), do NOT pause for separate micro-approvals on intermediate commits, branch pushes, or tag creation:
+    1. Automatically create `chore/bump-vX.Y.Z` off `preview`, sync `origin/main` ancestry (`git merge --no-edit origin/main`), run `npm run version:bump X.Y.Z`, verify build/tests, commit, push `chore/bump-vX.Y.Z`, and open the PR targeting `preview`. Output the PR URL and wait for the user's manual merge.
+    2. As soon as the user confirms the bump PR is merged into `preview`, immediately pull `origin/preview` and open the Release PR (`preview` ➔ `main`). Output the PR URL and wait for the user's manual merge.
+    3. As soon as the user confirms the Release PR is merged into `main`, immediately create the GitHub Release and tag (`gh release create vX.Y.Z --target main --title "vX.Y.Z"`).
 
 - **Zero-Polling on Remote CI/CD & GitHub Procedures (Token Conservation)**:
   - Do NOT poll or loop checking status of GitHub Actions workflows, CI runs, PR checks, or release image builds.
@@ -40,10 +49,9 @@ feat/* | fix/* | docs/* (Isolated feature branches)
 | **Creating local feature branch (`fix/*`, `feat/*`)**       |   **YES**       | Always branch off latest `preview`.                                                                                                                                                               |
 | **Committing locally on feature branch**                    |   **YES**       | Use Conventional Commits (`feat:`, `fix:`, `chore:`).                                                                                                                                             |
 | **Merging feature branch locally into `preview` or `main`** |  **NEVER**      | **Requires explicit written user approval after user testing.**                                                                                                                                   |
-| **Pushing to remote repository (`git push`)**               |  **NEVER**      | **Requires explicit written user approval.**                                                                                                                                                      |
-| **Creating Pull Requests (`gh pr create`)**                 |  **NEVER**      | **Requires explicit written user approval.**                                                                                                                                                      |
+| **Pushing & Opening Feature PR (`git push` + `gh pr create`)** | **ON PR APPROVAL** | **Wait for user testing approval (e.g., "pode abrir PR"); once approved, push the branch and open the PR in one step.**                                                                           |
+| **Release Bump PR, Release PR & Tag (`vX.Y.Z`)**            | **ON RELEASE START**  | **Once the user requests a release and confirms version `vX.Y.Z`, execute the bump PR (`➔ preview`), Release PR (`➔ main`), and `gh release create vX.Y.Z` automatically after each human merge.** |
 | **Merging Pull Requests (`gh pr merge`)**                   |  **NEVER**      | **Human-only. Merges are performed manually by the user — enforced as a hard rule, _not_ as a permission limit (the App does hold `pull_requests: write`, which it needs in order to open PRs).** |
-| **Publishing Releases / Tags (`gh release create`)**        |  **NEVER**      | **Requires explicit written user approval.**                                                                                                                                                      |
 
 ---
 
