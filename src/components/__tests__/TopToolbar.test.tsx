@@ -16,6 +16,7 @@ vi.mock("react-i18next", () => ({
         "toolbar.toggleLanguage": "Change Language: English",
         "toolbar.userMenu": "User profile menu",
         "toolbar.editProfile": "Edit Profile",
+        "toolbar.integrations": "Integrations",
         "toolbar.logout": "Logout",
         "toolbar.switchToDark": "Switch to Dark Mode",
         "toolbar.switchToLight": "Switch to Light Mode",
@@ -69,6 +70,7 @@ describe("TopToolbar", () => {
     user: mockUser,
     onLogout: vi.fn(),
     onEditProfile: vi.fn(),
+    onNavigateToIntegrations: vi.fn(),
     onUserUpdate: vi.fn(),
     onMobileMenuToggle: vi.fn(),
   };
@@ -117,6 +119,13 @@ describe("TopToolbar", () => {
     fireEvent.click(editProfileBtn);
     expect(mockProps.onEditProfile).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole("menu", { name: "User options" })).not.toBeInTheDocument(); // Closes after action
+
+    // Reopen menu for Integrations test
+    fireEvent.click(avatarButton);
+    const integrationsBtn = screen.getByRole("menuitem", { name: "Integrations" });
+    fireEvent.click(integrationsBtn);
+    expect(mockProps.onNavigateToIntegrations).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("menu", { name: "User options" })).not.toBeInTheDocument();
 
     // Reopen menu for logout test
     fireEvent.click(avatarButton);

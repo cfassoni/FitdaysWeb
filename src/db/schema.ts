@@ -187,11 +187,44 @@ export const sharedLinkAuditLogs = sqliteTable("shared_link_audit_logs", {
 });
 
 // -----------------------------------------------------------------------------
+// Table: User Integrations
+// -----------------------------------------------------------------------------
+export const userIntegrations = sqliteTable(
+  "user_integrations",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull(),
+    accountIdentifier: text("account_identifier").notNull(),
+    encryptedCredentials: text("encrypted_credentials").notNull(),
+    configJson: text("config_json"),
+    status: text("status").notNull().default("connected"),
+    lastSyncedAt: sqliteDateTime("last_synced_at"),
+    lastSyncError: text("last_sync_error"),
+    createdAt: sqliteDateTime("created_at").notNull().$defaultFn(() => new Date()),
+    updatedAt: sqliteDateTime("updated_at").notNull().$defaultFn(() => new Date()),
+  },
+  (table) => [
+    unique("_user_provider_uc").on(table.userId, table.provider),
+  ]
+);
+
+// -----------------------------------------------------------------------------
 // Relations (Declared strictly after all table definitions)
 // -----------------------------------------------------------------------------
 export const usersRelations = relations(users, ({ many }) => ({
   records: many(recompRecords),
   sharedLinks: many(sharedLinks),
+  integrations: many(userIntegrations),
+}));
+
+export const userIntegrationsRelations = relations(userIntegrations, ({ one }) => ({
+  user: one(users, {
+    fields: [userIntegrations.userId],
+    references: [users.id],
+  }),
 }));
 
 export const recompRecordsRelations = relations(recompRecords, ({ one }) => ({
