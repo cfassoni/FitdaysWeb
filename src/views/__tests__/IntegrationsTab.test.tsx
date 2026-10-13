@@ -179,4 +179,45 @@ describe("IntegrationsTab Component", () => {
       expect(api.disconnectFitdays).toHaveBeenCalled();
     });
   });
+
+  it("renders member profile selector with Male for sex 0 and formatted birthday", async () => {
+    vi.mocked(api.getIntegrations).mockResolvedValueOnce([]);
+    vi.mocked(api.connectFitdays).mockResolvedValueOnce({
+      success: true,
+      profiles: [
+        {
+          suid: 110320223,
+          nickname: "Celso Fassoni",
+          height: 184,
+          birthday: "1971-05-28 00:00:00",
+          target_weight: 86,
+          sex: 0,
+        },
+      ],
+      devices: [],
+    });
+
+    render(<IntegrationsTab />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Connect & Verify/i })).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByLabelText(/Fitdays Account Email \/ Phone/i), {
+      target: { value: "celso@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/Fitdays Password/i), {
+      target: { value: "password123" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Connect & Verify/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Select Member Profile")).toBeInTheDocument();
+      expect(screen.getByText("Celso Fassoni")).toBeInTheDocument();
+      expect(screen.getByText(/Male/i)).toBeInTheDocument();
+      expect(screen.queryByText(/Female/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/00:00:00/i)).not.toBeInTheDocument();
+    });
+  });
 });

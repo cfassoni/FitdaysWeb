@@ -606,8 +606,13 @@ export default function IntegrationsTab({ onDataChanged }: IntegrationsTabProps)
                           {p.nickname}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {p.birthday || "—"} • {p.height ? `${p.height} cm` : ""} •{" "}
-                          {p.sex === 1 ? t("common.male") : t("common.female")}
+                          {p.birthday ? formatDate(p.birthday.split(" ")[0]) : "—"}
+                          {p.height ? ` • ${p.height} cm` : ""}
+                          {p.sex === 0
+                            ? ` • ${t("common.male")}`
+                            : p.sex === 1
+                            ? ` • ${t("common.female")}`
+                            : ""}
                         </span>
                       </div>
                     </div>
